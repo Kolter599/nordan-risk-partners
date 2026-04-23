@@ -47,12 +47,12 @@ export default function Home() {
       <section className="relative overflow-hidden text-white min-h-[82vh] flex items-center">
         <div className="absolute inset-0">
           <Image
-            src="/images/nordan-75.jpg"
-            alt=""
+            src="/images/hero-founders-wide.jpg"
+            alt="Mads Horvitz Larsen og Leo Julsgaard — stiftere af Nordan Risk Partners"
             fill
             priority
             fetchPriority="high"
-            className="object-cover object-[25%_center]"
+            className="object-cover object-[30%_center]"
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-85" />
@@ -183,6 +183,7 @@ export default function Home() {
           <div className="lg:col-span-7">
             <ProcessPreview />
           </div>
+          {/* vertical founders portrait appears in the dashboard mockup's neighbor section intentionally blank here */}
         </div>
       </section>
 

@@ -29,7 +29,7 @@ const TEAM = [
     phoneHref: "tel:+4553520006",
     email: "lj@ndrp.dk",
     linkedin: "https://www.linkedin.com/in/leo-julsgaard-a358a78/",
-    image: "/images/nordan-73.jpg",
+    image: "/images/team-leo.jpg",
   },
 ];
 
@@ -40,7 +40,7 @@ export default function OmOsPage() {
         eyebrow="Om os"
         title={<>„Vi tror på, at løsninger skabes i tæt samarbejde.”</>}
         body="Over 40 års samlet brancheerfaring. Flere kundeforhold der går tilbage mere end to årtier."
-        image="/images/nordan-8.jpg"
+        image="/images/founders-vertical.jpg"
       />
 
       {/* INTRO */}
