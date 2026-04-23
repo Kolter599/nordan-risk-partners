@@ -49,7 +49,11 @@ export function InsurancePageTemplate({ product }: Props) {
               <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-6">
                 {product.eyebrow}
               </div>
-              <h1 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2.25rem,4.6vw,4rem)] leading-[1.08] tracking-[-0.015em]">
+              <h1
+                lang="da"
+                className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2rem,3.8vw,3.25rem)] leading-[1.1] tracking-[-0.015em] hyphens-auto break-words"
+                style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}
+              >
                 {product.title}
               </h1>
               <p className="mt-8 max-w-xl text-lg md:text-xl text-white/90 leading-[1.55]">
