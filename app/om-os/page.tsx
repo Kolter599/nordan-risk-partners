@@ -40,27 +40,43 @@ export default function OmOsPage() {
         eyebrow="Om os"
         title={<>„Vi tror på, at løsninger skabes i tæt samarbejde.”</>}
         body="Over 40 års samlet brancheerfaring. Flere kundeforhold der går tilbage mere end to årtier."
-        image="/images/founders-vertical.jpg"
+        image="/images/nordan-50.jpg"
       />
 
-      {/* INTRO */}
+      {/* INTRO — text + full vertical founders portrait */}
       <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-4xl px-5 md:px-8 prose-body">
-          <p>
-            Nordan Risk Partners er etableret med ambitionen om at tilbyde målrettet, personlig og ærlig forsikringsrådgivning. Med over 40 års samlet erfaring i branchen forener vi indsigt og tilgængelighed med et klart fokus: at skabe reel værdi for vores kunder — ikke bare her og nu, men på lang sigt.
-          </p>
-          <p>
-            Vi tror på, at stærke relationer og tæt sparring er fundamentet for de bedste løsninger. Derfor er vi til stede hele vejen — fra analyse og rådgivning til løbende dialog og håndtering. Hos os møder du ikke skiftende kontaktpersoner, automatiserede systemer eller telefonsluser. Du får direkte adgang til erfarne rådgivere, der kender din forretning og tager ansvar for din dækning.
-          </p>
-          <p>
-            I en branche præget af standardløsninger og afstand, har vi valgt en anden tilgang. Vi er engagerede i at forstå den enkelte virksomhed og rådgiver med afsæt i din virkelighed. Det betyder også, at vi er ærlige, hvis noget ikke giver mening — og tilgængelige, når behovet opstår.
-          </p>
-          <p>
-            Flere af vores kunder gennem tiden har vi samarbejdet med i mere end to årtier. Det vidner om tillid, gensidighed og værdien af et partnerskab, der rækker ud over det formelle. Vores ambition er at være en langsigtet sparringspartner, der bidrager til din virksomheds tryghed og udvikling.
-          </p>
-          <p>
-            Nordan Risk Partners er for dig, der ønsker kompetent rådgivning, tæt relation og en partner, der altid er til at få fat i.
-          </p>
+        <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
+          <div className="md:col-span-7 prose-body">
+            <p>
+              Nordan Risk Partners er etableret med ambitionen om at tilbyde målrettet, personlig og ærlig forsikringsrådgivning. Med over 40 års samlet erfaring i branchen forener vi indsigt og tilgængelighed med et klart fokus: at skabe reel værdi for vores kunder — ikke bare her og nu, men på lang sigt.
+            </p>
+            <p>
+              Vi tror på, at stærke relationer og tæt sparring er fundamentet for de bedste løsninger. Derfor er vi til stede hele vejen — fra analyse og rådgivning til løbende dialog og håndtering. Hos os møder du ikke skiftende kontaktpersoner, automatiserede systemer eller telefonsluser. Du får direkte adgang til erfarne rådgivere, der kender din forretning og tager ansvar for din dækning.
+            </p>
+            <p>
+              I en branche præget af standardløsninger og afstand, har vi valgt en anden tilgang. Vi er engagerede i at forstå den enkelte virksomhed og rådgiver med afsæt i din virkelighed. Det betyder også, at vi er ærlige, hvis noget ikke giver mening — og tilgængelige, når behovet opstår.
+            </p>
+            <p>
+              Flere af vores kunder gennem tiden har vi samarbejdet med i mere end to årtier. Det vidner om tillid, gensidighed og værdien af et partnerskab, der rækker ud over det formelle. Vores ambition er at være en langsigtet sparringspartner, der bidrager til din virksomheds tryghed og udvikling.
+            </p>
+            <p>
+              Nordan Risk Partners er for dig, der ønsker kompetent rådgivning, tæt relation og en partner, der altid er til at få fat i.
+            </p>
+          </div>
+          <div className="md:col-span-5 md:sticky md:top-28">
+            <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+              <Image
+                src="/images/founders-vertical.jpg"
+                alt="Leo Julsgaard og Mads Horvitz Larsen — stiftere af Nordan Risk Partners"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 40vw"
+              />
+            </figure>
+            <figcaption className="mt-4 text-[0.82rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
+              Leo Julsgaard &amp; Mads Horvitz Larsen · Stiftere
+            </figcaption>
+          </div>
         </div>
       </section>
 
