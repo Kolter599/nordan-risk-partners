@@ -1,173 +1,142 @@
 /**
  * Insurance product catalog — single source of truth for every
  * /erhvervsforsikringer/[slug] page. Add/edit products here and they'll
- * render through the shared InsurancePageTemplate.
+ * render through the shared InsurancePageTemplate with rich blocks.
  */
 
-export type InsuranceSection = {
+export type InsuranceBullet = { label: string; body?: string };
+
+export type FeatureBlock = {
+  eyebrow?: string;
   title: string;
-  body: string; // short paragraphs separated by \n\n
-  bullets?: string[];
+  body: string;
+  bullets?: InsuranceBullet[];
+  image: string;
+  imageSide?: "left" | "right"; // default right
 };
+
+export type Stat = { value: string; label: string };
+
+export type Faq = { q: string; a: string };
+
+export type Quote = { text: string; who?: string; role?: string };
 
 export type InsuranceProduct = {
   slug: string;
-  title: string; // page h1
-  navLabel: string; // short label for A-Z listing
-  letter: string; // A-Z bucket
+  title: string;
+  navLabel: string;
+  letter: string;
   metaDescription: string;
   eyebrow: string;
-  intro: string; // hero body paragraph
-  heroImage: string; // /images/... path
-  cvrLabel: string; // headline shown in CvrLookup card ("Se hvordan vi kan hjælpe med din cyberforsikring")
-  sections: InsuranceSection[];
-  related?: string[]; // slugs of related products
+  intro: string;
+  heroImage: string;
+  cvrLabel: string;
+
+  // Rich content blocks — all optional, template renders only what's present
+  introParagraphs?: string[]; // extra paragraphs shown in the intro band
+  features?: FeatureBlock[]; // alternating image + text sections
+  stats?: Stat[]; // numbered stat strip
+  quote?: Quote; // editorial pull quote
+  faq?: Faq[]; // accordion FAQ
+
+  related?: string[];
 };
 
-// Shared assets we pull from
 const IMG = {
-  meeting: "/images/unsplash-meeting.jpg",
-  business: "/images/unsplash-business.jpg",
+  // Unsplash themed
+  meeting: "/images/unsplash-meeting.jpg", // line-kjaer — woman presenting
+  business: "/images/unsplash-business.jpg", // charlesdeluvio — office setting
   copenhagen: "/images/copenhagen.jpg",
-  partnership: "/images/unsplash-partnership.jpg",
-  mandrup: "/images/unsplash-mandrup.jpg",
-  vandergriff: "/images/unsplash-vandergriff.jpg",
-  mcbrayer: "/images/unsplash-mcbrayer.jpg",
-  moisa: "/images/unsplash-moisa.jpg",
-  mks: "/images/unsplash-mks.jpg",
-  puskeiler: "/images/unsplash-puskeiler.jpg",
-  wenchen: "/images/unsplash-wenchen.jpg",
-  marion: "/images/unsplash-marion.jpg",
+  partnership: "/images/unsplash-partnership.jpg", // clarisse-croset — laptops + coffee
+  mandrup: "/images/unsplash-mandrup.jpg", // magnus-mandrup — workers
+  vandergriff: "/images/unsplash-vandergriff.jpg", // maranda — city/tech
+  golfCourse: "/images/unsplash-mcbrayer.jpg", // matthew-mcbrayer — GOLF COURSE
+  golfBall: "/images/unsplash-mks.jpg", // mk-s — GOLF BALL ON FLAG
+  moisa: "/images/unsplash-moisa.jpg", // mihai-moisa — architecture/tech
+  puskeiler: "/images/unsplash-puskeiler.jpg", // sebastian-puskeiler
+  wenchen: "/images/unsplash-wenchen.jpg", // wen-chen — historic building
+  marion: "/images/unsplash-marion.jpg", // yohan-marion — apartment block
+  // Nordan B&W photo session
   nordan50: "/images/nordan-50.jpg",
   nordan52: "/images/nordan-52.jpg",
   nordan56: "/images/nordan-56.jpg",
   nordan75: "/images/nordan-75.jpg",
+  nordan73: "/images/nordan-73.jpg",
+  nordan27: "/images/nordan-27.jpg",
 };
 
 export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
   {
-    slug: "advokatansvarsforsikring",
-    title: "Advokatansvarsforsikring",
-    navLabel: "Advokatansvar",
-    letter: "A",
-    eyebrow: "Professionelt ansvar",
+    slug: "hole-in-one-forsikring",
+    title: "Hole in one forsikring",
+    navLabel: "Hole in one",
+    letter: "H",
+    eyebrow: "Specialforsikring",
     metaDescription:
-      "Advokatansvarsforsikring beskytter advokatfirmaet mod krav om økonomisk tab opstået som følge af rådgivning eller sagsbehandling.",
+      "Hole in one forsikring til golfarrangementer. Lad arrangøren udlove store præmier uden selv at bære risikoen — Nordan Risk Partners dækker.",
     intro:
-      "Advokater har et skærpet professionelt ansvar. Vi sammensætter dækninger der matcher kompleksiteten i jeres sagsportefølje — og sikrer jer mod de stigende krav om dækningssummer i branchen.",
-    heroImage: IMG.business,
-    cvrLabel: "Se hvad vi kan gøre for jeres advokatansvarsforsikring",
-    sections: [
-      {
-        title: "Hvad dækker advokatansvarsforsikring?",
-        body: "Advokatansvar dækker erstatningskrav der udspringer af den juridiske rådgivning, sagsbehandling eller håndtering af klientmidler. Forsikringen er obligatorisk under Advokatsamfundets regler.",
-      },
-      {
-        title: "Hvorfor en mægler?",
-        body: "Markedet for advokatansvar er specialiseret og prisfastsat individuelt. Vi ved hvilke selskaber der løser hvilke brancher bedst — og kan forhandle vilkår der matcher netop jeres praksis.",
-      },
+      "Gør jeres næste golfarrangement uforglemmeligt. Med en hole in one forsikring kan I udlove bil, rejse, kontantpræmie eller oplevelser — uden selv at stå med regningen, hvis en deltager rammer plet.",
+    heroImage: IMG.golfCourse,
+    cvrLabel: "Få tilbud på hole in one forsikring",
+    introParagraphs: [
+      "Hole in one forsikring er for jer der arrangerer turneringer, sponsorer en golfevent, eller bare gerne vil give deltagerne en oplevelse ud over det sædvanlige. Arrangøren betaler en fast præmie — vi overtager risikoen, hvis en deltager rammer bolden direkte i hul fra tee.",
+      "Vi har tegnet hole in one forsikringer til alt fra små klubturneringer til erhvervsevents med mere end 200 deltagere. Vi skræddersyer dækningen til jeres specifikke arrangement, bane og præmie.",
     ],
-    related: ["bestyrelsesansvarsforsikring", "erhvervs-og-produktansvarsforsikring", "it-ansvarsforsikring"],
-  },
-  {
-    slug: "arbejdsskadeforsikring",
-    title: "Arbejdsskadeforsikring",
-    navLabel: "Arbejdsskade",
-    letter: "A",
-    eyebrow: "Lovpligtig forsikring",
-    metaDescription:
-      "Lovpligtig arbejdsskadeforsikring til virksomheder med ansatte. Vi hjælper med den rigtige dækning til den rigtige pris.",
-    intro:
-      "Arbejdsskadeforsikring er lovpligtig for alle arbejdsgivere i Danmark. Vi gennemgår jeres lønsummer og risikoprofil og forhandler præmien på markedet.",
-    heroImage: IMG.mandrup,
-    cvrLabel: "Få tjekket jeres arbejdsskadeforsikring gratis",
-    sections: [
+    features: [
       {
-        title: "Hvad dækker arbejdsskadeforsikringen?",
-        body: "Forsikringen dækker personskader der opstår under arbejdet. Det omfatter behandlingsudgifter, erstatning ved varigt mén og tab af erhvervsevne samt erstatning til efterladte ved dødsfald.",
+        eyebrow: "Sådan fungerer det",
+        title: "Tre spørgsmål. Tilbud i jeres indbakke.",
+        body: "Vi sætter forsikringen op hurtigt og uden bøvl. Du fortæller os om arrangementet — vi vender tilbage med en præmie der matcher jeres risiko og budget.",
         bullets: [
-          "Erstatning ved varigt mén og tab af erhvervsevne",
-          "Dækning af lægebehandling og genoptræning",
-          "Erstatning til efterladte ved dødsfald",
+          { label: "Dato og bane", body: "Hvilken dag og på hvilken bane afholdes turneringen?" },
+          { label: "Antal deltagere", body: "Jo flere spillere, jo større sandsynlighed — og jo højere præmie." },
+          { label: "Størrelse på præmien", body: "Bil, oplevelse, kontantbeløb — alt kan dækkes, så længe værdien er aftalt på forhånd." },
         ],
+        image: IMG.golfBall,
+        imageSide: "right",
       },
       {
-        title: "Sådan hjælper vi",
-        body: "Vi gennemgår jeres nuværende dækning, sikrer at alle ansatte er korrekt tilmeldt, og kontrollerer at lønsummer og risikoprofil matcher det der er oplyst til selskabet. Ofte kan vi både forbedre vilkår og reducere præmien.",
-      },
-    ],
-    related: ["kollektiv-ulykkesforsikring", "sundhedsforsikring", "erhvervsforsikringer"],
-  },
-  {
-    slug: "bestyrelsesansvarsforsikring",
-    title: "Bestyrelses- og direktionsansvarsforsikring",
-    navLabel: "Bestyrelsesansvar",
-    letter: "B",
-    eyebrow: "Ledelsesansvar",
-    metaDescription:
-      "D&O-forsikring der beskytter bestyrelsesmedlemmer og direktion personligt mod erstatningskrav. Vi sammensætter dækninger for danske og internationale selskaber.",
-    intro:
-      "Bestyrelses- og direktionsansvar (D&O) beskytter ledelsen personligt mod krav fra aktionærer, kreditorer, medarbejdere og myndigheder. Vi sammensætter dækninger der passer til virksomhedens størrelse og kompleksitet.",
-    heroImage: IMG.meeting,
-    cvrLabel: "Få tjekket jeres bestyrelsesansvarsforsikring",
-    sections: [
-      {
-        title: "Hvem har brug for den?",
-        body: "Alle selskaber med en bestyrelse eller direktion bør have D&O-dækning. Særligt relevant for virksomheder i vækst, eksportorienterede selskaber, og virksomheder med eksterne investorer.",
-      },
-      {
-        title: "Hvad dækker den?",
-        body: "Sagsomkostninger og erstatning når et bestyrelsesmedlem eller en direktør personligt sagsøges for deres handlinger eller beslutninger. Dækker også efter fratrædelse for handlinger begået i perioden.",
-      },
-    ],
-    related: ["advokatansvarsforsikring", "kriminalitetsforsikring", "cyberforsikring"],
-  },
-  {
-    slug: "bilforsikring",
-    title: "Bilforsikring",
-    navLabel: "Bilforsikring",
-    letter: "B",
-    eyebrow: "Køretøjer",
-    metaDescription:
-      "Bilforsikring til erhvervsbiler og firmakøretøjer. Vi sammenligner markedet og samler jeres flåde under de bedste vilkår.",
-    intro:
-      "Erhvervsbiler kører hver dag — og kræver en forsikringsløsning der følger med. Vi finder de bedste vilkår for firmabiler, hvad enten det er en enkelt bil eller en hel flåde.",
-    heroImage: IMG.mks,
-    cvrLabel: "Få tilbud på jeres bilforsikringer",
-    sections: [
-      {
-        title: "Enkeltbil eller flåde",
-        body: "For virksomheder med flere køretøjer kan en flådeforsikring reducere administrationen og give bedre vilkår. Vi vurderer hvad der giver bedst mening for jer.",
-      },
-    ],
-    related: ["flaadeforsikring", "lastbilforsikring", "transportforsikring"],
-  },
-  {
-    slug: "bygningsforsikring",
-    title: "Bygningsforsikring",
-    navLabel: "Bygning",
-    letter: "B",
-    eyebrow: "Ejendom",
-    metaDescription:
-      "Bygningsforsikring til erhvervsejendomme, ejer- og andelsboligforeninger. Dækker brand, storm, vandskade og mere.",
-    intro:
-      "Bygningsforsikring er grundstenen for enhver virksomhed der ejer sin ejendom. Vi sikrer at dækningssummer matcher genopførselsomkostningerne — og at vilkårene er opdaterede.",
-    heroImage: IMG.marion,
-    cvrLabel: "Få en gratis gennemgang af jeres bygningsforsikring",
-    sections: [
-      {
-        title: "Hvad dækker den typisk?",
-        body: "Brand, storm, vandskade, indbrud og hærværk. Valgfrie tilføjelser: glas- og sanitetsskade, rørforsikring, svampe- og insektskade.",
+        eyebrow: "Hvad dækker vi",
+        title: "Udlov den vilde præmie — vi står med risikoen",
+        body: "Forsikringen udløses når en deltager rammer hullet i ét slag fra tee på det udpegede hul. Vi udbetaler præmien direkte — eller dækker værdien af den fysiske gevinst arrangøren har lovet ud.",
         bullets: [
-          "Brand og eksplosion",
-          "Storm og sky­brud",
-          "Vand- og rørskader",
-          "Indbrud og hærværk",
-          "Svampe-, insekt- og følgeskader (tilvalg)",
+          { label: "Kontantpræmier", body: "Op til 1.000.000 kr. — eller mere ved specialaftale." },
+          { label: "Bil eller rejse", body: "Værdien aftales inden arrangementet og dækkes af policen." },
+          { label: "Flere huller eller flere spillere", body: "Kan skaleres op hvis I vil lave flere hole-in-one stationer." },
         ],
+        image: IMG.golfCourse,
+        imageSide: "left",
       },
     ],
-    related: ["fredede-ejendomme-forsikring", "forsikring-andelsboligforening-ejerforening", "ejendomsforsikring"],
+    stats: [
+      { value: "1 ud af ~12.500", label: "amatørslag rammer hole in one" },
+      { value: "Op til 1 mio. kr.", label: "præmie dækket af policen" },
+      { value: "24 t", label: "fra forespørgsel til tilbud" },
+    ],
+    faq: [
+      {
+        q: "Hvad koster hole in one forsikring?",
+        a: "Præmien afhænger af gevinstens størrelse, antal spillere og banens sværhedsgrad. Typisk ligger priserne mellem 3.000 og 15.000 kr. for en standardturnering med en bil som præmie.",
+      },
+      {
+        q: "Hvornår skal vi tegne forsikringen senest?",
+        a: "Vi anbefaler minimum 10 dage før arrangementet, men vi kan i de fleste tilfælde have en police klar samme dag ved akut behov.",
+      },
+      {
+        q: "Hvilke huller kan dækkes?",
+        a: "Normalt par 3-huller med en længde på mellem 120 og 210 meter. Ved meget korte eller meget lange huller justeres præmien derefter.",
+      },
+      {
+        q: "Hvem skal bevidne hullet?",
+        a: "Der skal være mindst to uafhængige vidner til hullet. Vi udleverer en enkelt bekræftelsesformular som spillerne underskriver på stedet.",
+      },
+    ],
+    quote: {
+      text: "Vi tegnede en hole in one forsikring til vores kundeturnering og kunne derved udlove en Tesla. Det var den præmie hele dagen talte om.",
+      who: "Arrangør",
+      role: "Erhvervsgolfevent",
+    },
+    related: ["eventforsikring", "arrangoerforsikring", "aflysningsforsikring"],
   },
   {
     slug: "cyberforsikring",
@@ -176,129 +145,217 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     letter: "C",
     eyebrow: "Digital risiko",
     metaDescription:
-      "Cyberforsikring beskytter virksomheden mod tab ved hackerangreb, ransomware, databrud og driftsstop. Få hjælp 24/7 når uheldet sker.",
+      "Cyberforsikring beskytter virksomheden mod ransomware, databrud, driftsstop og bøder. Få 24/7 beredskab når angrebet sker.",
     intro:
-      "Et cyberangreb kan lukke virksomheden i dagevis. Cyberforsikring dækker de økonomiske tab og giver jer direkte adgang til et beredskab der hjælper jer i gang igen hurtigst muligt.",
+      "Et cyberangreb kan lukke virksomheden i dagevis. Cyberforsikring dækker de økonomiske tab og giver jer direkte adgang til et beredskab, der hjælper jer i gang igen hurtigst muligt.",
     heroImage: IMG.vandergriff,
     cvrLabel: "Se hvordan vi kan hjælpe med jeres cyberforsikring",
-    sections: [
+    introParagraphs: [
+      "Cyberforsikring er blevet en grundsten for alle virksomheder der bruger IT — og det gør de alle sammen. En enkelt phishing-mail eller et kompromitteret password kan koste millioner i driftstab, datagenskabelse og bøder.",
+      "Vi hjælper jer med at finde den rigtige dækning til jeres specifikke risikoprofil. Vi taler med IT-afdelingen om jeres opsætning og forhandler vilkår og præmier med det marked der passer bedst til jeres branche og størrelse.",
+    ],
+    features: [
       {
-        title: "Hvad dækker cyberforsikring?",
-        body: "Ransomware, databrud, driftsstop, krisebistand og eventuelle bøder fra Datatilsynet. Inkluderer typisk også adgang til et eksternt IT-beredskab når skaden sker.",
+        eyebrow: "Hvad dækker vi",
+        title: "Den økonomiske redningskrans når angrebet sker",
+        body: "Cyberforsikring er bygget op af flere dækningsblokke. I kan vælge det hele — eller kun de dele der matcher jeres risiko. Vi guider jer gennem hvad der giver mening for jeres virksomhed.",
         bullets: [
-          "Driftstab ved systemnedbrud",
-          "Genskabelse af data og systemer",
-          "Juridisk rådgivning ved databrud",
-          "Krisekommunikation og PR-bistand",
-          "Ransomware-forhandling (hvor lovligt)",
+          { label: "Ransomware-dækning", body: "Inkluderer forhandling, betaling (hvor lovligt) og datagenskabelse." },
+          { label: "Driftstab", body: "Dækker mistet indtjening ved systemnedbrud som følge af angreb." },
+          { label: "GDPR-sanktioner", body: "Bøder og sagsomkostninger ved databrud og tilsynssager." },
+          { label: "Krisekommunikation", body: "PR-bureau og juridisk rådgivning ved offentligt databrud." },
         ],
+        image: IMG.moisa,
+        imageSide: "right",
       },
       {
-        title: "Hvem har brug for cyberforsikring?",
-        body: "Stort set alle virksomheder der bruger IT, håndterer kundedata eller har en webshop. Specielt vigtigt for virksomheder med persondata (GDPR) eller kritisk drift.",
+        eyebrow: "Risikoforebyggelse",
+        title: "Dækning er kun halvdelen — vi styrker også jeres forsvar",
+        body: "Selskaberne vi arbejder med inkluderer typisk et sikkerhedstjek og rådgivning om risikoreducerende tiltag. Vi koordinerer processen så I får maksimal værdi ud af præmien.",
+        bullets: [
+          { label: "Sikkerhedsaudit", body: "Gratis eller rabatteret gennemgang via forsikringsselskabets partnere." },
+          { label: "Phishing-simulation", body: "Test af medarbejderes awareness-niveau." },
+          { label: "Backup-strategi", body: "Vurdering af om jeres backups faktisk kan genoprette driften." },
+        ],
+        image: IMG.vandergriff,
+        imageSide: "left",
+      },
+    ],
+    stats: [
+      { value: "66%", label: "af danske SMB'er ramt af cyberangreb senest 12 mdr" },
+      { value: "4,2 mio. kr.", label: "gennemsnitlige omkostninger ved et databrud" },
+      { value: "72 timer", label: "kravet til anmeldelse af databrud under GDPR" },
+    ],
+    faq: [
+      {
+        q: "Hvem har brug for cyberforsikring?",
+        a: "Alle virksomheder der bruger IT, behandler persondata eller har en webshop. Specielt vigtigt for virksomheder der har kundedata, produktion der er afhængig af IT, eller leverer digitale services.",
+      },
+      {
+        q: "Dækker forsikringen også medarbejderfejl?",
+        a: "Ja, de fleste policer dækker også menneskelige fejl (fx en medarbejder der klikker på en phishing-link). Vi sikrer at den dækning er inkluderet i jeres program.",
+      },
+      {
+        q: "Hvor hurtigt kan I hjælpe ved et angreb?",
+        a: "Selskaberne har 24/7 hotlines og beredskab. Typisk er en IT-forensiker i kontakt med jer inden for få timer efter anmeldelse.",
       },
     ],
     related: ["it-ansvarsforsikring", "it-kaskoforsikring", "kriminalitetsforsikring", "netbanksforsikring"],
   },
   {
-    slug: "driftstabsforsikring",
-    title: "Driftstabsforsikring",
-    navLabel: "Driftstab",
-    letter: "D",
-    eyebrow: "Forretningskontinuitet",
-    metaDescription:
-      "Driftstabsforsikring kompenserer for tabt dækningsbidrag og løbende omkostninger når virksomheden rammes af en dækningsberettiget skade.",
-    intro:
-      "Når uheldet sker, er det ikke kun bygningen der skal repareres — det er også indtjeningen der forsvinder. Driftstabsforsikring holder virksomheden kørende økonomisk indtil driften er oppe igen.",
-    heroImage: IMG.mcbrayer,
-    cvrLabel: "Tjek om jeres driftstabsforsikring er stor nok",
-    sections: [
-      {
-        title: "Hvad dækker driftstabsforsikring?",
-        body: "Tabt dækningsbidrag og faste omkostninger (løn, leje, renter) i den periode virksomheden er nedlukket eller reduceret som følge af en dækningsberettiget skade — typisk brand, vand eller storm.",
-      },
-    ],
-    related: ["bygningsforsikring", "loosereforsikring", "cyberforsikring"],
-  },
-  {
-    slug: "entrepriseforsikring",
-    title: "Entrepriseforsikring",
-    navLabel: "Entreprise",
-    letter: "E",
-    eyebrow: "Byggeri",
-    metaDescription:
-      "Entrepriseforsikring dækker bygge- og anlægsprojekter mod pludselige skader og ansvarsrisiko under udførelsen.",
-    intro:
-      "Et byggeprojekt har mange aktører og risici. Entrepriseforsikring samler dækningerne for bygherre, entreprenør og underentreprenører under ét — og sikrer at en skade under byggeriet ikke vælter økonomien.",
-    heroImage: IMG.puskeiler,
-    cvrLabel: "Få tilbud på jeres entrepriseforsikring",
-    sections: [
-      {
-        title: "All-risks eller projektspecifik",
-        body: "Vi skræddersyer dækningen til det konkrete projekt — eller etablerer en årsentrepriseaftale der dækker alle virksomhedens projekter løbende.",
-      },
-    ],
-    related: ["erhvervs-og-produktansvarsforsikring", "aarsentrepriseforsikring", "projektansvarsforsikring"],
-  },
-  {
-    slug: "erhvervs-og-produktansvarsforsikring",
-    title: "Erhvervs- og produktansvarsforsikring",
-    navLabel: "Erhvervs- og produktansvar",
-    letter: "E",
-    eyebrow: "Ansvar",
-    metaDescription:
-      "Beskyt virksomheden mod erstatningskrav. Erhvervs- og produktansvar dækker person- og tingsskader under drift og efter levering.",
-    intro:
-      "Ansvarsforsikring er absolut grundlæggende. Én stor sag kan true virksomhedens eksistens — vi sikrer at dækningsgrundlag, summer og vilkår matcher jeres reelle eksponering.",
-    heroImage: IMG.moisa,
-    cvrLabel: "Se om jeres ansvarsforsikring er i orden",
-    sections: [
-      {
-        title: "Erhvervsansvar vs. produktansvar",
-        body: "Erhvervsansvar dækker skader der opstår under driften (fx en montør der uforvarende skader kundens ejendom). Produktansvar dækker skader forårsaget af solgte eller leverede produkter efter overdragelse.",
-      },
-      {
-        title: "Typiske dækninger",
-        body: "",
-        bullets: [
-          "Personskade på tredjemand",
-          "Tingsskade hos kunde",
-          "Produktansvar efter levering",
-          "Sagsomkostninger og juridisk bistand",
-        ],
-      },
-    ],
-    related: ["bestyrelsesansvarsforsikring", "professionel-ansvarsforsikring", "entrepriseforsikring"],
-  },
-  {
-    slug: "forsikring-andelsboligforening-ejerforening",
-    title: "Forsikring til andelsboligforening og ejerforening",
-    navLabel: "Foreninger",
+    slug: "arbejdsskadeforsikring",
+    title: "Arbejdsskadeforsikring",
+    navLabel: "Arbejdsskade",
     letter: "A",
-    eyebrow: "Foreninger",
+    eyebrow: "Lovpligtig forsikring",
     metaDescription:
-      "Forsikring til andelsboligforeninger og ejerforeninger. Bygningsforsikring, bestyrelsesansvar, retshjælp og mere — samlet i ét program.",
+      "Lovpligtig arbejdsskadeforsikring til virksomheder med ansatte. Vi gennemgår lønsummer og risikoprofil — og forhandler præmien på markedet.",
     intro:
-      "Vi hjælper andelsboligforeninger og ejerforeninger med en uvildig gennemgang af forsikringsprogrammet — både på dækning og pris. Direkte adgang til erfarne rådgivere.",
-    heroImage: IMG.marion,
-    cvrLabel: "Få tjekket jeres forenings forsikringer gratis",
-    sections: [
+      "Arbejdsskadeforsikring er lovpligtig for alle arbejdsgivere i Danmark. Vi sikrer at jeres program matcher jeres reelle risikoprofil og lønsum — og forhandler vilkår og præmie på markedet på jeres vegne.",
+    heroImage: IMG.mandrup,
+    cvrLabel: "Få tjekket jeres arbejdsskadeforsikring gratis",
+    introParagraphs: [
+      "Arbejdsskadeforsikring er grundstenen i arbejdsgiveransvaret. Den dækker behandlingsudgifter, erstatning for varigt mén og tab af erhvervsevne hvis en medarbejder kommer til skade i arbejdet — og i nogle tilfælde også erstatning til efterladte.",
+      "Det er et område hvor mange virksomheder betaler for meget, fordi policen ikke er opdateret med den rette lønsum, branchekode eller risikoklasse. Vi går programmet igennem og sikrer at I betaler den rigtige pris for den rigtige dækning.",
+    ],
+    features: [
       {
-        title: "Hvad skal en forenings­forsikring dække?",
-        body: "De fleste foreninger har brug for bygnings-, ansvar- og bestyrelsesansvarsforsikring. Er der ansættelsesforhold kræves også arbejdsskadeforsikring.",
+        eyebrow: "Dækninger",
+        title: "Sådan er arbejdsskadeforsikringen bygget op",
+        body: "Dækningen er lovmæssigt defineret — men selskaberne kan variere på pris, vilkår og håndtering. Vi finder den kombination der fungerer bedst for jer.",
         bullets: [
-          "Bygningsforsikring (brand, storm, vandskade)",
-          "Bestyrelsesansvarsforsikring",
-          "Ansvarsforsikring for foreningen",
-          "Retshjælpsforsikring",
-          "Glas- og sanitetsdækning",
-          "Rør- og stikledninger",
-          "Svampe- og insektdækning",
-          "Arbejdsskade- og ulykkesforsikring",
+          { label: "Erstatning ved varigt mén", body: "Udbetaling ved permanent men efter ulykkesskade." },
+          { label: "Tab af erhvervsevne", body: "Løbende ydelser hvis medarbejderen ikke kan vende tilbage." },
+          { label: "Lægebehandling og genoptræning", body: "Dækning af behandlingsomkostninger." },
+          { label: "Erstatning til efterladte", body: "Ved arbejdsulykke med dødsfald." },
         ],
+        image: IMG.mandrup,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Hvad vi gør for jer",
+        title: "Ikke kun fornyelse — løbende overvågning",
+        body: "Arbejdsskadeforsikring er et af de områder hvor vi oftest finder besparelser. Vi tjekker om lønsum og branchekode matcher virkeligheden, og om jeres skadesforløb giver adgang til bedre vilkår.",
+        bullets: [
+          { label: "Lønsums-validering", body: "Er den oplyste lønsum den faktiske?" },
+          { label: "Branchekode-tjek", body: "Er I klassificeret i den rette risikoklasse?" },
+          { label: "Skadesanalyse", body: "Kan en god skadeshistorik give rabat?" },
+        ],
+        image: IMG.meeting,
+        imageSide: "left",
       },
     ],
-    related: ["bygningsforsikring", "bestyrelsesansvarsforsikring", "arbejdsskadeforsikring"],
+    stats: [
+      { value: "Lovpligtig", label: "for alle arbejdsgivere med ansatte i Danmark" },
+      { value: "10–25%", label: "typisk besparelse ved mæglerforhandling" },
+    ],
+    faq: [
+      {
+        q: "Er jeg forpligtet til at tegne arbejdsskadeforsikring?",
+        a: "Ja, hvis I har ansatte — også ved korttidsansættelser, praktikanter og vikarer. Selvstændige uden ansatte kan vælge at tegne frivillig dækning.",
+      },
+      {
+        q: "Dækker arbejdsskadeforsikringen også psykiske skader?",
+        a: "Forsikringen dækker arbejdsulykker der medfører psykisk skade (fx efter en voldsom hændelse). Langvarig arbejdsrelateret stress anerkendes i nogle tilfælde som erhvervssygdom.",
+      },
+      {
+        q: "Hvordan anmeldes en arbejdsskade?",
+        a: "Arbejdsgiver har pligt til at anmelde enhver skade inden for 14 dage. Vi hjælper med selve anmeldelsen og opfølgningen hos selskabet og Arbejdsmarkedets Erhvervssikring.",
+      },
+    ],
+    related: ["kollektiv-ulykkesforsikring", "sundhedsforsikring", "erhvervs-og-produktansvarsforsikring"],
+  },
+  {
+    slug: "bestyrelsesansvarsforsikring",
+    title: "Bestyrelses- og direktionsansvarsforsikring",
+    navLabel: "Bestyrelsesansvar",
+    letter: "B",
+    eyebrow: "Ledelsesansvar",
+    metaDescription:
+      "D&O-forsikring der beskytter bestyrelse og direktion personligt mod erstatningskrav fra aktionærer, kreditorer og myndigheder.",
+    intro:
+      "Bestyrelses- og direktionsansvar (D&O) beskytter ledelsen personligt mod krav fra aktionærer, kreditorer, medarbejdere og myndigheder. Vi sammensætter dækninger der matcher virksomhedens kompleksitet og vækstfase.",
+    heroImage: IMG.meeting,
+    cvrLabel: "Få tjekket jeres bestyrelsesansvarsforsikring",
+    introParagraphs: [
+      "Det personlige ansvar som bestyrelsesmedlem eller direktør er stort — og voksende. Sager om erstatning for fejl i ledelsen er blevet mere almindelige, og kravene kan løbe op i millioner.",
+      "D&O-forsikring dækker både sagsomkostninger og selve erstatningen. Den følger jer personligt — også efter I er trådt ud af bestyrelsen eller direktionen, så længe kravet relaterer sig til en handling i perioden.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvem har brug for D&O?",
+        title: "Relevant fra første bestyrelsesmøde",
+        body: "D&O er ikke forbeholdt børsnoterede selskaber. Alle virksomheder med en bestyrelse eller direktion bør have dækning — især ved vækst, eksterne investorer eller international aktivitet.",
+        bullets: [
+          { label: "Virksomheder i vækst", body: "Flere aktører og beslutninger øger risikoen." },
+          { label: "Eksterne investorer", body: "Krav fra ventureselskaber eller minoritetsejere." },
+          { label: "Internationalt fokus", body: "Amerikansk og UK-jurisdiktion har højere krav." },
+          { label: "Foreninger og NGO'er", body: "Bestyrelsesansvar gælder også frivillige organisationer." },
+        ],
+        image: IMG.nordan52,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Dækningsomfang",
+        title: "Tre lag af beskyttelse",
+        body: "En moderne D&O-police er bygget op af tre dækningssider — og vi vælger den kombination der bedst passer jer.",
+        bullets: [
+          { label: "Side A: Individuel dækning", body: "Beskytter bestyrelsesmedlemmet personligt når virksomheden ikke kan eller vil holde vedkommende skadesløs." },
+          { label: "Side B: Selskabets refusion", body: "Dækker selskabets udgifter når det skadesløsholder ledelsen." },
+          { label: "Side C: Selskabets egne værdipapirssager", body: "Relevant for børsnoterede selskaber — dækker selskabet selv ved værdipapirkrav." },
+        ],
+        image: IMG.partnership,
+        imageSide: "left",
+      },
+    ],
+    stats: [
+      { value: "+30%", label: "stigning i D&O-sager de seneste 5 år" },
+      { value: "2–15 mio.", label: "typisk dækningssum for små-mellemstore virksomheder" },
+    ],
+    faq: [
+      {
+        q: "Er jeg dækket når jeg træder ud af bestyrelsen?",
+        a: "Ja, de fleste D&O-policer inkluderer en 'run-off'-dækning der følger dig så længe kravet relaterer sig til handlinger i din aktive periode.",
+      },
+      {
+        q: "Dækker forsikringen bevidste handlinger?",
+        a: "Nej — hvis der er tale om bevidste overtrædelser, svig eller ulovlige fordele falder dækningen bort. Forsikringen dækker fejl og forsømmelser.",
+      },
+      {
+        q: "Hvad er den vigtigste forskel mellem danske og amerikanske D&O-policer?",
+        a: "Dækningssummer er højere og vilkårene strammere i USA/UK. Hvis I har aktiviteter i de lande, skal policen specifikt geodækning dertil.",
+      },
+    ],
+    related: ["advokatansvarsforsikring", "kriminalitetsforsikring", "cyberforsikring"],
+  },
+  {
+    slug: "bygningsforsikring",
+    title: "Bygningsforsikring",
+    navLabel: "Bygning",
+    letter: "B",
+    eyebrow: "Ejendom",
+    metaDescription:
+      "Bygningsforsikring til erhvervsejendomme, ejer- og andelsboligforeninger. Vi sikrer at dækningssummer matcher genopførselsomkostninger.",
+    intro:
+      "Bygningsforsikring er grundstenen for enhver virksomhed eller forening der ejer sin ejendom. Vi sikrer at dækningssummer matcher genopførselsomkostningerne — og at vilkårene er opdaterede med tidens risici.",
+    heroImage: IMG.marion,
+    cvrLabel: "Få en gratis gennemgang af jeres bygningsforsikring",
+    features: [
+      {
+        eyebrow: "Dækninger",
+        title: "Hvad en moderne bygningsforsikring bør dække",
+        body: "Den klassiske bygningsforsikring dækker brand, storm og vand. Men risikobilledet har udviklet sig — og det skal programmet følge med.",
+        bullets: [
+          { label: "Brand og eksplosion", body: "Grundlæggende dækning i alle policer." },
+          { label: "Storm og skybrud", body: "Stigende behov i takt med klimaforandringer." },
+          { label: "Skjulte rørskader", body: "Ofte meget dyre — vigtigt tilvalg." },
+          { label: "Svampe og insekter", body: "Bør altid være med i ældre ejendomme." },
+        ],
+        image: IMG.marion,
+        imageSide: "right",
+      },
+    ],
+    related: ["fredede-ejendomme-forsikring", "forsikring-andelsboligforening-ejerforening", "loosereforsikring"],
   },
   {
     slug: "fredede-ejendomme-forsikring",
@@ -312,41 +369,189 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       "Forsikring af fredede ejendomme er blandt de mest udfordrede områder i markedet. Mange ejere får afslag eller markante prisstigninger. Vi hjælper med at navigere markedet og finde løsninger.",
     heroImage: IMG.wenchen,
     cvrLabel: "Få en uforpligtende vurdering af jeres fredede ejendom",
-    sections: [
+    stats: [
+      { value: "~50%", label: "af henvendelser afvises eller får ikke tilbud" },
+      { value: "30–100%", label: "typiske prisstigninger de sidste år" },
+    ],
+    faq: [
       {
-        title: "Markedet lige nu",
-        body: "Ca. 50% af henvendelser afvises eller får ikke tilbud. Præmier stiger typisk 30-100%. Markedet er begrænset og få produkter er målrettet fredede ejendomme.",
+        q: "Hvorfor er det så dyrt?",
+        a: "Fredede bygninger kræver særlige materialer og håndværkere. Reparationer skal godkendes af Slots- og Kulturstyrelsen. Samtidig ser selskaberne øget risiko ved ældre konstruktioner og brandfølsomme materialer.",
       },
       {
-        title: "Hvorfor er det så dyrt?",
-        body: "Fredede bygninger kræver særlige materialer og håndværkere, reparationer skal godkendes af Slots- og Kulturstyrelsen, og selskaberne ser en forhøjet risiko ved ældre konstruktioner.",
+        q: "Kan I hjælpe selv hvis vi har fået afslag andre steder?",
+        a: "Ja — det er faktisk ofte dér vi kommer ind i billedet. Vi har erfaring med internationale og specialiserede selskaber der dækker det danske standardmarked ikke tager.",
       },
     ],
     related: ["bygningsforsikring", "forsikring-andelsboligforening-ejerforening"],
   },
   {
-    slug: "hole-in-one-forsikring",
-    title: "Hole in one forsikring",
-    navLabel: "Hole in one",
-    letter: "H",
-    eyebrow: "Specialforsikring",
+    slug: "forsikring-andelsboligforening-ejerforening",
+    title: "Forsikring til andelsboligforening og ejerforening",
+    navLabel: "Foreninger",
+    letter: "A",
+    eyebrow: "Foreninger",
     metaDescription:
-      "Hole in one forsikring til golfarrangementer. Lad arrangøren udlove præmier uden selv at bære risikoen.",
+      "Forsikring til andelsboligforeninger og ejerforeninger. Bygningsforsikring, bestyrelsesansvar, retshjælp og mere — samlet i ét program.",
     intro:
-      "Gør jeres golfarrangement uforglemmeligt. Vi dækker risikoen hvis en deltager rammer et hole in one — så I kan udlove attraktive præmier uden selv at stå med regningen.",
-    heroImage: IMG.puskeiler,
-    cvrLabel: "Få tilbud på jeres hole in one forsikring",
-    sections: [
+      "Vi hjælper andelsboligforeninger og ejerforeninger med en uvildig gennemgang af forsikringsprogrammet — både på dækning og pris. Direkte adgang til erfarne rådgivere.",
+    heroImage: IMG.marion,
+    cvrLabel: "Få tjekket jeres forenings forsikringer gratis",
+    features: [
       {
-        title: "Sådan fungerer det",
-        body: "Arrangøren betaler præmien, forsikringsselskabet overtager risikoen. Dækningen gælder når en deltager fra tee rammer hullet i ét slag under den pågældende turnering.",
-      },
-      {
-        title: "Sådan får du et tilbud",
-        body: "Send os arrangementsdetaljer: dato, antal deltagere, præmiestørrelse og bane. Vi vender tilbage hurtigst muligt.",
+        eyebrow: "Hvad skal dækkes?",
+        title: "Det typiske program for en ejer- eller andelsforening",
+        body: "Foreninger har et forholdsvist standard sæt af forsikringer — men vi ser tit at vigtige dækninger mangler. En gennemgang kan afsløre både huller og overbetaling.",
+        bullets: [
+          { label: "Bygningsforsikring", body: "Brand, storm, vandskade, indbrud og hærværk." },
+          { label: "Bestyrelsesansvar", body: "Vigtigt for bestyrelsesmedlemmer personligt." },
+          { label: "Retshjælp", body: "Dækker advokatomkostninger ved tvister." },
+          { label: "Rør- og stikledninger", body: "Ofte dyre at reparere — bør altid være med." },
+          { label: "Svampe- og insektskade", body: "Især relevant i ældre bygninger." },
+          { label: "Arbejdsskade", body: "Lovpligtig hvis der er ansatte (fx vicevært)." },
+        ],
+        image: IMG.marion,
+        imageSide: "right",
       },
     ],
-    related: ["eventforsikring", "arrangoerforsikring", "aflysningsforsikring"],
+    faq: [
+      {
+        q: "Hvor ofte bør vi få tjekket forsikringen?",
+        a: "Minimum én gang årligt — typisk i forbindelse med fornyelsen. Vi anbefaler også en gennemgang efter større ændringer i ejendommen, bestyrelsen eller skadeshistorikken.",
+      },
+    ],
+    related: ["bygningsforsikring", "bestyrelsesansvarsforsikring", "arbejdsskadeforsikring"],
+  },
+  {
+    slug: "erhvervs-og-produktansvarsforsikring",
+    title: "Erhvervs- og produktansvarsforsikring",
+    navLabel: "Erhvervs- og produktansvar",
+    letter: "E",
+    eyebrow: "Ansvar",
+    metaDescription:
+      "Beskyt virksomheden mod erstatningskrav. Erhvervs- og produktansvar dækker person- og tingsskader under drift og efter levering.",
+    intro:
+      "Ansvarsforsikring er grundlæggende for enhver virksomhed. Én stor sag kan true hele økonomien — vi sikrer at dækningsgrundlag, summer og vilkår matcher jeres reelle eksponering.",
+    heroImage: IMG.moisa,
+    cvrLabel: "Se om jeres ansvarsforsikring er i orden",
+    features: [
+      {
+        eyebrow: "Erhvervs- vs. produktansvar",
+        title: "To tætte, men ikke identiske dækninger",
+        body: "Forskellen er vigtig — de dækker forskellige situationer.",
+        bullets: [
+          { label: "Erhvervsansvar", body: "Skader under driften — fx når montøren uforvarende beskadiger kundens ejendom." },
+          { label: "Produktansvar", body: "Skader forårsaget af solgte eller leverede produkter efter overdragelse." },
+          { label: "Professionsansvar", body: "Rådgiveransvar — dækker fejl i rådgivning mod betaling." },
+        ],
+        image: IMG.moisa,
+        imageSide: "right",
+      },
+    ],
+    related: ["bestyrelsesansvarsforsikring", "professionel-ansvarsforsikring", "entrepriseforsikring"],
+  },
+  // Shorter product entries — the template gracefully handles fewer blocks
+  {
+    slug: "advokatansvarsforsikring",
+    title: "Advokatansvarsforsikring",
+    navLabel: "Advokatansvar",
+    letter: "A",
+    eyebrow: "Professionelt ansvar",
+    metaDescription: "Advokatansvarsforsikring beskytter advokatfirmaet mod krav om økonomisk tab opstået som følge af rådgivning, sagsbehandling eller klientmidler.",
+    intro: "Advokater har et skærpet professionelt ansvar. Vi sammensætter dækninger der matcher kompleksiteten i jeres sagsportefølje — og sikrer jer mod de stigende krav om dækningssummer i branchen.",
+    heroImage: IMG.business,
+    cvrLabel: "Se hvad vi kan gøre for jeres advokatansvarsforsikring",
+    introParagraphs: [
+      "Advokatansvarsforsikring er obligatorisk i henhold til Advokatsamfundets regler. Den dækker erstatningskrav udspringende af jeres rådgivning, sagsbehandling og håndtering af klientmidler.",
+      "Kravene til dækningssummer stiger — især ved transaktionsrådgivning, M&A og fast ejendom. Vi sikrer at jeres dækning matcher de risici jeres praksis reelt bærer.",
+    ],
+    features: [
+      {
+        eyebrow: "Praksisområder",
+        title: "Ikke alle advokatpraksisser har samme risikoprofil",
+        body: "Vi differentierer policen efter jeres konkrete praksisområder — så I ikke betaler for risici I ikke har, og ikke står uden dækning der hvor risikoen faktisk ligger.",
+        bullets: [
+          { label: "M&A og transaktioner", body: "Kræver ofte forhøjede dækningssummer og cyberdækning." },
+          { label: "Fast ejendom", body: "Specialvilkår for klientmiddelhåndtering og garantistillelse." },
+          { label: "Strafferet og retssager", body: "Fokus på sagsomkostninger og defence costs." },
+          { label: "Erhvervsret og selskabsret", body: "Bestyrelsesrådgivning og managementopgaver." },
+        ],
+        image: IMG.meeting,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Skal advokaten tegne forsikringen selv eller som firma?",
+        a: "Både enkeltadvokat og firma kan være policeholder. Firmaer bør typisk tegne en samlet dækning der inkluderer alle juridiske medarbejdere.",
+      },
+      {
+        q: "Dækker forsikringen også tidligere advokater i firmaet?",
+        a: "Ja — en standard advokatansvarspolice inkluderer 'claims made basis', så krav der relaterer sig til rådgivning ydet mens personen var ansat også er dækket.",
+      },
+    ],
+    related: ["bestyrelsesansvarsforsikring", "erhvervs-og-produktansvarsforsikring", "it-ansvarsforsikring"],
+  },
+  {
+    slug: "bilforsikring",
+    title: "Bilforsikring",
+    navLabel: "Bilforsikring",
+    letter: "B",
+    eyebrow: "Køretøjer",
+    metaDescription: "Bilforsikring til erhvervsbiler og firmakøretøjer. Vi sammenligner markedet og samler jeres flåde under de bedste vilkår.",
+    intro: "Erhvervsbiler kører hver dag — og kræver en forsikringsløsning der følger med. Vi finder de bedste vilkår for firmabiler, hvad enten det er en enkelt bil eller en hel flåde.",
+    heroImage: IMG.partnership,
+    cvrLabel: "Få tilbud på jeres bilforsikringer",
+    introParagraphs: [
+      "Hvor mange biler I har, hvordan de bruges, og hvem der kører dem — alt har betydning for både dækning og præmie. Vi gennemgår jeres portefølje og finder den løsning der passer jeres hverdag.",
+      "For flåder fra 5 biler og op er der ofte betydelige besparelser at hente ved at samle forsikringen på én aftale frem for enkeltpolicer.",
+    ],
+    features: [
+      {
+        eyebrow: "Enkeltbil eller flåde",
+        title: "Vælg den struktur der passer jeres drift",
+        body: "De fleste virksomheder sparer både administration og præmie ved at konsolidere. Men én stor skade i flåden kan også påvirke prisen i flere år — så strategien skal tænkes igennem.",
+        bullets: [
+          { label: "Enkeltbiler", body: "Velegnet til 1–4 køretøjer med individuelle brugere." },
+          { label: "Flådeaftale", body: "Fra 5+ biler — én samlet police, ét fælles selvrisikoniveau." },
+          { label: "Branchetillæg", body: "Fx håndværkerløsninger med dækning af værktøj i bilen." },
+          { label: "Geografisk dækning", body: "Grønt kort og udvidet dækning ved kørsel i udlandet." },
+        ],
+        image: IMG.mandrup,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Er det billigere at samle mine firmabiler?",
+        a: "I langt de fleste tilfælde ja. En flådeaftale giver både lavere præmier og mindre administration end enkeltpolicer.",
+      },
+    ],
+    related: ["lastbilforsikring", "transportforsikring"],
+  },
+  {
+    slug: "driftstabsforsikring",
+    title: "Driftstabsforsikring",
+    navLabel: "Driftstab",
+    letter: "D",
+    eyebrow: "Forretningskontinuitet",
+    metaDescription: "Driftstabsforsikring kompenserer for tabt dækningsbidrag og løbende omkostninger når virksomheden rammes af en dækningsberettiget skade.",
+    intro: "Når uheldet sker, er det ikke kun bygningen der skal repareres — det er også indtjeningen der forsvinder. Driftstabsforsikring holder virksomheden kørende økonomisk indtil driften er oppe igen.",
+    heroImage: IMG.partnership,
+    cvrLabel: "Tjek om jeres driftstabsforsikring er stor nok",
+    related: ["bygningsforsikring", "loosereforsikring", "cyberforsikring"],
+  },
+  {
+    slug: "entrepriseforsikring",
+    title: "Entrepriseforsikring",
+    navLabel: "Entreprise",
+    letter: "E",
+    eyebrow: "Byggeri",
+    metaDescription: "Entrepriseforsikring dækker bygge- og anlægsprojekter mod pludselige skader og ansvarsrisiko under udførelsen.",
+    intro: "Et byggeprojekt har mange aktører og risici. Entrepriseforsikring samler dækningerne for bygherre, entreprenør og underentreprenører under ét.",
+    heroImage: IMG.nordan27,
+    cvrLabel: "Få tilbud på jeres entrepriseforsikring",
+    related: ["erhvervs-og-produktansvarsforsikring"],
   },
   {
     slug: "it-ansvarsforsikring",
@@ -354,19 +559,11 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "IT-ansvar",
     letter: "I",
     eyebrow: "Professionelt ansvar",
-    metaDescription:
-      "IT-ansvarsforsikring for konsulenthuse og softwarevirksomheder. Dækker krav fra kunder ved fejl, forsinkelser eller databrud.",
-    intro:
-      "Som IT-leverandør lever I af tillid og leveringsevne. IT-ansvar dækker de økonomiske krav hvis en leverance går galt — fejl i kode, forsinket implementation eller datalæk.",
+    metaDescription: "IT-ansvarsforsikring for konsulenthuse og softwarevirksomheder. Dækker krav fra kunder ved fejl, forsinkelser eller databrud.",
+    intro: "Som IT-leverandør lever I af tillid og leveringsevne. IT-ansvar dækker de økonomiske krav hvis en leverance går galt — fejl i kode, forsinket implementation eller datalæk.",
     heroImage: IMG.vandergriff,
     cvrLabel: "Se hvordan vi kan hjælpe med jeres IT-ansvarsforsikring",
-    sections: [
-      {
-        title: "Typisk dækning",
-        body: "Krav fra kunder som følge af fejl eller udeladelser i leverancen. Dækker også sagsomkostninger og defence ved uberettigede krav.",
-      },
-    ],
-    related: ["cyberforsikring", "professionel-ansvarsforsikring", "it-kaskoforsikring"],
+    related: ["cyberforsikring", "professionel-ansvarsforsikring"],
   },
   {
     slug: "kollektiv-ulykkesforsikring",
@@ -374,18 +571,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Kollektiv ulykke",
     letter: "K",
     eyebrow: "Medarbejdere",
-    metaDescription:
-      "Kollektiv ulykkesforsikring giver jeres medarbejdere en ekstra tryghed ved ulykker i og uden for arbejdstiden.",
-    intro:
-      "Kollektiv ulykkesforsikring er et stærkt medarbejdergode. Den supplerer den lovpligtige arbejdsskadeforsikring med dækning for ulykker der rammer medarbejderen også uden for arbejdstiden.",
+    metaDescription: "Kollektiv ulykkesforsikring giver jeres medarbejdere en ekstra tryghed ved ulykker i og uden for arbejdstiden.",
+    intro: "Kollektiv ulykkesforsikring er et stærkt medarbejdergode. Den supplerer den lovpligtige arbejdsskadeforsikring med dækning døgnet rundt — også fritidsulykker.",
     heroImage: IMG.partnership,
     cvrLabel: "Få tilbud på kollektiv ulykkesforsikring",
-    sections: [
-      {
-        title: "Hvad er forskellen på arbejdsskade og kollektiv ulykke?",
-        body: "Arbejdsskadeforsikring er lovpligtig og dækker kun ulykker i arbejdssammenhæng. Kollektiv ulykke dækker døgnet rundt — også fritidsulykker.",
-      },
-    ],
     related: ["arbejdsskadeforsikring", "sundhedsforsikring"],
   },
   {
@@ -394,18 +583,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Kriminalitet",
     letter: "K",
     eyebrow: "Intern risiko",
-    metaDescription:
-      "Kriminalitetsforsikring dækker virksomheden mod tab ved tyveri, bedrageri eller underslæb begået af medarbejdere eller tredjemand.",
-    intro:
-      "Mindre virksomheder bliver oftere ramt af intern kriminalitet end de ydre trusler. Kriminalitetsforsikring dækker når underslæb, bedrageri eller CEO-fraud rammer virksomheden.",
+    metaDescription: "Kriminalitetsforsikring dækker virksomheden mod tab ved tyveri, bedrageri eller underslæb begået af medarbejdere eller tredjemand.",
+    intro: "Mindre virksomheder bliver oftere ramt af intern kriminalitet end af ydre trusler. Kriminalitetsforsikring dækker når underslæb, bedrageri eller CEO-fraud rammer virksomheden.",
     heroImage: IMG.meeting,
     cvrLabel: "Få jeres kriminalitetsforsikring tjekket",
-    sections: [
-      {
-        title: "Hvad dækkes typisk?",
-        body: "Tyveri, underslæb, computer­manipulation, CEO-fraud (vildledt overførsel) og falske fakturaer. Dækningssummer kan skaleres efter virksomhedens størrelse.",
-      },
-    ],
     related: ["cyberforsikring", "netbanksforsikring", "bestyrelsesansvarsforsikring"],
   },
   {
@@ -414,19 +595,11 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Løsøre",
     letter: "L",
     eyebrow: "Inventar og indbo",
-    metaDescription:
-      "Løsøreforsikring dækker virksomhedens inventar, maskiner, varer og it-udstyr mod brand, tyveri og anden pludselig skade.",
-    intro:
-      "Alt indvendigt i lokalet — maskiner, varer, it, kontorinventar — udgør betydelige værdier. Løsøreforsikring sikrer jer økonomisk hvis en brand, vandskade eller indbrud rammer.",
+    metaDescription: "Løsøreforsikring dækker virksomhedens inventar, maskiner, varer og it-udstyr mod brand, tyveri og anden pludselig skade.",
+    intro: "Alt indvendigt i lokalet — maskiner, varer, it, kontorinventar — udgør betydelige værdier. Løsøreforsikring sikrer jer økonomisk hvis en brand, vandskade eller indbrud rammer.",
     heroImage: IMG.business,
     cvrLabel: "Få tjekket jeres løsøreforsikring",
-    sections: [
-      {
-        title: "Hvad dækker den?",
-        body: "Inventar, maskiner, lager, it-udstyr og andre aktiver i lokalerne. Dækker typisk brand, vandskade, indbrud og pludselig skade.",
-      },
-    ],
-    related: ["bygningsforsikring", "driftstabsforsikring", "maskinkaskoforsikring"],
+    related: ["bygningsforsikring", "driftstabsforsikring"],
   },
   {
     slug: "transportforsikring",
@@ -434,19 +607,30 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Transport",
     letter: "T",
     eyebrow: "Varer under transport",
-    metaDescription:
-      "Transportforsikring dækker varer under transport — ad vej, sø eller luft. Skal virksomheden sende eller modtage gods, er den uundværlig.",
-    intro:
-      "Varer under transport er særligt udsatte. Transportforsikring dækker hele rejsen — og sikrer at jeres eller kundens varer er værdiforsikret fra afsendelse til levering.",
-    heroImage: IMG.mcbrayer,
+    metaDescription: "Transportforsikring dækker varer under transport — ad vej, sø eller luft. Skal virksomheden sende eller modtage gods, er den uundværlig.",
+    intro: "Varer under transport er særligt udsatte. Transportforsikring dækker hele rejsen — og sikrer at jeres eller kundens varer er værdiforsikret fra afsendelse til levering.",
+    heroImage: IMG.puskeiler,
     cvrLabel: "Få tilbud på jeres transportforsikring",
-    sections: [
+    introParagraphs: [
+      "Ansvaret for varer under transport kan ligge hos afsender, transportør eller modtager — afhængigt af aftalevilkår (Incoterms) og branche. En transportforsikring fjerner usikkerheden og sikrer at I er dækket uanset hvor skaden opstår.",
+      "Vi sammensætter både enkeltrejsepolicer til højværdivarer og løbende aftaler til virksomheder med fast transportflow.",
+    ],
+    features: [
       {
-        title: "Enkelt eller fast aftale",
-        body: "For virksomheder med løbende transport kan en abonnementsaftale dække alle forsendelser. Enkeltforsikring passer til ad hoc-transport af højværdivarer.",
+        eyebrow: "Dækningstyper",
+        title: "Transportforsikring handler om hvor risikoen ligger",
+        body: "Incoterms-reglerne definerer hvem der bærer risikoen i hvert led. Vi oversætter jeres kontrakter til den rette dækningsstruktur.",
+        bullets: [
+          { label: "All risks", body: "Bredeste dækning — alle pludselige skader under transport." },
+          { label: "Only named perils", body: "Kun specifikt nævnte risici — typisk billigere." },
+          { label: "Single transit", body: "Enkeltrejse — ad hoc transport af højværdi." },
+          { label: "Open cover", body: "Løbende aftale — alle transporter dækkes automatisk." },
+        ],
+        image: IMG.puskeiler,
+        imageSide: "right",
       },
     ],
-    related: ["fragtfoereransvarsforsikring", "flaadeforsikring", "lastbilforsikring"],
+    related: ["bilforsikring"],
   },
   {
     slug: "netbanksforsikring",
@@ -454,18 +638,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Netbank",
     letter: "N",
     eyebrow: "Bedrageri",
-    metaDescription:
-      "Netbanksforsikring dækker tab ved netbanksbedrageri og uautoriserede transaktioner via virksomhedens bankkonti.",
-    intro:
-      "Netbanksbedrageri rammer virksomheder hver måned. Forsikringen dækker de økonomiske tab hvis jeres konti kompromitteres — et supplement til bankens eget sikkerhedsniveau.",
+    metaDescription: "Netbanksforsikring dækker tab ved netbanksbedrageri og uautoriserede transaktioner via virksomhedens bankkonti.",
+    intro: "Netbanksbedrageri rammer virksomheder hver måned. Forsikringen dækker de økonomiske tab hvis jeres konti kompromitteres.",
     heroImage: IMG.moisa,
     cvrLabel: "Få tilbud på jeres netbanksforsikring",
-    sections: [
-      {
-        title: "Hvornår dækkes der?",
-        body: "Uautoriserede overførsler og hackerangreb på virksomhedens netbank. Dækning er typisk et supplement til cyber- og kriminalitetsforsikring.",
-      },
-    ],
     related: ["cyberforsikring", "kriminalitetsforsikring"],
   },
   {
@@ -474,18 +650,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Professionel ansvar",
     letter: "P",
     eyebrow: "Rådgiveransvar",
-    metaDescription:
-      "Professionel ansvarsforsikring dækker rådgivningsvirksomheder mod krav som følge af fejl eller udeladelser i den ydede rådgivning.",
-    intro:
-      "Rådgivere, konsulenter, arkitekter, ingeniører og revisorer lever af deres faglige vurderinger. Professionel ansvar dækker de økonomiske krav hvis en vurdering eller rådgivning fører til tab for kunden.",
-    heroImage: IMG.mcbrayer,
+    metaDescription: "Professionel ansvarsforsikring dækker rådgivningsvirksomheder mod krav som følge af fejl eller udeladelser i den ydede rådgivning.",
+    intro: "Rådgivere, konsulenter, arkitekter, ingeniører og revisorer lever af deres faglige vurderinger. Professionel ansvar dækker de økonomiske krav hvis en vurdering eller rådgivning fører til tab for kunden.",
+    heroImage: IMG.meeting,
     cvrLabel: "Få tilbud på jeres professionelle ansvarsforsikring",
-    sections: [
-      {
-        title: "Hvem bør have dækning?",
-        body: "Alle der yder rådgivning mod betaling. Specielt relevant for konsulenter, arkitekter, ingeniører, revisorer, advokater og it-konsulenter.",
-      },
-    ],
     related: ["advokatansvarsforsikring", "it-ansvarsforsikring", "bestyrelsesansvarsforsikring"],
   },
   {
@@ -494,18 +662,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Sundhedsforsikring",
     letter: "S",
     eyebrow: "Medarbejdergoder",
-    metaDescription:
-      "Sundhedsforsikring som medarbejdergode — reducerer sygefravær og styrker fastholdelse. Vi sammensætter programmer skræddersyet til jeres virksomhed.",
-    intro:
-      "En stærk sundhedsforsikring er blevet et standardkrav blandt medarbejdere. Vi forhandler programmer der både reducerer sygefravær og styrker jer i kampen om talenter.",
+    metaDescription: "Sundhedsforsikring som medarbejdergode — reducerer sygefravær og styrker fastholdelse.",
+    intro: "En stærk sundhedsforsikring er blevet et standardkrav blandt medarbejdere. Vi forhandler programmer der både reducerer sygefravær og styrker jer i kampen om talenter.",
     heroImage: IMG.partnership,
     cvrLabel: "Få tilbud på sundhedsforsikring til jeres medarbejdere",
-    sections: [
-      {
-        title: "Hvad indeholder den typisk?",
-        body: "Hurtig adgang til privat behandling, fysioterapi, psykologhjælp, speciallæge og i nogle tilfælde også tandlæge. Programmer kan tilpasses virksomhedens størrelse og branche.",
-      },
-    ],
     related: ["kollektiv-ulykkesforsikring", "arbejdsskadeforsikring"],
   },
 ];

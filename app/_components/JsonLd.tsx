@@ -2,8 +2,8 @@ const ORG = {
   "@context": "https://schema.org",
   "@type": "InsuranceAgency",
   name: "Nordan Risk Partners ApS",
-  url: "https://www.nordanriskpartners.dk",
-  logo: "https://www.nordanriskpartners.dk/images/logo.png",
+  url: "https://nordan-risk-partners.vercel.app",
+  logo: "https://nordan-risk-partners.vercel.app/images/logo.png",
   description:
     "Uafhængigt forsikringsmæglerhus med speciale i erhvervsforsikringer. Over 40 års brancheerfaring.",
   telephone: "+4553520006",

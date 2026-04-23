@@ -15,7 +15,6 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const isHome = pathname === "/";
 
   useEffect(() => {
     setOpen(false);
@@ -29,17 +28,13 @@ export function Nav() {
   }, [open]);
 
   useEffect(() => {
-    if (!isHome) {
-      setScrolled(true);
-      return;
-    }
     const onScroll = () => setScrolled(window.scrollY > 50);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isHome]);
+  }, [pathname]);
 
-  const overlay = isHome && !scrolled;
+  const overlay = !scrolled;
   const navCls = overlay ? "nav-overlay" : "nav-solid";
   const barHeightCls = overlay ? "h-20 md:h-28" : "h-16 md:h-20";
   const logoHeightCls = overlay ? "h-11 md:h-16" : "h-8 md:h-10";
@@ -116,8 +111,6 @@ export function Nav() {
         </div>
       </header>
 
-      {/* Spacer on non-home so the fixed dark nav doesn't overlap content */}
-      {!isHome ? <div className="h-16 md:h-20 bg-[color:var(--color-nordan-dark)]" aria-hidden /> : null}
 
       {/* Mobile drawer */}
       <div

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { INSURANCE_PRODUCTS } from "@/lib/insurance-products";
 
-const SITE = "https://www.nordanriskpartners.dk";
+const SITE = "https://nordan-risk-partners.vercel.app";
 
 const STATIC_ROUTES: { path: string; priority: number; changefreq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
   { path: "/", priority: 1.0, changefreq: "weekly" },

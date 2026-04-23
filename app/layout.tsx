@@ -28,27 +28,61 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const SITE_URL = "https://www.nordanriskpartners.dk";
+const SITE_URL = "https://nordan-risk-partners.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Nordan Risk Partners — Uafhængige forsikringsmæglere",
+    default: "Nordan Risk Partners — Uafhængig forsikringsmægler til erhverv",
     template: "%s · Nordan Risk Partners",
   },
   description:
-    "Uvildig rådgivning indenfor erhvervsforsikring. Med over 40 års brancheerfaring hjælper vi danske virksomheder med forsikringsprogrammer der matcher deres virkelighed.",
+    "Uvildig rådgivning om erhvervsforsikring i Danmark. Med over 40 års brancheerfaring hjælper vi virksomheder med forsikringsprogrammer der matcher deres virkelighed — ingen bindinger, ingen telefonsluser.",
+  keywords: [
+    "forsikringsmægler",
+    "erhvervsforsikring",
+    "uafhængig forsikringsmægler",
+    "uvildig rådgivning forsikring",
+    "bestyrelsesansvarsforsikring",
+    "arbejdsskadeforsikring",
+    "cyberforsikring",
+    "bygningsforsikring",
+    "fredede ejendomme forsikring",
+    "forsikringsmægler Danmark",
+    "Nordan Risk Partners",
+  ],
+  authors: [{ name: "Nordan Risk Partners ApS" }],
+  creator: "Nordan Risk Partners ApS",
+  publisher: "Nordan Risk Partners ApS",
+  formatDetection: { email: true, address: true, telephone: true },
   openGraph: {
     type: "website",
     locale: "da_DK",
     url: SITE_URL,
     siteName: "Nordan Risk Partners",
-    title: "Nordan Risk Partners — Uafhængige forsikringsmæglere",
+    title: "Nordan Risk Partners — Uafhængig forsikringsmægler",
     description:
-      "Uvildig rådgivning indenfor erhvervsforsikring. Direkte adgang til erfarne rådgivere – ikke telefonsluser.",
-    images: [{ url: "/images/logo.png", width: 1200, height: 630 }],
+      "Uvildig rådgivning om erhvervsforsikring. Direkte adgang til erfarne rådgivere — ingen telefonsluser. Gratis analyse via CVR.",
+    images: [{ url: "/images/nordan-75.jpg", width: 1200, height: 630, alt: "Nordan Risk Partners — uafhængig forsikringsmægler" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nordan Risk Partners — Uafhængig forsikringsmægler",
+    description: "Uvildig rådgivning om erhvervsforsikring. Gratis analyse via CVR.",
+    images: ["/images/nordan-75.jpg"],
   },
   alternates: { canonical: SITE_URL },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
