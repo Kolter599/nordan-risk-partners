@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { CvrLookup } from "../_components/CvrLookup";
 import { PageHero } from "../_components/PageHero";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Kontakt os",
   description:
-    "Kontakt Nordan Risk Partners. Send en besked, ring +45 53 52 00 06 eller skriv til info@ndrp.dk. Vi svarer typisk inden for én hverdag.",
+    "Kontakt Nordan Risk Partners. Start din gratis analyse via CVR, send en besked, ring +45 53 52 00 06 eller skriv til info@ndrp.dk.",
 };
 
 export default function KontaktPage() {
@@ -15,24 +16,54 @@ export default function KontaktPage() {
       <PageHero
         eyebrow="Kontakt os"
         title={<>Lad os tage en uforpligtende snak</>}
-        body="Hos os er der ingen hurtige sælgere — vi er på jeres side af bordet. Skriv et par linjer om virksomheden, så ringer vi eller skriver tilbage hurtigt."
+        body="Vælg selv hvordan. Start analysen via CVR — eller skriv til os direkte. Ingen salgsretorik, ingen telefonsluser."
         image="/images/nordan-12.jpg"
       />
 
+      {/* CVR ANALYSE FØRST — den hurtigste vej */}
+      <section className="py-20 md:py-28 bg-[color:var(--color-nordan-soft)] border-b border-[color:var(--color-nordan-line)]">
+        <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-center">
+          <div className="md:col-span-6">
+            <div className="eyebrow mb-4">Hurtigste vej</div>
+            <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.9rem,3.2vw,2.5rem)] leading-[1.15] mb-6">
+              Start jeres gratis analyse
+            </h2>
+            <p className="text-[1.05rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.75] mb-6">
+              Indtast jeres CVR og vi begynder med det samme. Tre minutter af jeres tid — vi tager resten.
+            </p>
+            <ul className="check-list">
+              <li>Vi henter virksomhedsdata automatisk</li>
+              <li>I vælger om vi signerer fuldmagt digitalt eller via PDF</li>
+              <li>Upload eksisterende policer (valgfrit)</li>
+              <li>Rådgiver ringer inden for én hverdag</li>
+            </ul>
+          </div>
+          <div className="md:col-span-6">
+            <CvrLookup headline="Indtast CVR — start jeres analyse" />
+          </div>
+        </div>
+      </section>
+
+      {/* FORMULAR + KONTAKTINFO */}
       <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-5 md:px-8 grid md:grid-cols-12 gap-12 md:gap-16">
+        <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-12 md:gap-16">
           <div className="md:col-span-7">
-            <div className="eyebrow mb-4">Skriv til os</div>
-            <h2 className="display-lg mb-8">Få et uforpligtende tjek</h2>
+            <div className="eyebrow mb-4">Foretrækker du en formular?</div>
+            <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.9rem,3.2vw,2.5rem)] leading-[1.15] mb-3">
+              Skriv et par linjer — vi vender tilbage
+            </h2>
+            <p className="text-[color:var(--color-nordan-ink-soft)] leading-relaxed mb-8 max-w-xl">
+              Udfyld formularen hvis du hellere vil skrive hvad det drejer sig om end at indtaste CVR. Vi læser alt selv og vender tilbage inden for én hverdag.
+            </p>
             <ContactForm />
           </div>
 
-          <aside className="md:col-span-5 space-y-10">
-            <div className="relative aspect-[4/3] rounded-sm overflow-hidden">
+          <aside className="md:col-span-5 space-y-8">
+            <div className="relative aspect-[4/3] rounded-[8px] overflow-hidden">
               <Image src="/images/nordan-56.jpg" alt="Nordan Risk Partners kontor" fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" />
             </div>
 
-            <div className="bg-[color:var(--color-nordan-soft)] p-7 rounded-sm">
+            <div className="bg-[color:var(--color-nordan-soft)] p-7 rounded-[8px]">
               <div className="eyebrow mb-4">Kontaktoplysninger</div>
               <ul className="space-y-4 text-[0.98rem]">
                 <InfoItem label="Telefon" value="+45 53 52 00 06" href="tel:+4553520006" />
@@ -42,7 +73,7 @@ export default function KontaktPage() {
               </ul>
             </div>
 
-            <div className="bg-white border border-[color:var(--color-nordan-line)] p-7 rounded-sm">
+            <div className="bg-white border border-[color:var(--color-nordan-line)] p-7 rounded-[8px]">
               <div className="eyebrow mb-4">Åbningstider</div>
               <ul className="space-y-1 text-[0.98rem] text-[color:var(--color-nordan-ink-soft)]">
                 <li>Mandag – torsdag: 08:30 – 16:00</li>

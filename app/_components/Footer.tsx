@@ -32,7 +32,8 @@ export function Footer() {
           <ul className="space-y-2 text-white text-[0.95rem] font-medium">
             <li><a href="tel:+4553520006" className="hover:text-[color:var(--color-nordan-accent-soft)]">+45 53 52 00 06</a></li>
             <li><a href="mailto:info@ndrp.dk" className="hover:text-[color:var(--color-nordan-accent-soft)]">info@ndrp.dk</a></li>
-            <li className="pt-2">Toftevej 15B</li>
+            <li><Link href="/kontakt-os" className="hover:text-[color:var(--color-nordan-accent-soft)]">Indsend formular →</Link></li>
+            <li className="pt-4">Toftevej 15B</li>
             <li>3450 Allerød</li>
             <li className="pt-2 text-white/65 font-normal">CVR 45953769</li>
           </ul>
@@ -76,6 +77,7 @@ export function Footer() {
           <span>© {new Date().getFullYear()} Nordan Risk Partners ApS · Medlem af FMF</span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
             <Link href="/persondatapolitik.pdf" className="hover:text-white">Persondatapolitik</Link>
+            <Link href="/cookies" className="hover:text-white">Cookies</Link>
             <Link href="/whistleblower.pdf" className="hover:text-white">Whistleblower</Link>
             <span>Allerød, Danmark</span>
           </div>

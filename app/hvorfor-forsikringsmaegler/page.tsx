@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ContactCta } from "../_components/ContactCta";
+import { CvrCtaSection } from "../_components/CvrCtaSection";
 import { PageHero } from "../_components/PageHero";
 import { Reveal } from "../_components/Reveal";
 
@@ -123,7 +123,7 @@ export default function HvorforPage() {
         </div>
       </section>
 
-      <ContactCta />
+      <CvrCtaSection />
     </>
   );
 }

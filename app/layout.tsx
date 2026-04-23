@@ -4,6 +4,7 @@ import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { Nav } from "./_components/Nav";
 import { Footer } from "./_components/Footer";
 import { StickyMobileCta } from "./_components/StickyMobileCta";
+import { CookieBanner } from "./_components/CookieBanner";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -93,6 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1">{children}</main>
         <Footer />
         <StickyMobileCta />
+        <CookieBanner />
         <VercelAnalytics />
       </body>
     </html>

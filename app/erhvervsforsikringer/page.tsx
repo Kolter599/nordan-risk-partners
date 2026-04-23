@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ContactCta } from "../_components/ContactCta";
+import { CvrCtaSection } from "../_components/CvrCtaSection";
 import { PageHero } from "../_components/PageHero";
 import { Reveal } from "../_components/Reveal";
 import { INSURANCE_PRODUCTS } from "@/lib/insurance-products";
@@ -83,10 +83,6 @@ export default function ErhvervsforsikringerPage() {
           <p>
             Som uafhængige forsikringsmæglere arbejder vi udelukkende for vores kunder. Vi sammensætter løsninger ud fra jeres specifikke risikobillede — ikke ud fra hvad der er nemmest at sælge.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/#analyse" className="btn-primary">Få gratis analyse</Link>
-            <a href="tel:+4553520006" className="btn-outline">Ring +45 53 52 00 06</a>
-          </div>
         </div>
       </section>
 
@@ -125,7 +121,7 @@ export default function ErhvervsforsikringerPage() {
         </div>
       </section>
 
-      <ContactCta />
+      <CvrCtaSection />
     </>
   );
 }

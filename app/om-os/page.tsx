@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ContactCta } from "../_components/ContactCta";
+import { CvrCtaSection } from "../_components/CvrCtaSection";
 import { PageHero } from "../_components/PageHero";
 
 export const metadata: Metadata = {
@@ -134,7 +134,7 @@ export default function OmOsPage() {
         </div>
       </section>
 
-      <ContactCta />
+      <CvrCtaSection />
     </>
   );
 }
