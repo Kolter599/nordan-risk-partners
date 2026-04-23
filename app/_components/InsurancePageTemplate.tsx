@@ -57,7 +57,7 @@ export function InsurancePageTemplate({ product }: Props) {
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  href="#analyse-bottom"
+                  href="/analyse"
                   className="inline-flex items-center h-12 px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
                 >
                   Få gratis analyse

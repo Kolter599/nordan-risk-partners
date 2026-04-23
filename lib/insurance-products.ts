@@ -335,11 +335,15 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     letter: "B",
     eyebrow: "Ejendom",
     metaDescription:
-      "Bygningsforsikring til erhvervsejendomme, ejer- og andelsboligforeninger. Vi sikrer at dækningssummer matcher genopførselsomkostninger.",
+      "Bygningsforsikring til erhvervsejendomme, ejer- og andelsboligforeninger. Vi sikrer at dækningssummer matcher genopførselsomkostninger — og at moderne risici som skybrud er med.",
     intro:
       "Bygningsforsikring er grundstenen for enhver virksomhed eller forening der ejer sin ejendom. Vi sikrer at dækningssummer matcher genopførselsomkostningerne — og at vilkårene er opdaterede med tidens risici.",
     heroImage: IMG.marion,
     cvrLabel: "Få en gratis gennemgang af jeres bygningsforsikring",
+    introParagraphs: [
+      "Den gennemsnitlige genopførselsværdi er steget markant de seneste år — materialer, håndværkerløn og regulatoriske krav alt sammen dyrere. Hvis jeres forsikring stadig er baseret på gamle tal, står I i risiko for markant underforsikring ved større skader.",
+      "Samtidig har klimaforandringer gjort skybrud og storm mere hyppige. Vi tjekker om jeres police har den rette kombination af grunddækning og moderne tilvalg.",
+    ],
     features: [
       {
         eyebrow: "Dækninger",
@@ -350,9 +354,33 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Storm og skybrud", body: "Stigende behov i takt med klimaforandringer." },
           { label: "Skjulte rørskader", body: "Ofte meget dyre — vigtigt tilvalg." },
           { label: "Svampe og insekter", body: "Bør altid være med i ældre ejendomme." },
+          { label: "Glas og sanitet", body: "Relevant for butikker og udadvendte lokaler." },
+          { label: "Funktionsdygtighed", body: "Genopretning af installationer der ikke er direkte skadet." },
         ],
         image: IMG.marion,
         imageSide: "right",
+      },
+      {
+        eyebrow: "Hyppigste fejl vi ser",
+        title: "Tre ting vi ofte opdager ved gennemgang",
+        body: "Efter mange års erfaring ser vi de samme problemer igen og igen. Det er nemt at rette — hvis man kigger.",
+        bullets: [
+          { label: "Gamle dækningssummer", body: "Ikke justeret siden sidste renovering eller udbygning." },
+          { label: "Manglende skjulte rør", body: "Udelukket i grunddækning — tilvalg ofte glemt." },
+          { label: "Underforsikring pga. indeksfejl", body: "Prisstigninger ikke indregnet år for år." },
+        ],
+        image: IMG.vandergriff,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Hvordan fastsættes forsikringssummen korrekt?",
+        a: "Den skal afspejle genopførselsomkostningerne — ikke ejendomsvurderingen og ikke bogført værdi. En ejendomsbesigtigelse giver det mest præcise svar.",
+      },
+      {
+        q: "Er skybrud altid med i dækningen?",
+        a: "Nej — i ældre policer er skybrud ofte kun et tilvalg. Vi sikrer at det er med, særligt for ejendomme i byområder med pressede kloaksystemer.",
       },
     ],
     related: ["fredede-ejendomme-forsikring", "forsikring-andelsboligforening-ejerforening", "loosereforsikring"],
@@ -364,14 +392,34 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     letter: "F",
     eyebrow: "Specialrådgivning",
     metaDescription:
-      "Rådgivning i et marked med få muligheder. Vi hjælper ejere og bestyrelser af fredede ejendomme med at finde dækning.",
+      "Rådgivning i et marked med få muligheder. Vi hjælper ejere, bestyrelser og administratorer af fredede ejendomme med at finde fuld dækning — også efter afslag.",
     intro:
       "Forsikring af fredede ejendomme er blandt de mest udfordrede områder i markedet. Mange ejere får afslag eller markante prisstigninger. Vi hjælper med at navigere markedet og finde løsninger.",
     heroImage: IMG.wenchen,
     cvrLabel: "Få en uforpligtende vurdering af jeres fredede ejendom",
+    introParagraphs: [
+      "Ifølge branchekilder afvises omkring halvdelen af henvendelser om forsikring af fredede ejendomme allerede ved første kontakt. Mange af dem der får tilbud, oplever præmiestigninger på 30–100% — og ender ofte med reduceret dækning til højere pris.",
+      "Vi specialiserer os i netop dette område og har adgang til både danske specialister og internationale markeder der løfter denne type ejendomme. Selv når andre har givet op, kan vi ofte finde en løsning.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad vi kigger på",
+        title: "Specialvurdering af jeres fredede ejendom",
+        body: "Vi starter med at få overblik over bygningen, dens tilstand og tidligere skader — så vi kan præsentere en komplet case overfor markedet.",
+        bullets: [
+          { label: "Bygningsbeskrivelse og fredningsdetaljer", body: "Hvor er bygningen og hvad er specifikt fredet?" },
+          { label: "Teknisk tilstand", body: "Tag, installationer, fugtforhold — kan vi dokumentere solid stand?" },
+          { label: "Skadeshistorik", body: "Tidligere skader og hvordan de er håndteret." },
+          { label: "Brandforanstaltninger", body: "Sprinkler, brand­afsnit og alarmsystemer — påvirker direkte præmien." },
+        ],
+        image: IMG.wenchen,
+        imageSide: "right",
+      },
+    ],
     stats: [
       { value: "~50%", label: "af henvendelser afvises eller får ikke tilbud" },
       { value: "30–100%", label: "typiske prisstigninger de sidste år" },
+      { value: "Ja", label: "vi har løsninger også efter afslag" },
     ],
     faq: [
       {
@@ -381,6 +429,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       {
         q: "Kan I hjælpe selv hvis vi har fået afslag andre steder?",
         a: "Ja — det er faktisk ofte dér vi kommer ind i billedet. Vi har erfaring med internationale og specialiserede selskaber der dækker det danske standardmarked ikke tager.",
+      },
+      {
+        q: "Hvor længe tager processen?",
+        a: "Fra første møde til en fuld besigtigelse og tilbud kan der gå 4–8 uger. Ved komplekse sager op til 12 uger. Vi er realistiske omkring tidsrammer fra start.",
       },
     ],
     related: ["bygningsforsikring", "forsikring-andelsboligforening-ejerforening"],
@@ -397,6 +449,10 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       "Vi hjælper andelsboligforeninger og ejerforeninger med en uvildig gennemgang af forsikringsprogrammet — både på dækning og pris. Direkte adgang til erfarne rådgivere.",
     heroImage: IMG.marion,
     cvrLabel: "Få tjekket jeres forenings forsikringer gratis",
+    introParagraphs: [
+      "Forsikringsprogrammet er ofte det vigtigste ansvar bestyrelsen har — og samtidig det område hvor vi ser flest fejl og overpriser. Hovedparten af danske foreninger har programmer der ikke er blevet gennemgået struktureret siden sidste fornyelse — typisk 3–5 år.",
+      "Vi tilbyder uvildig rådgivning til bestyrelser og administratorer: en komplet gennemgang af eksisterende program, udbud på markedet og en klar anbefaling om hvad der giver mest værdi.",
+    ],
     features: [
       {
         eyebrow: "Hvad skal dækkes?",
@@ -413,11 +469,36 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
         image: IMG.marion,
         imageSide: "right",
       },
+      {
+        eyebrow: "Den typiske proces",
+        title: "Fra første møde til implementeret program",
+        body: "Vi arbejder altid tæt sammen med bestyrelsen. Ingen beslutninger træffes uden jeres accept — vi leverer analysen, I godkender retningen.",
+        bullets: [
+          { label: "1. Gennemgang af nuværende program", body: "Vi identificerer huller, overlap og underforsikring." },
+          { label: "2. Udbud til markedet", body: "Vi forhandler med flere selskaber på jeres vegne." },
+          { label: "3. Anbefaling til bestyrelsen", body: "Klar sammenligning, anbefalet løsning, svar på spørgsmål." },
+          { label: "4. Implementering og årlig opfølgning", body: "Vi bliver ved — løbende rådgivning ved ændringer." },
+        ],
+        image: IMG.meeting,
+        imageSide: "left",
+      },
+    ],
+    stats: [
+      { value: "10–25%", label: "typisk besparelse ved at tage programmet i udbud" },
+      { value: "1× årligt", label: "anbefalet gennemgang af programmet" },
     ],
     faq: [
       {
         q: "Hvor ofte bør vi få tjekket forsikringen?",
         a: "Minimum én gang årligt — typisk i forbindelse med fornyelsen. Vi anbefaler også en gennemgang efter større ændringer i ejendommen, bestyrelsen eller skadeshistorikken.",
+      },
+      {
+        q: "Kan administrator eller bestyrelsen gøre det selv?",
+        a: "Ja, men det kræver specialistviden. Som uvildig mægler har vi ingen incitament til at sælge bestemte produkter — og det forhandlingsgrundlag gør typisk en betydelig forskel.",
+      },
+      {
+        q: "Hvad koster det at bruge jer?",
+        a: "Vi aflønnes via honorar fra selskabet — aldrig ekstra af foreningen. Honorarstrukturen er transparent og godkendt af bestyrelsen inden vi går i gang.",
       },
     ],
     related: ["bygningsforsikring", "bestyrelsesansvarsforsikring", "arbejdsskadeforsikring"],
@@ -434,18 +515,45 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       "Ansvarsforsikring er grundlæggende for enhver virksomhed. Én stor sag kan true hele økonomien — vi sikrer at dækningsgrundlag, summer og vilkår matcher jeres reelle eksponering.",
     heroImage: IMG.moisa,
     cvrLabel: "Se om jeres ansvarsforsikring er i orden",
+    introParagraphs: [
+      "Erhvervs- og produktansvarsforsikring er den vigtigste 'usynlige' forsikring I kan have. Den dækker det øjeblik hvor noget I har lavet, solgt eller installeret skader en anden virksomhed eller person — og kravet kan let løbe op i millioner.",
+      "Vi analyserer jeres kontrakter, leverancer og eksporter for at sikre at dækning, geografisk omfang og dækningssum matcher hvad I rent faktisk påtager jer. Mange virksomheder har 'standarddækning' — men opererer langt uden for hvad standard dækker.",
+    ],
     features: [
       {
         eyebrow: "Erhvervs- vs. produktansvar",
         title: "To tætte, men ikke identiske dækninger",
-        body: "Forskellen er vigtig — de dækker forskellige situationer.",
+        body: "Forskellen er vigtig — de dækker forskellige situationer og kan ikke erstatte hinanden.",
         bullets: [
           { label: "Erhvervsansvar", body: "Skader under driften — fx når montøren uforvarende beskadiger kundens ejendom." },
           { label: "Produktansvar", body: "Skader forårsaget af solgte eller leverede produkter efter overdragelse." },
-          { label: "Professionsansvar", body: "Rådgiveransvar — dækker fejl i rådgivning mod betaling." },
+          { label: "Produktansvarsloven", body: "Objektivt ansvar — krav kan rejses uden at kunden beviser uagtsomhed." },
+          { label: "Rådgiveransvar (E&O)", body: "Rent økonomisk tab fra fagligt arbejde — separat dækning." },
         ],
         image: IMG.moisa,
         imageSide: "right",
+      },
+      {
+        eyebrow: "Det globale aspekt",
+        title: "Eksport? USA-leverancer? Det ændrer alt.",
+        body: "Mange virksomheder har en dansk ansvarsforsikring der udelukker USA, Canada og Australien — netop hvor erstatningssummer er størst. Hvis I eksporterer dertil uden udvidet dækning, er risikoen reel.",
+        bullets: [
+          { label: "Europæisk dækning", body: "Typisk inkluderet i alle danske policer." },
+          { label: "USA/Canada-tillæg", body: "Kræver særskilt dækning — ofte dyrere." },
+          { label: "Andre lande", body: "Vurderes individuelt pr. land." },
+        ],
+        image: IMG.moisa,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Hvor stor en dækningssum er nødvendig?",
+        a: "Afhænger af størrelse, branche og eksponering. Typisk 10 mio. kr. for mindre virksomheder, op til 100 mio. for producenter med international eksport. Vi hjælper med at vurdere det rigtige niveau.",
+      },
+      {
+        q: "Dækker policen også underleverandører?",
+        a: "Det kan den — men skal tilvælges. Hvis I bruger underleverandører, skal deres ansvarsdækning også tjekkes for at undgå 'coverage gap' i kæden.",
       },
     ],
     related: ["bestyrelsesansvarsforsikring", "professionel-ansvarsforsikring", "entrepriseforsikring"],
@@ -535,10 +643,51 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Driftstab",
     letter: "D",
     eyebrow: "Forretningskontinuitet",
-    metaDescription: "Driftstabsforsikring kompenserer for tabt dækningsbidrag og løbende omkostninger når virksomheden rammes af en dækningsberettiget skade.",
+    metaDescription: "Driftstabsforsikring kompenserer for tabt dækningsbidrag og løbende omkostninger når virksomheden rammes af en skade. Vi sikrer at dækningsperioden og summerne er realistiske.",
     intro: "Når uheldet sker, er det ikke kun bygningen der skal repareres — det er også indtjeningen der forsvinder. Driftstabsforsikring holder virksomheden kørende økonomisk indtil driften er oppe igen.",
     heroImage: IMG.partnership,
     cvrLabel: "Tjek om jeres driftstabsforsikring er stor nok",
+    introParagraphs: [
+      "En brand, en oversvømmelse eller et nedbrud i et afgørende produktionsanlæg kan lukke virksomheden i uger eller måneder. Mens bygningsforsikringen dækker den fysiske skade, dækker driftstabsforsikringen den tabte indtjening — og holder virksomhedens faste omkostninger oppe indtil I er tilbage på sporet.",
+      "Problemet er, at mange virksomheder har en driftstabsforsikring der er baseret på gamle tal og en for kort dækningsperiode. Vi hjælper jer med at validere at både dækningssum og indeksperiode matcher virkelighedens genopretningstid.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækkes",
+        title: "Faste omkostninger og mistet dækningsbidrag",
+        body: "Driftstabsforsikringen kompenserer for den økonomiske konsekvens af en dækningsberettiget skade — typisk brand, vand eller storm, men kan også udvides med andre årsager.",
+        bullets: [
+          { label: "Mistet dækningsbidrag", body: "Forskellen mellem omsætning og de variable omkostninger I ikke har." },
+          { label: "Faste omkostninger", body: "Løn, husleje, renter, forsikringer — det der løber uanset." },
+          { label: "Meromkostninger ved midlertidig løsning", body: "Fx flytning til midlertidige lokaler eller indleje af produktionsudstyr." },
+          { label: "Indekseringsperiode", body: "Antal måneder dækningen løber — vælges efter realistisk genopretningstid." },
+        ],
+        image: IMG.moisa,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Den kritiske faktor",
+        title: "Dækningsperioden afgør om I holder til det",
+        body: "Mange forsikringer har 12 måneders dækningsperiode — men realistiske genopretningstider er ofte længere, især ved specialiseret produktion eller genopbygning af fredede ejendomme. Vi regner sammen med jer.",
+        bullets: [
+          { label: "12 måneder — standard", body: "Fint for kontorvirksomhed og standardbyggeri." },
+          { label: "18–24 måneder", body: "Anbefales ved specialiseret produktion eller komplekse bygninger." },
+          { label: "36 måneder+", body: "For fredede ejendomme og hvor myndighedsgodkendelser forsinker." },
+        ],
+        image: IMG.golfBall,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Er driftstab det samme som en bygningsforsikring?",
+        a: "Nej — bygningsforsikringen dækker det fysiske tab (reparation eller genopbygning). Driftstab dækker den mistede indtjening mens det står på. De to hænger typisk sammen — og begge er nødvendige.",
+      },
+      {
+        q: "Hvor høj skal dækningssummen være?",
+        a: "Tommelfingerreglen er jeres dækningsbidrag for den valgte dækningsperiode (fx 12 måneders dækningsbidrag). Vi hjælper med at lave den konkrete beregning.",
+      },
+    ],
     related: ["bygningsforsikring", "loosereforsikring", "cyberforsikring"],
   },
   {
@@ -547,11 +696,56 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Entreprise",
     letter: "E",
     eyebrow: "Byggeri",
-    metaDescription: "Entrepriseforsikring dækker bygge- og anlægsprojekter mod pludselige skader og ansvarsrisiko under udførelsen.",
-    intro: "Et byggeprojekt har mange aktører og risici. Entrepriseforsikring samler dækningerne for bygherre, entreprenør og underentreprenører under ét.",
+    metaDescription: "Entrepriseforsikring dækker bygge- og anlægsprojekter mod pludselige skader og ansvarsrisiko under udførelsen. All-risks for bygherre, entreprenør og underentreprenører.",
+    intro: "Et byggeprojekt har mange aktører og risici. Entrepriseforsikring samler dækningerne for bygherre, entreprenør og underentreprenører under ét — og sikrer at en uventet skade under byggeriet ikke vælter økonomien.",
     heroImage: IMG.nordan27,
     cvrLabel: "Få tilbud på jeres entrepriseforsikring",
-    related: ["erhvervs-og-produktansvarsforsikring"],
+    introParagraphs: [
+      "Entrepriseforsikring er den vigtigste forsikring at have på plads før første spadestik. Den dækker både de fysiske skader på byggeriet under opførelsen og det ansvar som de involverede parter pådrager sig overfor hinanden og tredjemand.",
+      "Vi skræddersyer dækningen til det konkrete projekt — eller etablerer en årsentrepriseaftale der dækker alle jeres projekter løbende. Det sparer tid, administration og penge sammenlignet med enkeltpolicer.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækker entrepriseforsikring?",
+        title: "All-risks under udførelsen — ikke kun brand",
+        body: "En entrepriseforsikring dækker alle pludselige skader på byggeriet, uanset årsag — plus ansvar overfor naboer og tredjemand, eksisterende bygninger på grunden og materialer på byggepladsen.",
+        bullets: [
+          { label: "Byggeriet under opførelse", body: "Materialer, elementer og delvist opført byggeri dækkes mod alle pludselige skader." },
+          { label: "Eksisterende bygninger", body: "Særligt relevant ved tilbygninger og renoveringer — skader på eksisterende dele dækkes." },
+          { label: "Ansvar overfor tredjemand", body: "Erstatning hvis arbejdet forårsager skade på naboer eller passanter." },
+          { label: "Nedtagnings- og oprydningsomkostninger", body: "Efter dækningsberettiget skade." },
+        ],
+        image: IMG.nordan27,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Projektspecifik vs. årsaftale",
+        title: "To måder at tegne dækning på",
+        body: "Enkeltprojektpolicer passer godt til store, komplicerede byggerier. Årsentrepriseaftaler er mere effektive hvis I udfører flere mindre projekter årligt.",
+        bullets: [
+          { label: "Enkeltprojekt-entreprise", body: "Én police, ét projekt. Typisk 12–24 måneders dækning afhængig af byggetid." },
+          { label: "Årsentrepriseforsikring", body: "Løbende aftale der dækker alle jeres projekter op til en aftalt størrelse. Mindre administration." },
+          { label: "Bygherreleveranceforsikring", body: "For bygherren selv — dækker materialer indtil entreprenøren overtager dem." },
+        ],
+        image: IMG.mandrup,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Hvem skal tegne entrepriseforsikringen — bygherre eller entreprenør?",
+        a: "Det kommer an på entrepriseformen (total-, hoved- eller fagentreprise) og hvad der er aftalt i kontrakten. Typisk tegner bygherren forsikringen ved større byggerier efter AB18-standarden. Vi hjælper med at få det korrekt afstemt inden byggestart.",
+      },
+      {
+        q: "Dækker almindelig erhvervs- og produktansvarsforsikring ikke byggeriet?",
+        a: "Nej — erhvervsansvar dækker driften, ikke de pludselige skader på selve byggeriet under opførelse. Entrepriseforsikring er nødvendig ud over standard ansvarsdækning.",
+      },
+      {
+        q: "Hvad koster en entrepriseforsikring?",
+        a: "Typisk 0,2–0,8% af entreprisesummen afhængigt af byggeriets kompleksitet, tid og risikoprofil. Større og mere komplekse projekter har lavere procentsats.",
+      },
+    ],
+    related: ["erhvervs-og-produktansvarsforsikring", "bygningsforsikring"],
   },
   {
     slug: "it-ansvarsforsikring",
@@ -559,10 +753,40 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "IT-ansvar",
     letter: "I",
     eyebrow: "Professionelt ansvar",
-    metaDescription: "IT-ansvarsforsikring for konsulenthuse og softwarevirksomheder. Dækker krav fra kunder ved fejl, forsinkelser eller databrud.",
-    intro: "Som IT-leverandør lever I af tillid og leveringsevne. IT-ansvar dækker de økonomiske krav hvis en leverance går galt — fejl i kode, forsinket implementation eller datalæk.",
+    metaDescription: "IT-ansvarsforsikring for konsulenthuse og softwarevirksomheder. Dækker krav fra kunder ved fejl, forsinkelser, SLA-brud eller databrud.",
+    intro: "Som IT-leverandør lever I af tillid og leveringsevne. IT-ansvar dækker de økonomiske krav hvis en leverance går galt — fejl i kode, forsinket implementation, SLA-brud eller datalæk hos kunden.",
     heroImage: IMG.vandergriff,
     cvrLabel: "Se hvordan vi kan hjælpe med jeres IT-ansvarsforsikring",
+    introParagraphs: [
+      "IT-ansvarsforsikring er specielt designet til branchen og dækker det professionsansvar der følger af at levere software, hosting, integration eller rådgivning. Den adskiller sig fra almindelig erhvervsansvar ved også at dække rent økonomiske tab, ikke kun person- og tingsskader.",
+      "For konsulenthuse og SaaS-virksomheder er den nærmest obligatorisk — både fordi kunderne ofte kræver det i kontrakten, og fordi et enkelt krav kan løbe op i mange millioner.",
+    ],
+    features: [
+      {
+        eyebrow: "Typiske dækningssituationer",
+        title: "Når leverancen ikke gør det I lovede",
+        body: "IT-ansvar dækker de økonomiske konsekvenser af fejl eller udeladelser i jeres rådgivning, kode, konfiguration eller drift.",
+        bullets: [
+          { label: "Softwarefejl", body: "Fejl i kode der leder til økonomisk tab hos kunden." },
+          { label: "SLA-brud", body: "Uptime eller performance under det aftalte niveau." },
+          { label: "Forsinket levering", body: "Hvis projektet trækker ud og kunden lider tab." },
+          { label: "Datatab og databrud", body: "Hvis jeres håndtering forårsager GDPR-overtrædelser hos kunden." },
+          { label: "Rådgivningsfejl", body: "Fejl i jeres anbefalinger eller konfigurationsvalg." },
+        ],
+        image: IMG.vandergriff,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Er IT-ansvar det samme som cyberforsikring?",
+        a: "Nej — IT-ansvar dækker når I som leverandør er ansvarlig for tab hos en kunde. Cyberforsikring dækker når I selv bliver ramt af et angreb. Vi anbefaler at begge er på plads.",
+      },
+      {
+        q: "Mine kunder kræver 10 mio. i dækning — er det normalt?",
+        a: "Ja, især i enterprise-projekter. Dækningssummer op til 25 mio. er ikke usædvanlige. Vi forhandler vilkår der matcher kundekontrakter, så I kan byde på opgaverne.",
+      },
+    ],
     related: ["cyberforsikring", "professionel-ansvarsforsikring"],
   },
   {
@@ -571,10 +795,39 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Kollektiv ulykke",
     letter: "K",
     eyebrow: "Medarbejdere",
-    metaDescription: "Kollektiv ulykkesforsikring giver jeres medarbejdere en ekstra tryghed ved ulykker i og uden for arbejdstiden.",
-    intro: "Kollektiv ulykkesforsikring er et stærkt medarbejdergode. Den supplerer den lovpligtige arbejdsskadeforsikring med dækning døgnet rundt — også fritidsulykker.",
+    metaDescription: "Kollektiv ulykkesforsikring giver jeres medarbejdere tryghed ved ulykker døgnet rundt — også uden for arbejdstiden. Et stærkt, skattefrit medarbejdergode.",
+    intro: "Kollektiv ulykkesforsikring er et stærkt medarbejdergode. Den supplerer den lovpligtige arbejdsskadeforsikring med dækning døgnet rundt — også fritidsulykker og ferier.",
     heroImage: IMG.partnership,
     cvrLabel: "Få tilbud på kollektiv ulykkesforsikring",
+    introParagraphs: [
+      "Arbejdsskadeforsikringen er lovpligtig, men dækker kun arbejdsulykker. Kollektiv ulykkesforsikring udvider trygheden til at gælde hele døgnet — både i fritiden, på ferien og i weekenden. Det giver medarbejderne et ægte gode og styrker jer som arbejdsgiver.",
+      "Dækningen er skattefri for medarbejderen op til en vis grænse, hvilket gør den til et af de mest omkostningseffektive personalegoder der findes.",
+    ],
+    features: [
+      {
+        eyebrow: "Forskellen på lovpligtig vs. kollektiv",
+        title: "Arbejdsskade dækker kun arbejdstiden",
+        body: "Mange medarbejdere tror de er dækket 24/7 af virksomheden — men det er kun tilfældet hvis I har tegnet kollektiv ulykke. Det er en god ting at kommunikere som et konkret benefit.",
+        bullets: [
+          { label: "Arbejdsskadeforsikring", body: "Lovpligtig, men dækker kun ulykker der er arbejdsrelaterede." },
+          { label: "Kollektiv ulykkesforsikring", body: "Supplerende, frivillig — dækker 24/7 i hele verden." },
+          { label: "Rejseulykke inkluderet", body: "Typisk også under ferier og tjenesterejser." },
+          { label: "Skattefri op til 500 kr./md.", body: "Eget bidrag fra medarbejderen ikke nødvendigt op til grænsen." },
+        ],
+        image: IMG.partnership,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Er kollektiv ulykke skattefri for medarbejderen?",
+        a: "Ja — op til grænsebeløbet (ca. 500 kr./måned) er dækningen skattefri. Over dette beløb beskattes det som B-indkomst hos medarbejderen.",
+      },
+      {
+        q: "Hvordan adskiller den sig fra sundhedsforsikring?",
+        a: "Sundhedsforsikring dækker behandling og sygdom. Kollektiv ulykke dækker erstatning ved varigt mén eller dødsfald som følge af ulykker. De to supplerer hinanden.",
+      },
+    ],
     related: ["arbejdsskadeforsikring", "sundhedsforsikring"],
   },
   {
@@ -583,10 +836,40 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Kriminalitet",
     letter: "K",
     eyebrow: "Intern risiko",
-    metaDescription: "Kriminalitetsforsikring dækker virksomheden mod tab ved tyveri, bedrageri eller underslæb begået af medarbejdere eller tredjemand.",
-    intro: "Mindre virksomheder bliver oftere ramt af intern kriminalitet end af ydre trusler. Kriminalitetsforsikring dækker når underslæb, bedrageri eller CEO-fraud rammer virksomheden.",
+    metaDescription: "Kriminalitetsforsikring dækker virksomheden mod tab ved underslæb, CEO-fraud, fakturasvindel eller bedrageri — både internt og eksternt.",
+    intro: "Intern kriminalitet og CEO-fraud koster danske virksomheder millioner hvert år. Kriminalitetsforsikring dækker den økonomiske konsekvens når medarbejdere eller eksterne aktører snyder virksomheden.",
     heroImage: IMG.meeting,
     cvrLabel: "Få jeres kriminalitetsforsikring tjekket",
+    introParagraphs: [
+      "Danske virksomheder rammes langt oftere af intern svindel end af ydre cyberangreb. Typisk handler det om CEO-fraud (hvor en medarbejder lokkes til at overføre penge på vegne af en falsk direktør), fakturabedrageri eller underslæb i regnskabsafdelingen.",
+      "Kriminalitetsforsikring dækker det økonomiske tab — og giver ofte adgang til et beredskab af efterforskere og jurister der hjælper med at håndtere sagen korrekt.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækkes",
+        title: "Både de klassiske og de moderne svindelformer",
+        body: "Moderne kriminalitetspolicer er udviklet til også at omfatte tab ved digital social engineering — ikke kun fysisk kasse- og varetyveri.",
+        bullets: [
+          { label: "Medarbejderunderslæb", body: "Tyveri af penge, varer eller aktiver fra egne medarbejdere." },
+          { label: "CEO-fraud / BEC", body: "Svindel hvor en medarbejder lokkes til at overføre penge til en falsk modtager." },
+          { label: "Fakturasvindel", body: "Manipulerede fakturaer med ændrede kontonumre." },
+          { label: "Computermanipulation", body: "Uautoriseret ændring af betalingsdata i systemer." },
+          { label: "Ekstern tyveri", body: "Indbrud, tasketyveri, kontantkuffert under transport." },
+        ],
+        image: IMG.moisa,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Dækker forsikringen også hvis vores medarbejder er blevet snydt?",
+        a: "Ja — moderne policer dækker både når medarbejderen er offeret (fx CEO-fraud) og når medarbejderen er svindleren. Vigtigt at den nye digitale dækning er med i policen.",
+      },
+      {
+        q: "Hvor stor bør dækningssummen være?",
+        a: "Afhænger af cashflow og beløbsstørrelser i daglig drift. Vi anbefaler typisk 1–5 mio. for SMB'er og op til 25 mio. for større virksomheder.",
+      },
+    ],
     related: ["cyberforsikring", "netbanksforsikring", "bestyrelsesansvarsforsikring"],
   },
   {
@@ -595,10 +878,35 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Løsøre",
     letter: "L",
     eyebrow: "Inventar og indbo",
-    metaDescription: "Løsøreforsikring dækker virksomhedens inventar, maskiner, varer og it-udstyr mod brand, tyveri og anden pludselig skade.",
+    metaDescription: "Løsøreforsikring dækker virksomhedens inventar, maskiner, varer, lager og it-udstyr mod brand, tyveri, vandskade og pludselige skader.",
     intro: "Alt indvendigt i lokalet — maskiner, varer, it, kontorinventar — udgør betydelige værdier. Løsøreforsikring sikrer jer økonomisk hvis en brand, vandskade eller indbrud rammer.",
     heroImage: IMG.business,
     cvrLabel: "Få tjekket jeres løsøreforsikring",
+    introParagraphs: [
+      "Løsøreforsikring er typisk grundforsikringen for virksomheder der ikke ejer deres ejendom selv. Den dækker alt det 'løsørlige' — inventar, maskiner, it-udstyr, lager og varer — mod brand, storm, vand, indbrud og andre pludselige skader.",
+      "Det store spørgsmål er altid: er summerne realistiske? Vi ser ofte policer hvor summer ikke er justeret i 5–10 år mens virksomheden har tredoblet sit lager og udskiftet hele maskinparken. Det betyder underforsikring — og problemer når skaden sker.",
+    ],
+    features: [
+      {
+        eyebrow: "Typiske dækninger",
+        title: "Fra kontorinventar til højværdi-produktion",
+        body: "Løsøreforsikring tilpasses virksomhedens profil. Produktionsvirksomheder har brug for tillæg for maskiner og lager; kontorvirksomheder har hovedfokus på it og inventar.",
+        bullets: [
+          { label: "Inventar og kontorinventar", body: "Borde, stole, receptionsudstyr, lamper mv." },
+          { label: "It-udstyr", body: "Computere, servere, printere — kan kræve separat dækning ved høje værdier." },
+          { label: "Varelager", body: "Ved indstigende værdier kan kvartalsvis indberetning spare præmie." },
+          { label: "Maskiner", body: "Produktionsudstyr — kan med fordel også have maskinkaskoforsikring." },
+        ],
+        image: IMG.business,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Hvordan fastsættes summen?",
+        a: "Ud fra genanskaffelsesværdien — altså hvad det ville koste at købe tilsvarende udstyr nyt i dag. Ikke bogført værdi. Vi hjælper med den rigtige beregning.",
+      },
+    ],
     related: ["bygningsforsikring", "driftstabsforsikring"],
   },
   {
@@ -638,10 +946,34 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Netbank",
     letter: "N",
     eyebrow: "Bedrageri",
-    metaDescription: "Netbanksforsikring dækker tab ved netbanksbedrageri og uautoriserede transaktioner via virksomhedens bankkonti.",
-    intro: "Netbanksbedrageri rammer virksomheder hver måned. Forsikringen dækker de økonomiske tab hvis jeres konti kompromitteres.",
+    metaDescription: "Netbanksforsikring dækker tab ved netbanksbedrageri og uautoriserede transaktioner via virksomhedens bankkonti — et supplement til cyber- og kriminalitetsforsikring.",
+    intro: "Netbanksbedrageri rammer virksomheder hver måned i Danmark. Forsikringen dækker de økonomiske tab hvis jeres konti kompromitteres — og er typisk et stærkt supplement til cyber- og kriminalitetsforsikring.",
     heroImage: IMG.moisa,
     cvrLabel: "Få tilbud på jeres netbanksforsikring",
+    introParagraphs: [
+      "Bankerne har deres egne sikkerhedsnet — men dækningen er begrænset, og ofte ender virksomheden med tabet hvis sagen ikke klart kan kategoriseres som bankens fejl. Netbanksforsikring lukker det hul og giver jer en økonomisk bund under kontoerne.",
+      "Det er en lille tilføjelse til eksisterende cyber- eller kriminalitetsforsikring, men kan dække tab på millioner ved en enkelt svindelsag.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækkes",
+        title: "Når kontoen bliver kompromitteret",
+        body: "Forsikringen træder til når uautoriserede transaktioner sker gennem jeres netbanksløsninger — uanset om det sker via phishing, malware, insider eller svag intern kontrol.",
+        bullets: [
+          { label: "Phishing og kompromitterede logins", body: "Svindel efter at kriminelle har fået adgang til netbank via login-tricks." },
+          { label: "Malware og man-in-the-browser", body: "Transaktioner der ændres af virus under overførsel." },
+          { label: "Falske betalingsordrer", body: "Når medarbejdere vildledes til at godkende forkerte overførsler." },
+        ],
+        image: IMG.moisa,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Dækker banken ikke allerede det her?",
+        a: "Banken dækker typisk kun ved klare fejl i bankens egne systemer. Hvis angrebet skyldes jeres netværk, medarbejdere eller en kompromitteret login — så ligger tabet hos jer.",
+      },
+    ],
     related: ["cyberforsikring", "kriminalitetsforsikring"],
   },
   {
@@ -650,10 +982,39 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Professionel ansvar",
     letter: "P",
     eyebrow: "Rådgiveransvar",
-    metaDescription: "Professionel ansvarsforsikring dækker rådgivningsvirksomheder mod krav som følge af fejl eller udeladelser i den ydede rådgivning.",
-    intro: "Rådgivere, konsulenter, arkitekter, ingeniører og revisorer lever af deres faglige vurderinger. Professionel ansvar dækker de økonomiske krav hvis en vurdering eller rådgivning fører til tab for kunden.",
+    metaDescription: "Professionel ansvarsforsikring (E&O) dækker rådgivningsvirksomheder mod krav som følge af fejl eller udeladelser i den ydede rådgivning.",
+    intro: "Rådgivere, konsulenter, arkitekter, ingeniører og revisorer lever af deres faglige vurderinger. Professionel ansvar (E&O) dækker de økonomiske krav hvis en vurdering eller rådgivning fører til tab for kunden.",
     heroImage: IMG.meeting,
     cvrLabel: "Få tilbud på jeres professionelle ansvarsforsikring",
+    introParagraphs: [
+      "Professionel ansvar — kendt internationalt som Errors & Omissions (E&O) — er grundstenen for alle rådgivningsvirksomheder. Den dækker når jeres rådgivning, analyse eller beregninger fører til økonomisk tab hos kunden — uanset om det skyldes en fejl, en udeladelse eller en mangelfuld vurdering.",
+      "Mange kunder kræver den også kontraktligt — særligt offentlige udbud, enterprise-projekter og arkitekt/ingeniør-aftaler. Uden dækning kan I hverken byde ind eller tegne kontrakten.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvem har brug for E&O?",
+        title: "Alle der sælger deres faglige vurdering",
+        body: "Typisk brancher: rådgivende ingeniører, arkitekter, managementkonsulenter, revisorer, advokater, finansielle rådgivere, IT-konsulenter, ejendomsmæglere og markedsføringsbureauer.",
+        bullets: [
+          { label: "Arkitekter og ingeniører", body: "Dækker fejl i tegninger, beregninger og tilsyn." },
+          { label: "Konsulenter", body: "Beskytter mod krav ved fejlbehæftet strategi- eller rådgivning." },
+          { label: "Revisorer", body: "Dækker fejl i regnskaber, skatterådgivning og due diligence." },
+          { label: "Ejendomsmæglere", body: "Dækker forkert vurdering eller manglende oplysning om skjulte fejl." },
+        ],
+        image: IMG.meeting,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Er E&O det samme som erhvervsansvar?",
+        a: "Nej. Erhvervsansvar dækker fysiske skader (person- og tings­skade). Professionel ansvar dækker rent økonomisk tab som følge af fagligt arbejde. Begge er typisk nødvendige.",
+      },
+      {
+        q: "Hvor længe efter udført arbejde kan kunden rejse krav?",
+        a: "Typisk 3–5 år efter leverancen, længere for arkitekter og ingeniører (op til 20 år efter AB-systemerne). En 'retroaktiv dato' i policen sikrer dækning for ældre sager.",
+      },
+    ],
     related: ["advokatansvarsforsikring", "it-ansvarsforsikring", "bestyrelsesansvarsforsikring"],
   },
   {
@@ -662,10 +1023,40 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     navLabel: "Sundhedsforsikring",
     letter: "S",
     eyebrow: "Medarbejdergoder",
-    metaDescription: "Sundhedsforsikring som medarbejdergode — reducerer sygefravær og styrker fastholdelse.",
-    intro: "En stærk sundhedsforsikring er blevet et standardkrav blandt medarbejdere. Vi forhandler programmer der både reducerer sygefravær og styrker jer i kampen om talenter.",
+    metaDescription: "Sundhedsforsikring som medarbejdergode — reducerer sygefravær og styrker fastholdelse. Dækker privat behandling, fysioterapi, psykolog og speciallæge.",
+    intro: "En stærk sundhedsforsikring er blevet et standardkrav blandt medarbejdere. Vi forhandler programmer der både reducerer sygefravær og styrker jer i kampen om talenter — og tilpasses jeres branche og virksomhedsstørrelse.",
     heroImage: IMG.partnership,
     cvrLabel: "Få tilbud på sundhedsforsikring til jeres medarbejdere",
+    introParagraphs: [
+      "Sundhedsforsikring er i dag et af de mest eftertragtede medarbejdergoder — og for mange kandidater er det en forudsætning for at sige ja til et job. Hurtig adgang til behandling betyder også mindre sygefravær og hurtigere tilbagekomst efter skader og operationer.",
+      "Vi sammensætter sundhedsforsikringer fra 5 medarbejdere og op til virksomheder med tusindvis af ansatte. Vi vurderer både leverandørernes netværk, behandlingstilgængelighed og pris — ikke kun det billigste tilbud.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækker en moderne sundhedsforsikring?",
+        title: "Fra fysioterapi til speciallægehenvisning",
+        body: "Den typiske dækning spænder vidt. Vi hjælper med at vælge det niveau der matcher jeres branche — fysisk arbejde har brug for mere fysioterapi, kontormiljøer prioriterer psykolog og ergoterapi.",
+        bullets: [
+          { label: "Privat hospitalsbehandling", body: "Undgå ventelister ved operationer og udredning." },
+          { label: "Fysioterapi og kiropraktor", body: "Typisk 10–20 behandlinger årligt." },
+          { label: "Psykologhjælp", body: "8–12 sessioner — nøgle for moderne fastholdelse." },
+          { label: "Speciallægeundersøgelse", body: "Uden henvisning fra egen læge." },
+          { label: "Misbrugsbehandling", body: "Alkohol, stoffer, spiseforstyrrelser." },
+        ],
+        image: IMG.partnership,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Er sundhedsforsikring skattefri?",
+        a: "Ja — sundhedsforsikring er skattefri for medarbejderen efter gældende regler. Det er derfor blandt de mest værdsatte og billigste medarbejdergoder at tilbyde.",
+      },
+      {
+        q: "Kan vi vælge forskellige niveauer til forskellige medarbejdergrupper?",
+        a: "Ja. Det kaldes typisk differentieret program og er helt legitimt — fx kan ledelse have udvidet dækning, mens alle medarbejdere har en basispakke.",
+      },
+    ],
     related: ["kollektiv-ulykkesforsikring", "arbejdsskadeforsikring"],
   },
 ];

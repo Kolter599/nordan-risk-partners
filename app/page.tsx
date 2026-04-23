@@ -177,7 +177,7 @@ export default function Home() {
               <li>Din rådgiver ringer inden for én hverdag</li>
             </ul>
             <div className="mt-10">
-              <Link href="#lead" className="btn-primary">Kom i gang</Link>
+              <Link href="/analyse" className="btn-primary">Kom i gang</Link>
             </div>
           </div>
           <div className="lg:col-span-7">
