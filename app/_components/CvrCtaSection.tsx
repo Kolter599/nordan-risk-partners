@@ -30,8 +30,8 @@ export function CvrCtaSection({
 }: Props) {
   const bg = variant === "soft" ? "bg-[color:var(--color-nordan-soft)]" : "bg-white";
   return (
-    <section className={`py-20 md:py-28 ${bg} border-t border-[color:var(--color-nordan-line)]`}>
-      <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-center">
+    <section className={`py-14 sm:py-20 md:py-28 ${bg} border-t border-[color:var(--color-nordan-line)]`}>
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-center">
         <div className="md:col-span-6">
           <div className="eyebrow mb-4">{eyebrow}</div>
           <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.9rem,3.2vw,2.5rem)] leading-[1.15] mb-6">

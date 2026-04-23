@@ -23,8 +23,8 @@ const INSURERS: Insurer[] = [
 export function InsurerMarquee() {
   const items = [...INSURERS, ...INSURERS];
   return (
-    <section className="py-16 md:py-20 bg-white border-y border-[color:var(--color-nordan-line)] overflow-hidden">
-      <div className="mx-auto max-w-7xl px-5 md:px-8 mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+    <section className="py-12 sm:py-16 md:py-20 bg-white border-y border-[color:var(--color-nordan-line)] overflow-hidden">
+      <div className="mx-auto max-w-7xl px-5 md:px-8 mb-8 sm:mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
           <div className="eyebrow mb-3">Selskaber vi forhandler med</div>
           <h2 className="display-md max-w-xl">
@@ -41,7 +41,7 @@ export function InsurerMarquee() {
           {items.map((logo, i) => (
             <div
               key={`${logo.name}-${i}`}
-              className="shrink-0 flex items-center justify-center h-16 md:h-20 w-[180px] md:w-[220px] opacity-70 hover:opacity-100 transition-opacity"
+              className="shrink-0 flex items-center justify-center h-14 sm:h-16 md:h-20 w-[140px] sm:w-[180px] md:w-[220px] opacity-70 hover:opacity-100 transition-opacity"
               title={logo.name}
             >
               <Image

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Playfair_Display, Inter } from "next/font/google";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Nav } from "./_components/Nav";
 import { Footer } from "./_components/Footer";
 import { StickyMobileCta } from "./_components/StickyMobileCta";
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StickyMobileCta />
         <CookieBanner />
         <VercelAnalytics />
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -269,10 +269,21 @@ body {
 .saas-display {
   font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 800;
-  font-size: clamp(2.5rem, 5.2vw, 4.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.9rem, 7vw, 4.5rem);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
   padding-bottom: 0.05em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Prevent horizontal overflow on tiny viewports */
+html, body { overflow-x: hidden; }
+
+/* Give bottom space on mobile so the sticky CTA doesn't cover last content */
+@media (max-width: 768px) {
+  main { padding-bottom: 5rem; }
 }
 
 /* Scrolling logo marquee — slowed down */

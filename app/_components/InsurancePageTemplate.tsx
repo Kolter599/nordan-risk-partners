@@ -21,7 +21,7 @@ export function InsurancePageTemplate({ product }: Props) {
     <>
       <ProductJsonLd product={product} />
       {/* HERO */}
-      <section className="relative overflow-hidden text-white min-h-[64vh] flex items-center">
+      <section className="relative overflow-hidden text-white min-h-[72vh] sm:min-h-[64vh] flex items-center">
         <div className="absolute inset-0">
           <Image
             src={product.heroImage}
@@ -35,8 +35,8 @@ export function InsurancePageTemplate({ product }: Props) {
           <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-85" />
         </div>
 
-        <div className="relative w-full mx-auto max-w-[1200px] px-6 md:px-10 pt-28 md:pt-36 pb-20 md:pb-24">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-start">
+        <div className="relative w-full mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-24">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-start">
             <div className="lg:col-span-7 min-w-0">
               <Breadcrumbs
                 tone="dark"
@@ -51,31 +51,31 @@ export function InsurancePageTemplate({ product }: Props) {
               </div>
               <h1
                 lang="da"
-                className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2rem,3.8vw,3.25rem)] leading-[1.1] tracking-[-0.015em] hyphens-auto break-words"
+                className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.6rem,6.5vw,3.25rem)] leading-[1.1] tracking-[-0.015em] hyphens-auto break-words"
                 style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}
               >
                 {product.title}
               </h1>
-              <p className="mt-8 max-w-xl text-lg md:text-xl text-white/90 leading-[1.55]">
+              <p className="mt-6 sm:mt-8 max-w-xl text-base sm:text-lg md:text-xl text-white/90 leading-[1.55]">
                 {product.intro}
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
                 <Link
                   href="/analyse"
-                  className="inline-flex items-center h-12 px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                  className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
                 >
                   Få gratis analyse
                 </Link>
                 <a
                   href="tel:+4553520006"
-                  className="inline-flex items-center h-12 px-7 rounded-[6px] border border-white/50 text-white text-[0.88rem] font-semibold tracking-wide hover:bg-white/10 transition-colors"
+                  className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] border border-white/50 text-white text-[0.88rem] font-semibold tracking-wide hover:bg-white/10 transition-colors"
                 >
                   Ring +45 53 52 00 06
                 </a>
               </div>
             </div>
 
-            <div className="lg:col-span-5 lg:pt-4">
+            <div className="mt-10 lg:mt-0 lg:col-span-5 lg:pt-4">
               <CvrLookup headline={product.cvrLabel} />
             </div>
           </div>
@@ -84,8 +84,8 @@ export function InsurancePageTemplate({ product }: Props) {
 
       {/* INTRO BAND — extra paragraphs */}
       {product.introParagraphs && product.introParagraphs.length > 0 ? (
-        <section className="py-16 md:py-24">
-          <div className="mx-auto max-w-[780px] px-6 md:px-10 prose-body">
+        <section className="py-12 sm:py-16 md:py-24">
+          <div className="mx-auto max-w-[780px] px-5 sm:px-6 md:px-10 prose-body">
             {product.introParagraphs.map((p, i) => (
               <Reveal key={i} delay={i * 80}>
                 <p>{p}</p>
@@ -201,8 +201,8 @@ function FeatureSection({ feature, index }: { feature: FeatureBlock; index: numb
   const bg = index % 2 === 0 ? "bg-white" : "bg-[color:var(--color-nordan-soft)]";
 
   return (
-    <section className={`py-16 md:py-24 ${bg}`}>
-      <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-center">
+    <section className={`py-12 sm:py-16 md:py-24 ${bg}`}>
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-8 md:gap-16 items-center">
         <div className={`md:col-span-6 ${imageRight ? "md:order-1" : "md:order-2"}`}>
           {feature.eyebrow ? <div className="eyebrow mb-4">{feature.eyebrow}</div> : null}
           <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.75rem,2.8vw,2.25rem)] leading-[1.2] mb-5">
@@ -271,8 +271,8 @@ function StatsStrip({ stats }: { stats: Stat[] }) {
 /* ---------------- FAQ ---------------- */
 function FaqSection({ items }: { items: Faq[] }) {
   return (
-    <section className="py-16 md:py-24">
-      <div className="mx-auto max-w-[900px] px-6 md:px-10">
+    <section className="py-12 sm:py-16 md:py-24">
+      <div className="mx-auto max-w-[900px] px-5 sm:px-6 md:px-10">
         <div className="eyebrow mb-3">Ofte stillede spørgsmål</div>
         <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.75rem,2.8vw,2.25rem)] leading-[1.2] mb-10">
           Svar på det der oftest kommer op
@@ -282,7 +282,7 @@ function FaqSection({ items }: { items: Faq[] }) {
             <li key={f.q}>
               <details className="group py-5 cursor-pointer">
                 <summary className="flex items-start justify-between gap-6 list-none cursor-pointer">
-                  <span className="font-[family-name:var(--font-playfair)] text-[1.15rem] md:text-[1.25rem] leading-snug">
+                  <span className="font-[family-name:var(--font-playfair)] text-[1.02rem] sm:text-[1.15rem] md:text-[1.25rem] leading-snug">
                     {f.q}
                   </span>
                   <span

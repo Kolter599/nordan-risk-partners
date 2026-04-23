@@ -44,7 +44,7 @@ export default function Home() {
       <OrganizationJsonLd />
 
       {/* HERO — Holstrup-style, slim */}
-      <section className="relative overflow-hidden text-white min-h-[82vh] flex items-center">
+      <section className="relative overflow-hidden text-white min-h-[88vh] sm:min-h-[82vh] flex items-center">
         <div className="absolute inset-0">
           <Image
             src="/images/hero-founders-wide.jpg"
@@ -58,35 +58,35 @@ export default function Home() {
           <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-85" />
         </div>
 
-        <div className="relative w-full mx-auto max-w-[1400px] px-6 md:px-10 pt-28 md:pt-36 pb-20 md:pb-24">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-start">
+        <div className="relative w-full mx-auto max-w-[1400px] px-5 sm:px-6 md:px-10 pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-24">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-start">
             <div className="lg:col-span-8 xl:col-span-8 min-w-0">
               <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-8">
                 Uvildig rådgivning
               </div>
               <h1 className="saas-display">
-                <span className="block whitespace-nowrap">Vi hjælper med jeres</span>
-                <span className="block whitespace-nowrap"><RotatingWord /></span>
-                <span className="block whitespace-nowrap">til jeres virksomhed.</span>
+                <span className="block">Vi hjælper med jeres</span>
+                <span className="block"><RotatingWord /></span>
+                <span className="block">til jeres virksomhed.</span>
               </h1>
-              <p className="mt-8 max-w-xl text-lg md:text-xl text-white/90 font-normal leading-[1.55]">
+              <p className="mt-6 sm:mt-8 max-w-xl text-base sm:text-lg md:text-xl text-white/90 font-normal leading-[1.55]">
                 Få en gratis analyse af jeres forsikringer. Vi sammenligner markedet, forhandler på jeres vegne og holder programmet opdateret.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
                 <Link
                   href="/analyse"
-                  className="inline-flex items-center h-12 px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                  className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
                 >
                   Få gratis analyse
                 </Link>
                 <a
                   href="tel:+4553520006"
-                  className="inline-flex items-center h-12 px-7 rounded-[6px] border border-white/50 text-white text-[0.88rem] font-semibold tracking-wide hover:bg-white/10 transition-colors"
+                  className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] border border-white/50 text-white text-[0.88rem] font-semibold tracking-wide hover:bg-white/10 transition-colors"
                 >
                   Ring +45 53 52 00 06
                 </a>
               </div>
-              <ul className="mt-10 grid sm:grid-cols-2 gap-3 max-w-2xl text-[0.95rem] font-medium text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+              <ul className="mt-8 sm:mt-10 grid sm:grid-cols-2 gap-2.5 sm:gap-3 max-w-2xl text-[0.9rem] sm:text-[0.95rem] font-medium text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                 {[
                   "Gratis uforpligtende analyse",
                   "Uafhængig rådgivning — ingen bindinger",
@@ -103,7 +103,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="lg:col-span-4 xl:col-span-4 lg:pt-[190px] xl:pt-[215px]">
+            <div className="mt-10 lg:mt-0 lg:col-span-4 xl:col-span-4 lg:pt-[190px] xl:pt-[215px]">
               <CvrLookup />
             </div>
           </div>

@@ -111,7 +111,7 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
   return (
     <div className="bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)]">
       {/* HEADER with progress */}
-      <div className="px-7 pt-7 pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
+      <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
         <div className="flex items-center justify-between mb-3">
           <div className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)]">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent-soft)]" />
@@ -123,7 +123,7 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
             </span>
           ) : null}
         </div>
-        <div className="font-[family-name:var(--font-inter)] font-bold text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
+        <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] sm:text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
           {step === "cvr" && (headline ?? "Indtast CVR — se hvad du kan spare")}
           {step === "confirm" && "Er det din virksomhed?"}
           {step === "authorization" && "Giv os tilladelse"}
@@ -141,7 +141,7 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
       </div>
 
       {/* STEP BODY */}
-      <div className="p-7">
+      <div className="p-5 sm:p-7">
         {step === "cvr" && (
           <StepCvr
             digits={digits}
@@ -233,7 +233,7 @@ function StepCvr({
           maxLength={8}
           pattern="[0-9]{8}"
           placeholder="12 34 56 78"
-          className="w-full h-[68px] px-5 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[1.75rem] font-[family-name:var(--font-inter)] font-semibold tracking-[0.2em] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/50 placeholder:tracking-[0.15em] transition-colors"
+          className="w-full h-[64px] sm:h-[68px] px-4 sm:px-5 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[1.5rem] sm:text-[1.75rem] font-[family-name:var(--font-inter)] font-semibold tracking-[0.15em] sm:tracking-[0.2em] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/50 placeholder:tracking-[0.1em] transition-colors"
         />
       </label>
 

@@ -70,8 +70,8 @@ export function TestimonialMarquee({
   const roleColor = "text-[color:var(--color-nordan-muted)]";
 
   return (
-    <section className={`py-16 md:py-20 border-y border-[color:var(--color-nordan-line)] overflow-hidden ${sectionBg}`}>
-      <div className="mx-auto max-w-7xl px-5 md:px-8 mb-10 md:mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+    <section className={`py-12 sm:py-16 md:py-20 border-y border-[color:var(--color-nordan-line)] overflow-hidden ${sectionBg}`}>
+      <div className="mx-auto max-w-7xl px-5 md:px-8 mb-8 md:mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-5 md:gap-6">
         <div>
           <div className={`eyebrow mb-3 ${eyebrowColor}`}>{eyebrow}</div>
           <h2 className={`font-[family-name:var(--font-playfair)] font-normal text-[clamp(1.8rem,3.2vw,2.6rem)] leading-[1.15] max-w-[18ch] ${titleColor}`}>
@@ -104,7 +104,7 @@ export function TestimonialMarquee({
           {items.map((t, i) => (
             <article
               key={`${t.company}-${i}`}
-              className={`shrink-0 w-[320px] md:w-[420px] border rounded-[8px] p-7 md:p-8 flex flex-col ${cardBg}`}
+              className={`shrink-0 w-[280px] sm:w-[320px] md:w-[420px] border rounded-[8px] p-6 sm:p-7 md:p-8 flex flex-col ${cardBg}`}
             >
               <span className="inline-flex mb-4 text-[color:var(--color-nordan-accent)]/60" aria-hidden>
                 <QuoteIcon />

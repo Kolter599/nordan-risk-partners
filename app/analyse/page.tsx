@@ -9,17 +9,17 @@ export const metadata: Metadata = {
 
 export default function AnalysePage() {
   return (
-    <section className="relative min-h-[calc(100vh-80px)] bg-[color:var(--color-nordan-dark)] text-white flex items-center py-20">
+    <section className="relative min-h-[calc(100vh-80px)] bg-[color:var(--color-nordan-dark)] text-white flex items-center py-14 sm:py-20">
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-nordan-dark)] via-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)]" />
-      <div className="relative w-full mx-auto max-w-[1100px] px-6 md:px-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div className="relative w-full mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10 grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
         <div>
           <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-6">
             Gratis analyse
           </div>
-          <h1 className="font-[family-name:var(--font-inter)] font-bold text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[1.05] tracking-[-0.03em] mb-8">
+          <h1 className="font-[family-name:var(--font-inter)] font-bold text-[clamp(1.9rem,5.5vw,3.75rem)] leading-[1.05] tracking-[-0.03em] mb-6 sm:mb-8">
             Få en uvildig gennemgang af jeres forsikringer.
           </h1>
-          <p className="text-lg md:text-xl text-white/85 leading-[1.55] mb-8 max-w-xl">
+          <p className="text-base sm:text-lg md:text-xl text-white/85 leading-[1.55] mb-6 sm:mb-8 max-w-xl">
             Indtast jeres CVR — vi gør resten. Ingen binding, intet spam, og direkte adgang til erfarne rådgivere.
           </p>
           <ul className="grid sm:grid-cols-2 gap-3 max-w-xl text-[0.95rem] font-medium text-white">
