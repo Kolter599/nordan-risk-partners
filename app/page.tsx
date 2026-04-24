@@ -195,7 +195,7 @@ export default function Home() {
       />
 
       {/* BOTTOM DUAL CTA */}
-      <section id="lead" className="py-20 md:py-28 bg-white">
+      <section id="lead" className="py-16 sm:py-20 md:py-28 bg-white">
         <div className="mx-auto max-w-[1200px] px-6 md:px-10 text-center">
           <div className="eyebrow mb-4">Næste skridt</div>
           <h2 className="display-lg mb-6 max-w-3xl mx-auto">Få din virksomhed tjekket — eller book et møde</h2>
