@@ -19,6 +19,7 @@ export function CookieBanner() {
   function accept() {
     try {
       localStorage.setItem(STORAGE_KEY, "accepted");
+      window.dispatchEvent(new Event("nrp:consent-changed"));
     } catch {}
     setVisible(false);
   }
@@ -26,6 +27,7 @@ export function CookieBanner() {
   function decline() {
     try {
       localStorage.setItem(STORAGE_KEY, "declined");
+      window.dispatchEvent(new Event("nrp:consent-changed"));
     } catch {}
     setVisible(false);
   }
@@ -37,7 +39,7 @@ export function CookieBanner() {
       <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] p-5 md:p-6">
         <div className="eyebrow mb-2">Cookies</div>
         <p className="text-[0.9rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.55] mb-4">
-          Vi bruger cookies til anonym statistik (Google Analytics 4) — ingen annoncer, ingen tredjepartsdeling. Hjælper os med at forbedre sitet.{" "}
+          Vi bruger cookies til anonym besøgsstatistik — ingen annoncer, ingen tredjepartsdeling. Hjælper os med at forbedre sitet.{" "}
           <a href="/cookies" className="underline hover:text-[color:var(--color-nordan-accent)]">Læs mere</a>
         </p>
         <div className="flex gap-2">

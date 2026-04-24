@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { track } from "./GoogleAnalytics";
 
 type Company = {
   name: string;
@@ -29,9 +30,38 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
   const [files, setFiles] = useState<File[]>([]);
   const [authMethod, setAuthMethod] = useState<"digital" | "download" | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const typedOnce = useRef(false);
 
   const digits = cvr.replace(/\D/g, "").slice(0, 8);
   const isComplete = digits.length === 8;
+
+  // Fire cvr_started the first time a digit is entered
+  useEffect(() => {
+    if (!typedOnce.current && digits.length > 0) {
+      typedOnce.current = true;
+      track("cvr_started", { source_page: typeof window !== "undefined" ? window.location.pathname : "" });
+    }
+  }, [digits]);
+
+  // Fire step-change events
+  useEffect(() => {
+    if (step === "confirm") {
+      track("cvr_company_confirmed_view", { cvr: digits, company: company?.name });
+    } else if (step === "authorization") {
+      track("cvr_step_authorization_view");
+    } else if (step === "upload") {
+      track("cvr_step_upload_view");
+    } else if (step === "contact") {
+      track("cvr_step_contact_view");
+    } else if (step === "done") {
+      track("cvr_flow_completed", {
+        company: company?.name,
+        auth_method: authMethod ?? "skipped",
+        files_uploaded: files.length,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const visibleStep: Step = step === "confirm" ? "cvr" : step;
   const activeIndex = STEPS.findIndex((s) => s.key === visibleStep);
@@ -40,6 +70,7 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
     if (!isComplete) return;
+    track("cvr_submitted", { cvr: digits });
     setLookupState("loading");
     setError(null);
     try {
@@ -57,12 +88,14 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
       setLookupState("idle");
       setStep("confirm");
     } catch (err) {
+      track("cvr_lookup_error", { cvr: digits });
       setLookupState("error");
       setError(err instanceof Error ? err.message : "Noget gik galt");
     }
   }
 
   function skipCompanyLookup() {
+    track("cvr_lookup_skipped");
     setCompany({
       name: "Din virksomhed",
       vat: digits || "— —",
@@ -90,6 +123,11 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
         .join("\n"),
     };
     setSubmitting(true);
+    track("cvr_contact_submitted", {
+      has_phone: !!payload.phone,
+      auth_method: authMethod ?? "skipped",
+      files_uploaded: files.length,
+    });
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
@@ -102,6 +140,7 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
       }
       setStep("done");
     } catch (err) {
+      track("cvr_contact_error");
       setError(err instanceof Error ? err.message : "Noget gik galt");
     } finally {
       setSubmitting(false);

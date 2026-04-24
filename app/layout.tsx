@@ -6,6 +6,7 @@ import { Nav } from "./_components/Nav";
 import { Footer } from "./_components/Footer";
 import { StickyMobileCta } from "./_components/StickyMobileCta";
 import { CookieBanner } from "./_components/CookieBanner";
+import { GoogleAnalytics } from "./_components/GoogleAnalytics";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <StickyMobileCta />
         <CookieBanner />
+        <GoogleAnalytics />
         <VercelAnalytics />
         <SpeedInsights />
       </body>

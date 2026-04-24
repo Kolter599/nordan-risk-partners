@@ -70,7 +70,7 @@ export default function Home() {
                 <span className="block">til jeres virksomhed.</span>
               </h1>
               <p className="mt-6 sm:mt-8 max-w-xl text-base sm:text-lg md:text-xl text-white/90 font-normal leading-[1.55]">
-                Få en gratis analyse af jeres forsikringer. Vi sammenligner markedet, forhandler på jeres vegne og holder programmet opdateret.
+                Få en gratis analyse af jeres forsikringer. Vi forhandler på jeres vegne og holder programmet opdateret.
               </p>
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
                 <Link

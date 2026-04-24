@@ -44,22 +44,22 @@ export default function OmOsPage() {
       />
 
       {/* INTRO — text + full vertical founders portrait */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
+      <section className="py-16 sm:py-20 md:py-28">
+        <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
           <div className="md:col-span-7 prose-body">
             <p>
-              Nordan Risk Partners er etableret med ambitionen om at tilbyde målrettet, personlig og ærlig forsikringsrådgivning. Med over 40 års samlet erfaring i branchen forener vi indsigt og tilgængelighed med et klart fokus: at skabe reel værdi for vores kunder — ikke bare her og nu, men på lang sigt.
+              Nordan Risk Partners er etableret med ambitionen om at tilbyde målrettet, personlig og ærlig forsikringsrådgivning. Med over 40 års samlet erfaring forener vi indsigt og tilgængelighed med ét klart fokus: at skabe reel værdi for vores kunder.
             </p>
             <p>
-              Vi tror på, at stærke relationer og tæt sparring er fundamentet for de bedste løsninger. Derfor er vi til stede hele vejen — fra analyse og rådgivning til løbende dialog og håndtering. Hos os møder du ikke skiftende kontaktpersoner, automatiserede systemer eller telefonsluser. Du får direkte adgang til erfarne rådgivere, der kender din forretning og tager ansvar for din dækning.
+              Vi tror på, at stærke relationer og tæt sparring er fundamentet for de bedste løsninger. Hos os møder du ikke skiftende kontaktpersoner, automatiserede systemer eller telefonsluser — du får direkte adgang til erfarne rådgivere, der kender din forretning.
+            </p>
+            <p className="hidden sm:block">
+              I en branche præget af standardløsninger og afstand, har vi valgt en anden tilgang. Vi er engagerede i at forstå den enkelte virksomhed og rådgiver med afsæt i din virkelighed. Det betyder også, at vi er ærlige, hvis noget ikke giver mening.
             </p>
             <p>
-              I en branche præget af standardløsninger og afstand, har vi valgt en anden tilgang. Vi er engagerede i at forstå den enkelte virksomhed og rådgiver med afsæt i din virkelighed. Det betyder også, at vi er ærlige, hvis noget ikke giver mening — og tilgængelige, når behovet opstår.
+              Flere af vores kunder har vi samarbejdet med i mere end to årtier. Det vidner om tillid og værdien af et partnerskab, der rækker ud over det formelle.
             </p>
-            <p>
-              Flere af vores kunder gennem tiden har vi samarbejdet med i mere end to årtier. Det vidner om tillid, gensidighed og værdien af et partnerskab, der rækker ud over det formelle. Vores ambition er at være en langsigtet sparringspartner, der bidrager til din virksomheds tryghed og udvikling.
-            </p>
-            <p>
+            <p className="hidden sm:block">
               Nordan Risk Partners er for dig, der ønsker kompetent rådgivning, tæt relation og en partner, der altid er til at få fat i.
             </p>
           </div>
@@ -81,8 +81,8 @@ export default function OmOsPage() {
       </section>
 
       {/* MISSION + VISION */}
-      <section className="py-20 md:py-28 bg-[color:var(--color-nordan-soft)]">
-        <div className="mx-auto max-w-6xl px-5 md:px-8 grid md:grid-cols-2 gap-10 md:gap-16">
+      <section className="py-16 sm:py-20 md:py-28 bg-[color:var(--color-nordan-soft)]">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 md:px-8 grid md:grid-cols-2 gap-10 md:gap-16">
           <div>
             <div className="eyebrow mb-4">Mission</div>
             <h2 className="display-md mb-5">
@@ -105,11 +105,11 @@ export default function OmOsPage() {
       </section>
 
       {/* TEAM */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
+      <section className="py-16 sm:py-20 md:py-28">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 md:px-8">
           <div className="eyebrow mb-4">Hvem er vi?</div>
-          <h2 className="display-lg mb-14">Dine forsikringsmæglere</h2>
-          <div className="grid md:grid-cols-2 gap-10 md:gap-14">
+          <h2 className="display-lg mb-10 sm:mb-14">Dine forsikringsmæglere</h2>
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-10 md:gap-14">
             {TEAM.map((m) => (
               <article key={m.name} className="bg-white border border-[color:var(--color-nordan-line)] rounded-sm overflow-hidden">
                 <div className="relative aspect-[4/5]">

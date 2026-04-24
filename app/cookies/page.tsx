@@ -20,7 +20,7 @@ export default function CookiesPage() {
         <div className="mx-auto max-w-[780px] px-6 md:px-10 prose-body">
           <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[1.75rem] mb-4">Hvad vi bruger cookies til</h2>
           <p>
-            Vi bruger udelukkende cookies til <strong>anonym besøgsstatistik via Google Analytics 4</strong>. Det hjælper os med at forstå hvilke sider der er relevante for vores besøgende, så vi kan forbedre indholdet løbende.
+            Vi bruger udelukkende cookies til <strong>anonym besøgsstatistik</strong>. Det hjælper os med at forstå hvilke sider der er relevante for vores besøgende, så vi kan forbedre indholdet løbende.
           </p>
           <p>
             Vi anvender <strong>ikke</strong> cookies til:
