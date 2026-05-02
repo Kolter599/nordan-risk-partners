@@ -62,47 +62,40 @@ const FAQ = [
 export default function HvorforPage() {
   return (
     <>
-      {/* HERO — text on left, full-bleed sticky image on right */}
-      <section className="relative">
-        <div className="grid lg:grid-cols-12 lg:gap-0 items-start">
-          {/* LEFT — text column, padded against viewport */}
-          <div className="lg:col-span-7 pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-28 px-5 sm:px-6 md:px-10 lg:pr-14 xl:pr-20">
-            <div className="ml-auto max-w-[640px]">
-              <div className="text-[0.78rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-accent)] mb-6">
-                Forsikringsmægler
-              </div>
-              <h1 className="display-xl mb-10 text-[color:var(--color-nordan-dark)]">
-                Hvad er en forsikringsmægler?
-              </h1>
-              <div className="space-y-6 text-[1.02rem] sm:text-[1.05rem] leading-[1.8] text-[color:var(--color-nordan-ink)]">
-                <p>
-                  En forsikringsmægler er din uafhængige rådgiver, der varetager hele processen omkring dit forsikringsprogram – fra gennemgang og forhandling, til løbende drift og skadeshåndtering. Vi arbejder for dig – ikke forsikringsselskaberne.
-                </p>
-                <p>
-                  Hos os får du en samarbejdspartner, der forstår både dine behov og forsikringsmarkedets kompleksitet. Vi fungerer som bindeled mellem dig og forsikringsselskaberne – men vi er <em>alene på din side af bordet</em>. Vores mål er klart: Du skal have den rigtige dækning, til den rigtige pris, uden at drukne i detaljer og bøvl.
-                </p>
-                <p>
-                  Vi ved, at forsikring kan virke uoverskueligt. Derfor gør vi det enkelt, gennemsigtigt og effektivt. Vi lytter, rådgiver og forhandler — og vi slipper dig ikke, når først løsningen er på plads.
-                </p>
-                <p>
-                  Ved skader er vi din sparringspartner og bindeled til selskabet — så du ikke står alene når det betyder mest.
-                </p>
-              </div>
+      {/* HERO — text + vertical portrait that sticks while scrolling (mirrors /om-os) */}
+      <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-28">
+        <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
+          <div className="md:col-span-7">
+            <div className="eyebrow mb-5">Forsikringsmægler</div>
+            <h1 className="display-xl mb-8">
+              Hvad er en forsikringsmægler?
+            </h1>
+            <div className="space-y-6 text-[1.02rem] sm:text-[1.05rem] leading-[1.8] text-[color:var(--color-nordan-ink)]">
+              <p>
+                En forsikringsmægler er din uafhængige rådgiver, der varetager hele processen omkring dit forsikringsprogram – fra gennemgang og forhandling, til løbende drift og skadeshåndtering. Vi arbejder for dig – ikke forsikringsselskaberne.
+              </p>
+              <p>
+                Hos os får du en samarbejdspartner, der forstår både dine behov og forsikringsmarkedets kompleksitet. Vi fungerer som bindeled mellem dig og forsikringsselskaberne – men vi er <em>alene på din side af bordet</em>. Vores mål er klart: Du skal have den rigtige dækning, til den rigtige pris, uden at drukne i detaljer og bøvl.
+              </p>
+              <p>
+                Vi ved, at forsikring kan virke uoverskueligt. Derfor gør vi det enkelt, gennemsigtigt og effektivt. Vi lytter, rådgiver og forhandler — og vi slipper dig ikke, når først løsningen er på plads.
+              </p>
+              <p>
+                Ved skader er vi din sparringspartner og bindeled til selskabet — så du ikke står alene når det betyder mest.
+              </p>
             </div>
           </div>
-
-          {/* RIGHT — full-bleed image that sticks while scrolling */}
-          <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-0 relative w-full h-[60vh] sm:h-[70vh] lg:h-screen">
+          <div className="md:col-span-5 md:sticky md:top-28">
+            <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
               <Image
-                src="/images/founders-vertical.jpg"
-                alt="Leo Julsgaard og Mads Horvitz Larsen — stiftere af Nordan Risk Partners"
+                src="/images/nordan-12.jpg"
+                alt="Nordan Risk Partners — forsikringsmægler i samtale"
                 fill
                 priority
                 className="object-cover object-center"
-                sizes="(max-width: 1024px) 100vw, 42vw"
+                sizes="(max-width: 768px) 100vw, 40vw"
               />
-            </div>
+            </figure>
           </div>
         </div>
       </section>
