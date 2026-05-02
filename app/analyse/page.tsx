@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CvrLookup } from "../_components/CvrLookup";
+import { AnalyseFlow } from "./AnalyseFlow";
 
 export const metadata: Metadata = {
   title: "Start din gratis forsikringsanalyse",
@@ -21,39 +21,48 @@ export default async function AnalysePage({
 
   return (
     <main className="bg-[color:var(--color-nordan-soft)] min-h-[calc(100vh-80px)]">
-      {/* HERO BAND — tightened so the user reaches the card faster */}
-      <section className="pt-24 sm:pt-28 md:pt-32 pb-8 md:pb-10">
-        <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
-          <h1 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.85rem,3.6vw,2.7rem)] leading-[1.12] tracking-[-0.015em] mb-4 max-w-3xl text-[color:var(--color-nordan-ink)] text-balance">
+      {/* HERO BAND — restrained but grand */}
+      <section className="pt-28 sm:pt-32 md:pt-40 pb-10 md:pb-14 relative overflow-hidden">
+        {/* subtle radial glow for depth */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            background:
+              "radial-gradient(900px 400px at 15% 0%, rgba(165,136,120,0.10), transparent 60%), radial-gradient(900px 500px at 85% 100%, rgba(37,63,50,0.08), transparent 60%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
+          <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent)] mb-5">
+            Gratis analyse
+          </div>
+          <h1 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2.1rem,4.4vw,3.4rem)] leading-[1.08] tracking-[-0.018em] mb-5 max-w-3xl text-[color:var(--color-nordan-ink)] text-balance">
             {hasInitial ? (
               <>
                 Tak — vi gør jeres{" "}
-                <span className="text-[color:var(--color-nordan-accent)] italic">AI-drevne</span>{" "}
+                <span className="italic text-[color:var(--color-nordan-accent)]">AI-drevne</span>{" "}
                 analyse klar.
               </>
             ) : (
               <>
-                Få en{" "}
-                <span className="text-[color:var(--color-nordan-accent)] italic">AI-drevet</span>,
-                gratis forsikringsanalyse.
+                En{" "}
+                <span className="italic text-[color:var(--color-nordan-accent)]">AI-drevet</span>,
+                gratis analyse af jeres forsikringer.
               </>
             )}
           </h1>
-          <p className="text-[1rem] sm:text-[1.05rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.65] max-w-2xl">
+          <p className="text-[1.02rem] sm:text-[1.1rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.65] max-w-2xl">
             {hasInitial
-              ? "Bekræft virksomheden og udfyld de tre felter — alt sendes samlet, og jeres forsikringsmægler ringer inden for én hverdag."
-              : "Indtast CVR. Vi henter virksomhedsdata, læser policer og sammenligner markedet. Forsikringsmægler ringer inden for én hverdag."}
+              ? "Bekræft virksomheden og udfyld de tre felter. Forsikringsmægler ringer inden for én hverdag."
+              : "Indtast CVR. Vi henter virksomhedsdata, læser policer og sammenligner markedet for jer."}
           </p>
         </div>
       </section>
 
-      {/* CARD AREA — step indicator now lives inside CvrLookup and animates with progress */}
+      {/* STEP INDICATOR + CARD AREA */}
       <section className="pb-20 sm:pb-24 md:pb-28">
         <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
-          <CvrLookup
-            headline="Indtast CVR — start jeres analyse"
-            initialCvr={hasInitial ? initialCvr : undefined}
-          />
+          <AnalyseFlow initialCvr={hasInitial ? initialCvr : undefined} />
         </div>
       </section>
 
