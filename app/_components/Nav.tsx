@@ -34,7 +34,11 @@ export function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [pathname]);
 
-  const overlay = !scrolled;
+  // Pages without a dark hero behind the nav — keep the bar solid even at the top
+  // so light/white page backgrounds don't render the nav invisible.
+  const FORCE_SOLID_PAGES = ["/om-os", "/hvorfor-forsikringsmaegler"];
+  const forceSolid = FORCE_SOLID_PAGES.includes(pathname ?? "");
+  const overlay = !scrolled && !forceSolid;
   const navCls = overlay ? "nav-overlay" : "nav-solid";
   const barHeightCls = overlay ? "h-20 md:h-28" : "h-16 md:h-20";
   const logoHeightCls = overlay ? "h-11 md:h-16" : "h-8 md:h-10";
