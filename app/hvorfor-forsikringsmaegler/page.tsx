@@ -70,7 +70,7 @@ export default function HvorforPage() {
             <h1 className="display-lg mb-8 pr-4">
               Hvad er en forsikringsmægler?
             </h1>
-            <div className="space-y-6 text-[1.02rem] sm:text-[1.05rem] leading-[1.8] text-[color:var(--color-nordan-ink)]">
+            <div className="prose-body">
               <p>
                 En forsikringsmægler er din uafhængige rådgiver, der varetager hele processen omkring dit forsikringsprogram – fra gennemgang og forhandling, til løbende drift og skadeshåndtering. Vi arbejder for dig – ikke forsikringsselskaberne.
               </p>

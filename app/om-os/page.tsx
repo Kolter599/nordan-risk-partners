@@ -36,32 +36,29 @@ export default function OmOsPage() {
   return (
     <>
       {/* HERO — text + full vertical founders portrait */}
-      <section className="pt-12 sm:pt-16 md:pt-24 pb-16 sm:pb-20 md:pb-28">
+      <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-28">
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
           <div className="md:col-span-7">
             <div className="eyebrow mb-5">Om os</div>
-            <h1 className="display-xl mb-8">
+            <h1 className="display-lg mb-8 pr-4">
               „Vi tror på, at løsninger skabes i tæt samarbejde.”
             </h1>
-            <p className="text-lg md:text-xl text-[color:var(--color-nordan-ink-soft)] leading-relaxed mb-10">
-              Over 40 års samlet brancheerfaring. Flere kundeforhold der går tilbage mere end to årtier.
-            </p>
             <div className="prose-body">
-            <p>
-              Nordan Risk Partners er etableret med ambitionen om at tilbyde målrettet, personlig og ærlig forsikringsrådgivning. Med over 40 års samlet erfaring forener vi indsigt og tilgængelighed med ét klart fokus: at skabe reel værdi for vores kunder.
-            </p>
-            <p>
-              Vi tror på, at stærke relationer og tæt sparring er fundamentet for de bedste løsninger. Hos os møder du ikke skiftende kontaktpersoner, automatiserede systemer eller telefonsluser — du får direkte adgang til erfarne rådgivere, der kender din forretning.
-            </p>
-            <p className="hidden sm:block">
-              I en branche præget af standardløsninger og afstand, har vi valgt en anden tilgang. Vi er engagerede i at forstå den enkelte virksomhed og rådgiver med afsæt i din virkelighed. Det betyder også, at vi er ærlige, hvis noget ikke giver mening.
-            </p>
-            <p>
-              Flere af vores kunder har vi samarbejdet med i mere end to årtier. Det vidner om tillid og værdien af et partnerskab, der rækker ud over det formelle.
-            </p>
-            <p className="hidden sm:block">
-              Nordan Risk Partners er for dig, der ønsker kompetent rådgivning, tæt relation og en partner, der altid er til at få fat i.
-            </p>
+              <p>
+                Over 40 års samlet brancheerfaring og kundeforhold der går mere end to årtier tilbage. Nordan Risk Partners er etableret med ambitionen om at tilbyde målrettet, personlig og ærlig forsikringsrådgivning. Med over 40 års samlet erfaring forener vi indsigt og tilgængelighed med ét klart fokus: at skabe reel værdi for vores kunder.
+              </p>
+              <p>
+                Vi tror på, at stærke relationer og tæt sparring er fundamentet for de bedste løsninger. Hos os møder du ikke skiftende kontaktpersoner, automatiserede systemer eller telefonsluser — du får direkte adgang til erfarne rådgivere, der kender din forretning.
+              </p>
+              <p className="hidden sm:block">
+                I en branche præget af standardløsninger og afstand, har vi valgt en anden tilgang. Vi er engagerede i at forstå den enkelte virksomhed og rådgiver med afsæt i din virkelighed. Det betyder også, at vi er ærlige, hvis noget ikke giver mening.
+              </p>
+              <p>
+                Flere af vores kunder har vi samarbejdet med i mere end to årtier. Det vidner om tillid og værdien af et partnerskab, der rækker ud over det formelle.
+              </p>
+              <p className="hidden sm:block">
+                Nordan Risk Partners er for dig, der ønsker kompetent rådgivning, tæt relation og en partner, der altid er til at få fat i.
+              </p>
             </div>
           </div>
           <div className="md:col-span-5">
