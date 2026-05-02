@@ -40,9 +40,8 @@ export default function OmOsPage() {
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
           <div className="md:col-span-7">
             <div className="eyebrow mb-5">Om os</div>
-            <h1 className="display-lg mb-8 pr-4 text-balance">
-              Vi tror på, at løsninger<br className="hidden md:inline" />
-              {" "}skabes i tæt samarbejde.
+            <h1 className="display-page mb-8 pr-4">
+              Vi tror på, at løsninger skabes i tæt samarbejde.
             </h1>
             <div className="prose-body">
               <p>

@@ -66,6 +66,17 @@ body {
   letter-spacing: -0.015em;
 }
 
+/* Sub-page hero title — slightly smaller than display-lg so long titles fit
+   on two lines inside a 7-column hero text track. */
+.display-page {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
 .display-md {
   font-family: var(--font-playfair), Georgia, serif;
   font-weight: 500;

@@ -67,7 +67,7 @@ export default function HvorforPage() {
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
           <div className="md:col-span-7">
             <div className="eyebrow mb-5">Forsikringsmægler</div>
-            <h1 className="display-lg mb-8 pr-4">
+            <h1 className="display-page mb-8 pr-4">
               Hvad er en forsikringsmægler?
             </h1>
             <div className="prose-body">
