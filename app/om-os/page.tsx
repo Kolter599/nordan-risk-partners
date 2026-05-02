@@ -41,7 +41,7 @@ export default function OmOsPage() {
           <div className="md:col-span-7">
             <div className="eyebrow mb-5">Om os</div>
             <h1 className="display-lg mb-8 pr-4">
-              „Vi tror på, at løsninger skabes i tæt samarbejde.”
+              Vi tror på, at løsninger skabes i tæt samarbejde.
             </h1>
             <div className="prose-body">
               <p>
