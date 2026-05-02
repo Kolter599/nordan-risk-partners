@@ -491,7 +491,7 @@ function StepActions({
         <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
       ) : null}
 
-      <div className="flex items-center gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-2">
         <button
           type="button"
           onClick={onBack}

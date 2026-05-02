@@ -22,20 +22,24 @@ export function AnalyseFlow({ initialCvr }: Props) {
 
   return (
     <div>
-      {/* STATIC STEP INDICATOR — fixed at the top of the card area, never reflows with the card */}
-      <ol className="mx-auto max-w-[1100px] flex items-center justify-between sm:justify-start gap-2 sm:gap-0 mb-10 sm:mb-12 text-[0.82rem] font-medium">
+      {/* STATIC STEP INDICATOR — fixed above the card, never reflows when the card animates */}
+      <ol className="mx-auto max-w-[1100px] flex items-center mb-8 sm:mb-12 text-[0.82rem] font-medium">
         {STAGES.map((s, i) => {
           const status: "done" | "active" | "next" =
             allDone || i < currentIndex ? "done" : i === currentIndex ? "active" : "next";
+          const isLast = i === STAGES.length - 1;
           return (
-            <li key={s.key} className="flex items-center flex-1 sm:flex-none last:flex-none">
-              <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <li
+              key={s.key}
+              className={`flex items-center ${isLast ? "shrink-0" : "flex-1"}`}
+            >
+              <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
                 <span
-                  className={`shrink-0 w-9 h-9 rounded-full grid place-items-center text-[0.85rem] font-semibold transition-all duration-500 ${
+                  className={`shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full grid place-items-center text-[0.78rem] sm:text-[0.85rem] font-semibold transition-all duration-500 ${
                     status === "done"
                       ? "bg-[color:var(--color-nordan-dark)] text-white"
                       : status === "active"
-                      ? "bg-[color:var(--color-nordan-accent)] text-white ring-[6px] ring-[color:var(--color-nordan-accent)]/15"
+                      ? "bg-[color:var(--color-nordan-accent)] text-white ring-[5px] sm:ring-[6px] ring-[color:var(--color-nordan-accent)]/15"
                       : "bg-white border border-[color:var(--color-nordan-line)] text-[color:var(--color-nordan-muted)]"
                   }`}
                   aria-hidden
@@ -58,10 +62,10 @@ export function AnalyseFlow({ initialCvr }: Props) {
                   {s.label}
                 </span>
               </div>
-              {i < STAGES.length - 1 ? (
+              {!isLast ? (
                 <span
                   aria-hidden
-                  className={`flex-1 sm:w-16 sm:flex-none h-px mx-3 sm:mx-6 transition-colors duration-500 ${
+                  className={`flex-1 h-px mx-2 sm:mx-6 transition-colors duration-500 ${
                     status === "done"
                       ? "bg-[color:var(--color-nordan-accent)]"
                       : "bg-[color:var(--color-nordan-line)]"

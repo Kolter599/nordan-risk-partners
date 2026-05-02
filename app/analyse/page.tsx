@@ -22,7 +22,7 @@ export default async function AnalysePage({
   return (
     <main className="bg-[color:var(--color-nordan-soft)] min-h-[calc(100vh-80px)]">
       {/* HERO BAND — restrained but grand */}
-      <section className="pt-28 sm:pt-32 md:pt-40 pb-10 md:pb-14 relative overflow-hidden">
+      <section className="pt-24 sm:pt-32 md:pt-40 pb-8 md:pb-14 relative overflow-hidden">
         {/* subtle radial glow for depth */}
         <div
           aria-hidden
@@ -50,7 +50,7 @@ export default async function AnalysePage({
       </section>
 
       {/* STEP INDICATOR + CARD AREA */}
-      <section className="pb-20 sm:pb-24 md:pb-28">
+      <section className="pb-16 sm:pb-24 md:pb-28">
         <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
           <AnalyseFlow initialCvr={hasInitial ? initialCvr : undefined} />
         </div>
