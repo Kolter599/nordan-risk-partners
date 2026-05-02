@@ -67,7 +67,7 @@ export default function HvorforPage() {
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
           <div className="md:col-span-7">
             <div className="eyebrow mb-5">Forsikringsmægler</div>
-            <h1 className="display-xl mb-8">
+            <h1 className="display-lg mb-8 pr-4">
               Hvad er en forsikringsmægler?
             </h1>
             <div className="space-y-6 text-[1.02rem] sm:text-[1.05rem] leading-[1.8] text-[color:var(--color-nordan-ink)]">
@@ -85,17 +85,19 @@ export default function HvorforPage() {
               </p>
             </div>
           </div>
-          <div className="md:col-span-5 md:sticky md:top-28">
-            <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-              <Image
-                src="/images/nordan-12.jpg"
-                alt="Nordan Risk Partners — forsikringsmægler i samtale"
-                fill
-                priority
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 40vw"
-              />
-            </figure>
+          <div className="md:col-span-5">
+            <div className="md:sticky md:top-28">
+              <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                <Image
+                  src="/images/nordan-12.jpg"
+                  alt="Nordan Risk Partners — forsikringsmægler i samtale"
+                  fill
+                  priority
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                />
+              </figure>
+            </div>
           </div>
         </div>
       </section>

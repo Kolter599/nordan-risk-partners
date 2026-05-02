@@ -64,19 +64,21 @@ export default function OmOsPage() {
             </p>
             </div>
           </div>
-          <div className="md:col-span-5 md:sticky md:top-28">
-            <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-              <Image
-                src="/images/founders-vertical.jpg"
-                alt="Leo Julsgaard og Mads Horvitz Larsen — stiftere af Nordan Risk Partners"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 40vw"
-              />
-            </figure>
-            <figcaption className="mt-4 text-[0.82rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
-              Leo Julsgaard &amp; Mads Horvitz Larsen · Stiftere
-            </figcaption>
+          <div className="md:col-span-5">
+            <div className="md:sticky md:top-28">
+              <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                <Image
+                  src="/images/founders-vertical.jpg"
+                  alt="Leo Julsgaard og Mads Horvitz Larsen — stiftere af Nordan Risk Partners"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                />
+              </figure>
+              <figcaption className="mt-4 text-[0.82rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
+                Leo Julsgaard &amp; Mads Horvitz Larsen · Stiftere
+              </figcaption>
+            </div>
           </div>
         </div>
       </section>
