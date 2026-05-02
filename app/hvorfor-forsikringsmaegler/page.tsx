@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { CvrCtaSection } from "../_components/CvrCtaSection";
-import { PageHero } from "../_components/PageHero";
 import { Reveal } from "../_components/Reveal";
 
 export const metadata: Metadata = {
@@ -62,22 +62,38 @@ const FAQ = [
 export default function HvorforPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Forsikringsmægler"
-        title={<>Hvorfor skal man bruge en forsikringsmægler?</>}
-        body="Kort sagt: fordi du fortjener en rådgiver der arbejder udelukkende for dig — ikke for forsikringsselskaberne."
-        image="/images/unsplash-mcbrayer.jpg"
-      />
-
-      {/* DEFINITION */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-4xl px-5 md:px-8 prose-body">
-          <p>
-            En forsikringsmægler er din uafhængige rådgiver, der varetager hele processen omkring dit forsikringsprogram. Vi gennemgår dine eksisterende policer, identificerer huller og overlap, indhenter tilbud fra markedet, forhandler på dine vegne og sikrer at din dækning løbende følger med når din virksomhed udvikler sig.
-          </p>
-          <p>
-            Ved skader er vi din sparringspartner og bindeled til selskabet — så du ikke står alene når det betyder mest.
-          </p>
+      {/* HERO — text + image */}
+      <section className="pt-12 sm:pt-16 md:pt-24 pb-16 sm:pb-20 md:pb-28">
+        <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
+          <div className="md:col-span-7">
+            <div className="eyebrow mb-5">Forsikringsmægler</div>
+            <h1 className="display-xl mb-8">
+              Hvorfor skal man bruge en forsikringsmægler?
+            </h1>
+            <p className="text-lg md:text-xl text-[color:var(--color-nordan-ink-soft)] leading-relaxed mb-10">
+              Kort sagt: fordi du fortjener en rådgiver der arbejder udelukkende for dig — ikke for forsikringsselskaberne.
+            </p>
+            <div className="prose-body">
+              <p>
+                En forsikringsmægler er din uafhængige rådgiver, der varetager hele processen omkring dit forsikringsprogram. Vi gennemgår dine eksisterende policer, identificerer huller og overlap, indhenter tilbud fra markedet, forhandler på dine vegne og sikrer at din dækning løbende følger med når din virksomhed udvikler sig.
+              </p>
+              <p>
+                Ved skader er vi din sparringspartner og bindeled til selskabet — så du ikke står alene når det betyder mest.
+              </p>
+            </div>
+          </div>
+          <div className="md:col-span-5 md:sticky md:top-28">
+            <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+              <Image
+                src="/images/founders-vertical.jpg"
+                alt="Leo Julsgaard og Mads Horvitz Larsen — stiftere af Nordan Risk Partners"
+                fill
+                priority
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 40vw"
+              />
+            </figure>
+          </div>
         </div>
       </section>
 

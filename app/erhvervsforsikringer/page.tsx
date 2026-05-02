@@ -71,20 +71,18 @@ export default function ErhvervsforsikringerPage() {
       <PageHero
         eyebrow="Erhvervsforsikring"
         title={<>Erhvervsforsikring med Nordan Risk Partners</>}
-        body="Den rigtige forsikringsløsning er afgørende for at jeres virksomhed kan modstå uforudsete hændelser — brand, tyveri, driftstab, ansvar. Vi sikrer at jeres program faktisk dækker de risici I står overfor."
+        body={
+          <>
+            <span className="block">
+              Erhvervsforsikring er et komplekst område, hvor vilkår, lovkrav og dækningsmuligheder konstant udvikler sig. Det kræver specialiseret viden at sikre, at dækningen rammer de reelle risici — ikke bare skabelonrisici der står i en standardpolice.
+            </span>
+            <span className="block mt-5">
+              Som uafhængige forsikringsmæglere arbejder vi udelukkende for vores kunder. Vi sammensætter løsninger ud fra jeres specifikke risikobillede — ikke ud fra hvad der er nemmest at sælge.
+            </span>
+          </>
+        }
         image="/images/copenhagen.jpg"
       />
-
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-[900px] px-6 md:px-10 prose-body">
-          <p>
-            Erhvervsforsikring er et komplekst område, hvor vilkår, lovkrav og dækningsmuligheder konstant udvikler sig. Det kræver specialiseret viden at sikre, at dækningen rammer de reelle risici — ikke bare skabelonrisici der står i en standardpolice.
-          </p>
-          <p>
-            Som uafhængige forsikringsmæglere arbejder vi udelukkende for vores kunder. Vi sammensætter løsninger ud fra jeres specifikke risikobillede — ikke ud fra hvad der er nemmest at sælge.
-          </p>
-        </div>
-      </section>
 
       <section className="py-20 md:py-28 bg-[color:var(--color-nordan-soft)]">
         <div className="mx-auto max-w-[1200px] px-6 md:px-10">

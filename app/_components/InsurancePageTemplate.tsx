@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs } from "./Breadcrumbs";
-import { CvrLookup } from "./CvrLookup";
+import { CvrCapture } from "./CvrCapture";
 import { ProductJsonLd } from "./ProductJsonLd";
 import { Reveal } from "./Reveal";
 import {
@@ -32,7 +32,7 @@ export function InsurancePageTemplate({ product }: Props) {
             className="object-cover object-center"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-85" />
+          <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-92" />
         </div>
 
         <div className="relative w-full mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-24">
@@ -76,7 +76,7 @@ export function InsurancePageTemplate({ product }: Props) {
             </div>
 
             <div className="mt-10 lg:mt-0 lg:col-span-5 lg:pt-4">
-              <CvrLookup headline={product.cvrLabel} />
+              <CvrCapture headline={product.cvrLabel} />
             </div>
           </div>
         </div>
@@ -187,7 +187,7 @@ export function InsurancePageTemplate({ product }: Props) {
             </ul>
           </div>
           <div className="md:col-span-6">
-            <CvrLookup headline={product.cvrLabel} />
+            <CvrCapture headline={product.cvrLabel} />
           </div>
         </div>
       </section>

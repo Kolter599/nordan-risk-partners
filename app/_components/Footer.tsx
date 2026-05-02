@@ -74,7 +74,27 @@ export function Footer() {
 
       <div className="border-t border-white/15">
         <div className="mx-auto max-w-7xl px-6 md:px-10 py-6 text-[0.82rem] text-white/70 font-medium flex flex-col md:flex-row justify-between gap-3">
-          <span>© {new Date().getFullYear()} Nordan Risk Partners ApS · Medlem af FMF</span>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>© {new Date().getFullYear()} Nordan Risk Partners ApS</span>
+            <span aria-hidden>·</span>
+            <a
+              href="https://www.finanstilsynet.dk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-2 hover:text-white hover:underline"
+            >
+              Godkendt af Finanstilsynet ↗
+            </a>
+            <span aria-hidden>·</span>
+            <a
+              href="https://forsikringsmaeglerforeningen.dk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-2 hover:text-white hover:underline"
+            >
+              Medlem af FMF ↗
+            </a>
+          </span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
             <Link href="/persondatapolitik.pdf" className="hover:text-white">Persondatapolitik</Link>
             <Link href="/cookies" className="hover:text-white">Cookies</Link>

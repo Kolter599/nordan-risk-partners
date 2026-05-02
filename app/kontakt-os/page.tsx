@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { CvrLookup } from "../_components/CvrLookup";
+import { CvrCapture } from "../_components/CvrCapture";
 import { PageHero } from "../_components/PageHero";
 import { ContactForm } from "./ContactForm";
 
@@ -35,11 +35,11 @@ export default function KontaktPage() {
               <li>Vi henter virksomhedsdata automatisk</li>
               <li>I vælger om vi signerer fuldmagt digitalt eller via PDF</li>
               <li>Upload eksisterende policer (valgfrit)</li>
-              <li>Rådgiver ringer inden for én hverdag</li>
+              <li>Forsikringsmægler ringer inden for én hverdag</li>
             </ul>
           </div>
           <div className="md:col-span-6">
-            <CvrLookup headline="Indtast CVR — start jeres analyse" />
+            <CvrCapture headline="Indtast CVR — start jeres analyse" />
           </div>
         </div>
       </section>

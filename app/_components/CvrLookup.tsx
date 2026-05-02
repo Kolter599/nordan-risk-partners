@@ -11,17 +11,22 @@ type Company = {
   employees?: string;
 };
 
-type Step = "cvr" | "confirm" | "authorization" | "upload" | "contact" | "done";
+type Step = "cvr" | "confirm" | "actions" | "done";
 type LookupState = "idle" | "loading" | "error";
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "cvr", label: "Virksomhed" },
-  { key: "authorization", label: "Fuldmagt" },
-  { key: "upload", label: "Policer" },
-  { key: "contact", label: "Kontakt" },
+  { key: "confirm", label: "Bekræft" },
+  { key: "actions", label: "Klargør" },
 ];
 
-export function CvrLookup({ headline }: { headline?: string } = {}) {
+type CvrLookupProps = {
+  headline?: string;
+  /** When provided (e.g. from /analyse?cvr=…) auto-runs lookup and lands on confirm step. */
+  initialCvr?: string;
+};
+
+export function CvrLookup({ headline, initialCvr }: CvrLookupProps = {}) {
   const [step, setStep] = useState<Step>("cvr");
   const [cvr, setCvr] = useState("");
   const [company, setCompany] = useState<Company | null>(null);
@@ -31,9 +36,46 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
   const [authMethod, setAuthMethod] = useState<"digital" | "download" | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const typedOnce = useRef(false);
+  const prefillRan = useRef(false);
 
   const digits = cvr.replace(/\D/g, "").slice(0, 8);
   const isComplete = digits.length === 8;
+
+  useEffect(() => {
+    if (prefillRan.current) return;
+    const fromProp = (initialCvr ?? "").replace(/\D/g, "").slice(0, 8);
+    if (fromProp.length !== 8) return;
+    prefillRan.current = true;
+    setCvr(fromProp);
+    typedOnce.current = true;
+    void runLookup(fromProp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialCvr]);
+
+  async function runLookup(forDigits: string) {
+    track("cvr_submitted", { cvr: forDigits, prefilled: true });
+    setLookupState("loading");
+    setError(null);
+    try {
+      const res = await fetch(`https://cvrapi.dk/api?country=dk&search=${forDigits}`);
+      if (!res.ok) throw new Error("Kunne ikke slå CVR op lige nu");
+      const data = await res.json();
+      if (data.error) throw new Error("Virksomheden blev ikke fundet");
+      setCompany({
+        name: data.name ?? "Virksomhed",
+        vat: String(data.vat ?? forDigits),
+        address: [data.address, data.zipcode, data.city].filter(Boolean).join(", "),
+        industry: data.industrydesc ?? undefined,
+        employees: data.employees ?? undefined,
+      });
+      setLookupState("idle");
+      setStep("confirm");
+    } catch (err) {
+      track("cvr_lookup_error", { cvr: forDigits });
+      setLookupState("error");
+      setError(err instanceof Error ? err.message : "Noget gik galt");
+    }
+  }
 
   // Fire cvr_started the first time a digit is entered
   useEffect(() => {
@@ -47,12 +89,8 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
   useEffect(() => {
     if (step === "confirm") {
       track("cvr_company_confirmed_view", { cvr: digits, company: company?.name });
-    } else if (step === "authorization") {
-      track("cvr_step_authorization_view");
-    } else if (step === "upload") {
-      track("cvr_step_upload_view");
-    } else if (step === "contact") {
-      track("cvr_step_contact_view");
+    } else if (step === "actions") {
+      track("cvr_step_actions_view");
     } else if (step === "done") {
       track("cvr_flow_completed", {
         company: company?.name,
@@ -63,35 +101,13 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  const visibleStep: Step = step === "confirm" ? "cvr" : step;
-  const activeIndex = STEPS.findIndex((s) => s.key === visibleStep);
-  const progress = step === "done" ? 100 : ((activeIndex + 1) / STEPS.length) * 100;
+  const activeIndex = STEPS.findIndex((s) => s.key === step);
+  const progress = step === "done" ? 100 : ((Math.max(activeIndex, 0) + 1) / STEPS.length) * 100;
 
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
     if (!isComplete) return;
-    track("cvr_submitted", { cvr: digits });
-    setLookupState("loading");
-    setError(null);
-    try {
-      const res = await fetch(`https://cvrapi.dk/api?country=dk&search=${digits}`);
-      if (!res.ok) throw new Error("Kunne ikke slå CVR op lige nu");
-      const data = await res.json();
-      if (data.error) throw new Error("Virksomheden blev ikke fundet");
-      setCompany({
-        name: data.name ?? "Virksomhed",
-        vat: String(data.vat ?? digits),
-        address: [data.address, data.zipcode, data.city].filter(Boolean).join(", "),
-        industry: data.industrydesc ?? undefined,
-        employees: data.employees ?? undefined,
-      });
-      setLookupState("idle");
-      setStep("confirm");
-    } catch (err) {
-      track("cvr_lookup_error", { cvr: digits });
-      setLookupState("error");
-      setError(err instanceof Error ? err.message : "Noget gik galt");
-    }
+    await runLookup(digits);
   }
 
   function skipCompanyLookup() {
@@ -147,8 +163,17 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
     }
   }
 
+  const widthClass =
+    step === "actions"
+      ? "max-w-[1100px]"
+      : step === "done"
+      ? "max-w-[520px]"
+      : "max-w-[480px]";
+
   return (
-    <div className="bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)]">
+    <div
+      className={`mx-auto w-full ${widthClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+    >
       {/* HEADER with progress */}
       <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
         <div className="flex items-center justify-between mb-3">
@@ -165,9 +190,7 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
         <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] sm:text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
           {step === "cvr" && (headline ?? "Indtast CVR — se hvad du kan spare")}
           {step === "confirm" && "Er det din virksomhed?"}
-          {step === "authorization" && "Giv os tilladelse"}
-          {step === "upload" && "Upload jeres policer"}
-          {step === "contact" && "Næsten færdig"}
+          {step === "actions" && "Klargør jeres analyse"}
           {step === "done" && "Tak! Vi er i gang."}
         </div>
         {/* Progress bar */}
@@ -196,28 +219,16 @@ export function CvrLookup({ headline }: { headline?: string } = {}) {
           <StepConfirm
             company={company}
             onBack={() => setStep("cvr")}
-            onNext={() => setStep("authorization")}
+            onNext={() => setStep("actions")}
           />
         )}
-        {step === "authorization" && (
-          <StepAuthorization
+        {step === "actions" && (
+          <StepActions
             authMethod={authMethod}
             setAuthMethod={setAuthMethod}
-            onBack={() => setStep("confirm")}
-            onNext={() => setStep("upload")}
-          />
-        )}
-        {step === "upload" && (
-          <StepUpload
             files={files}
             setFiles={setFiles}
-            onBack={() => setStep("authorization")}
-            onNext={() => setStep("contact")}
-          />
-        )}
-        {step === "contact" && (
-          <StepContact
-            onBack={() => setStep("upload")}
+            onBack={() => setStep("confirm")}
             onSubmit={handleSubmit}
             submitting={submitting}
             error={error}
@@ -344,55 +355,193 @@ function StepConfirm({
   );
 }
 
-/* -------------------- STEP 3: AUTHORIZATION (FULDMAGT) -------------------- */
-function StepAuthorization({
+/* -------------------- STEP 3: ACTIONS (parallel: fuldmagt + upload + kontakt) -------------------- */
+function StepActions({
   authMethod,
   setAuthMethod,
+  files,
+  setFiles,
   onBack,
-  onNext,
+  onSubmit,
+  submitting,
+  error,
 }: {
   authMethod: "digital" | "download" | null;
   setAuthMethod: (v: "digital" | "download" | null) => void;
+  files: File[];
+  setFiles: (f: File[]) => void;
   onBack: () => void;
-  onNext: () => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  submitting: boolean;
+  error: string | null;
 }) {
   return (
-    <div className="space-y-5">
+    <form onSubmit={onSubmit} className="cvr-actions-enter space-y-6">
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
-        For at vi kan indhente tilbud og dækninger fra dine forsikringsselskaber, har vi brug for en{" "}
-        <strong>undersøgelsesfuldmagt</strong>. Vælg hvordan du vil underskrive:
+        Udfyld de tre felter nedenfor i den rækkefølge du har lyst — alt sendes samlet, når du er klar.
       </p>
 
-      <div className="space-y-3">
-        <AuthOption
-          selected={authMethod === "digital"}
-          onSelect={() => setAuthMethod("digital")}
-          icon={<IconSignature />}
-          title="Underskriv digitalt"
-          body="Hurtigt og nemt via MitID (Penneo). Tager mindre end 1 minut."
-          badge="Anbefalet"
-        />
-        <AuthOption
-          selected={authMethod === "download"}
-          onSelect={() => setAuthMethod("download")}
-          icon={<IconDownload />}
-          title="Download, underskriv og upload"
-          body="Hent PDF, udfyld, og upload den igen i næste trin."
-          action={
-            <a
-              href="/dokumenter/undersoegelsesfuldmagt.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-[color:var(--color-nordan-accent)] hover:underline"
-            >
-              Download PDF <span aria-hidden>↓</span>
-            </a>
-          }
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
+        {/* PANEL 1 — FULDMAGT */}
+        <ActionPanel
+          step="01"
+          title="Giv os tilladelse"
+          subtitle="Underskriv undersøgelsesfuldmagt"
+        >
+          <div className="space-y-2.5">
+            <AuthOption
+              selected={authMethod === "digital"}
+              onSelect={() => setAuthMethod("digital")}
+              icon={<IconSignature />}
+              title="Underskriv digitalt"
+              body="Via MitID (Penneo). Under 1 minut."
+              badge="Anbefalet"
+            />
+            <AuthOption
+              selected={authMethod === "download"}
+              onSelect={() => setAuthMethod("download")}
+              icon={<IconDownload />}
+              title="Download PDF"
+              body="Hent, underskriv og upload med policerne."
+              action={
+                <a
+                  href="/dokumenter/undersoegelsesfuldmagt.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-[color:var(--color-nordan-accent)] hover:underline"
+                >
+                  Download <span aria-hidden>↓</span>
+                </a>
+              }
+            />
+          </div>
+        </ActionPanel>
+
+        {/* PANEL 2 — UPLOAD */}
+        <ActionPanel
+          step="02"
+          title="Upload jeres policer"
+          subtitle="PDF, JPG eller PNG — kan også eftersendes"
+        >
+          <label
+            htmlFor="policer"
+            className="block border-2 border-dashed border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] rounded-[8px] p-5 text-center cursor-pointer transition-colors bg-[color:var(--color-nordan-soft)]/50"
+          >
+            <input
+              id="policer"
+              type="file"
+              multiple
+              accept="application/pdf,image/*"
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              className="sr-only"
+            />
+            <div className="inline-flex flex-col items-center gap-2">
+              <span className="w-10 h-10 rounded-full bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)]">
+                <IconUpload />
+              </span>
+              <div className="font-semibold text-[0.88rem]">Træk filer hertil eller klik</div>
+              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)]">PDF · JPG · PNG · max 20 MB</div>
+            </div>
+          </label>
+          {files.length > 0 ? (
+            <ul className="mt-3 space-y-1.5">
+              {files.map((f, i) => (
+                <li
+                  key={`${f.name}-${i}`}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[color:var(--color-nordan-soft)] rounded border border-[color:var(--color-nordan-line)] text-[0.82rem]"
+                >
+                  <IconFile />
+                  <span className="flex-1 truncate">{f.name}</span>
+                  <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+                    {Math.round(f.size / 1024)} KB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
+                    className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-base leading-none"
+                    aria-label="Fjern"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </ActionPanel>
+
+        {/* PANEL 3 — KONTAKT */}
+        <ActionPanel
+          step="03"
+          title="Hvem ringer vi til?"
+          subtitle="Din forsikringsmægler vender tilbage inden for én hverdag"
+        >
+          <div className="space-y-3">
+            <InputField name="name" label="Navn" placeholder="Fornavn Efternavn" required />
+            <InputField name="email" label="E-mail" type="email" placeholder="navn@firma.dk" required />
+            <InputField name="phone" label="Telefon" type="tel" placeholder="+45 12 34 56 78" required />
+          </div>
+        </ActionPanel>
       </div>
 
-      <StepNav onBack={onBack} onNext={onNext} nextLabel="Næste" />
+      {error ? (
+        <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
+      ) : null}
+
+      <div className="flex items-center gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={submitting}
+          className="h-[50px] px-5 rounded-[8px] border border-[color:var(--color-nordan-line)] text-[0.88rem] font-medium text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-ink-soft)] disabled:opacity-60"
+        >
+          Tilbage
+        </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:opacity-60 transition-colors"
+        >
+          {submitting ? (
+            <>
+              <Spinner />
+              <span>Sender…</span>
+            </>
+          ) : (
+            <>
+              <span>Send &amp; start analyse</span>
+              <span aria-hidden>→</span>
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function ActionPanel({
+  step,
+  title,
+  subtitle,
+  children,
+}: {
+  step: string;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border border-[color:var(--color-nordan-line)] rounded-[10px] p-4 sm:p-5 bg-white">
+      <div className="flex items-baseline gap-2 mb-1">
+        <span className="text-[color:var(--color-nordan-accent)] font-[family-name:var(--font-inter)] font-bold text-[0.72rem] tracking-[0.18em]">
+          {step}
+        </span>
+        <span className="font-[family-name:var(--font-inter)] font-bold text-[1rem] text-[color:var(--color-nordan-ink)]">
+          {title}
+        </span>
+      </div>
+      <p className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mb-4 leading-relaxed">{subtitle}</p>
+      {children}
     </div>
   );
 }
@@ -455,132 +604,6 @@ function AuthOption({
         </span>
       </div>
     </button>
-  );
-}
-
-/* -------------------- STEP 4: UPLOAD POLICIES -------------------- */
-function StepUpload({
-  files,
-  setFiles,
-  onBack,
-  onNext,
-}: {
-  files: File[];
-  setFiles: (f: File[]) => void;
-  onBack: () => void;
-  onNext: () => void;
-}) {
-  return (
-    <div className="space-y-5">
-      <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
-        Upload dine nuværende policer (PDF eller billede). Har du dem ikke lige ved hånden, kan du roligt springe dette over — vi spørger igen senere.
-      </p>
-
-      <label
-        htmlFor="policer"
-        className="block border-2 border-dashed border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] rounded-[8px] p-8 text-center cursor-pointer transition-colors bg-[color:var(--color-nordan-soft)]/50"
-      >
-        <input
-          id="policer"
-          type="file"
-          multiple
-          accept="application/pdf,image/*"
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-          className="sr-only"
-        />
-        <div className="inline-flex flex-col items-center gap-2">
-          <span className="w-12 h-12 rounded-full bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)]">
-            <IconUpload />
-          </span>
-          <div className="font-semibold text-[0.95rem]">Træk filer hertil eller klik for at vælge</div>
-          <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">PDF · JPG · PNG · max 20 MB pr. fil</div>
-        </div>
-      </label>
-
-      {files.length > 0 ? (
-        <ul className="space-y-2">
-          {files.map((f, i) => (
-            <li
-              key={`${f.name}-${i}`}
-              className="flex items-center gap-3 px-4 py-2 bg-[color:var(--color-nordan-soft)] rounded border border-[color:var(--color-nordan-line)] text-[0.88rem]"
-            >
-              <IconFile />
-              <span className="flex-1 truncate">{f.name}</span>
-              <span className="text-[0.75rem] text-[color:var(--color-nordan-muted)]">
-                {Math.round(f.size / 1024)} KB
-              </span>
-              <button
-                type="button"
-                onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
-                className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-lg leading-none"
-                aria-label="Fjern"
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <StepNav onBack={onBack} onNext={onNext} nextLabel={files.length ? "Næste" : "Spring over"} />
-    </div>
-  );
-}
-
-/* -------------------- STEP 5: CONTACT -------------------- */
-function StepContact({
-  onBack,
-  onSubmit,
-  submitting,
-  error,
-}: {
-  onBack: () => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  submitting: boolean;
-  error: string | null;
-}) {
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed mb-2">
-        Skriv lige dit navn, e-mail og telefonnummer — så ringer vi til dig for at bekræfte og gå i gang.
-      </p>
-
-      <InputField name="name" label="Dit navn" placeholder="Fornavn Efternavn" required />
-      <InputField name="email" label="E-mail" type="email" placeholder="navn@firma.dk" required />
-      <InputField name="phone" label="Telefon" type="tel" placeholder="+45 12 34 56 78" required />
-
-      {error ? (
-        <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
-      ) : null}
-
-      <div className="flex items-center gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={submitting}
-          className="h-[50px] px-5 rounded-[8px] border border-[color:var(--color-nordan-line)] text-[0.88rem] font-medium text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-ink-soft)] disabled:opacity-60"
-        >
-          Tilbage
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:opacity-60 transition-colors"
-        >
-          {submitting ? (
-            <>
-              <Spinner />
-              <span>Sender…</span>
-            </>
-          ) : (
-            <>
-              <span>Send & afvent analyse</span>
-              <span aria-hidden>→</span>
-            </>
-          )}
-        </button>
-      </div>
-    </form>
   );
 }
 

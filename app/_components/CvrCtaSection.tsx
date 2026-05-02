@@ -1,4 +1,4 @@
-import { CvrLookup } from "./CvrLookup";
+import { CvrCapture } from "./CvrCapture";
 
 type Props = {
   eyebrow?: string;
@@ -50,7 +50,7 @@ export function CvrCtaSection({
           </p>
         </div>
         <div className="md:col-span-6">
-          <CvrLookup headline={cvrHeadline} />
+          <CvrCapture headline={cvrHeadline} />
         </div>
       </div>
     </section>

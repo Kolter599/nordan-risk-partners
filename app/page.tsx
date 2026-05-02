@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { CvrLookup } from "./_components/CvrLookup";
+import { CvrCapture } from "./_components/CvrCapture";
 import { InsurerMarquee } from "./_components/InsurerMarquee";
 import { OrganizationJsonLd } from "./_components/JsonLd";
 import { Reveal } from "./_components/Reveal";
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 const METRICS = [
   { value: "70.000+", label: "ejendomme vi har erfaring med" },
   { value: "40+ år", label: "erfaring i branchen" },
-  { value: "2–3 år", label: "siden de fleste sidst fik tjekket" },
+  { value: "2–3 år", label: "får virksomheder typisk ikke tjekket deres forsikringer" },
 ];
 
 const STEPS = [
@@ -34,7 +34,7 @@ const STEPS = [
   {
     n: "03",
     title: "Vi overvåger",
-    body: "Din rådgiver følger programmet løbende. Ændringer i drift, marked eller lovgivning? Vi kontakter dig før det bliver til et problem.",
+    body: "Din forsikringsmægler følger programmet løbende. Ændringer i drift, marked eller lovgivning? Vi kontakter dig før det bliver til et problem.",
   },
 ];
 
@@ -55,11 +55,11 @@ export default function Home() {
             className="object-cover object-center lg:object-[30%_center]"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-85" />
+          <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-92" />
         </div>
 
         <div className="relative w-full mx-auto max-w-[1400px] px-5 sm:px-6 md:px-10 pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-24">
-          <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-start">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-stretch">
             <div className="lg:col-span-8 xl:col-span-8 min-w-0">
               <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-8">
                 Uvildig rådgivning
@@ -89,7 +89,7 @@ export default function Home() {
               <ul className="mt-8 sm:mt-10 grid sm:grid-cols-2 gap-2.5 sm:gap-3 max-w-2xl text-[0.9rem] sm:text-[0.95rem] font-medium text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                 {[
                   "Gratis uforpligtende analyse",
-                  "Uafhængig rådgivning — ingen bindinger",
+                  "Uafhængig rådgivning",
                   "Direkte adgang til erfarne rådgivere",
                   "Over 40 års brancheerfaring",
                 ].map((t) => (
@@ -103,8 +103,8 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="mt-10 lg:mt-0 lg:col-span-4 xl:col-span-4 lg:pt-[190px] xl:pt-[215px]">
-              <CvrLookup />
+            <div className="mt-10 lg:mt-0 lg:col-span-4 xl:col-span-4 self-end">
+              <CvrCapture />
             </div>
           </div>
         </div>
@@ -158,6 +158,11 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+          <Reveal delay={180}>
+            <p className="mt-12 md:mt-16 max-w-3xl text-[1rem] md:text-[1.05rem] italic text-[color:var(--color-nordan-ink-soft)] leading-[1.65] border-l-2 border-[color:var(--color-nordan-accent)] pl-5">
+              Og kan vi ikke finde en bedre løsning eller spare jer penge? Så fortæller vi det rent ud. Ingen ændring er bedre end en dårlig ændring.
+            </p>
+          </Reveal>
         </div>
       </section>
 
@@ -173,8 +178,8 @@ export default function Home() {
             <ul className="check-list">
               <li>Indtast CVR — vi henter jeres virksomhedsdata</li>
               <li>Underskriv fuldmagt digitalt eller på PDF</li>
-              <li>Upload eksisterende policer (kan springes over)</li>
-              <li>Din rådgiver ringer inden for én hverdag</li>
+              <li>Upload eksisterende policer — eller fortæl os hvilke selskaber I bruger i dag</li>
+              <li>Din forsikringsmægler ringer inden for én hverdag</li>
             </ul>
             <div className="mt-10">
               <Link href="/analyse" className="btn-primary">Kom i gang</Link>
@@ -184,6 +189,38 @@ export default function Home() {
             <ProcessPreview />
           </div>
           {/* vertical founders portrait appears in the dashboard mockup's neighbor section intentionally blank here */}
+        </div>
+      </section>
+
+      {/* AI ADVANTAGE — slim band */}
+      <section className="py-14 md:py-20 bg-[color:var(--color-nordan-dark)] text-white">
+        <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-center">
+          <div className="md:col-span-7">
+            <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-[0.72rem] uppercase tracking-[0.18em] font-semibold text-white/90">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden>
+                <path d="M12 2l1.7 5.3L19 9l-5.3 1.7L12 16l-1.7-5.3L5 9l5.3-1.7L12 2z" />
+                <path d="M19 14l.85 2.65L22 17l-2.15.35L19 20l-.85-2.65L16 17l2.15-.35L19 14z" />
+              </svg>
+              AI som arbejdshest
+            </div>
+            <h2 className="display-lg mb-5 text-white">Kompetent rådgivning, hjulpet på vej af AI</h2>
+            <p className="text-white/85 leading-relaxed text-[1.02rem] max-w-2xl">
+              Vi bruger AI til at læse jeres policer, sammenligne markedet og finde huller hurtigere — så I får analysen samme dag i stedet for om to uger. Mæglerne er stadig dem, der rådgiver, forhandler og står på mål for anbefalingerne.
+            </p>
+          </div>
+          <ul className="md:col-span-5 grid sm:grid-cols-2 gap-4 text-[0.95rem] text-white">
+            {[
+              { h: "Hurtigere svar", b: "Police-gennemgang på minutter, ikke uger." },
+              { h: "Færre blinde vinkler", b: "AI flagger huller og overlap, mæglerne fortolker." },
+              { h: "Markedsskanning", b: "Sammenligner tilbud på tværs af selskaberne." },
+              { h: "Personlig rådgivning", b: "Mennesker tager beslutningerne — ikke maskiner." },
+            ].map((b) => (
+              <li key={b.h} className="rounded-[8px] border border-white/15 bg-white/5 p-4">
+                <div className="font-semibold text-white mb-1">{b.h}</div>
+                <div className="text-white/75 leading-[1.5] text-[0.88rem]">{b.b}</div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -207,7 +244,23 @@ export default function Home() {
             <Link href="/kontakt-os" className="btn-outline">Book et møde</Link>
           </div>
           <p className="mt-10 text-xs uppercase tracking-[0.15em] text-[color:var(--color-nordan-muted)]">
-            Godkendt af Finanstilsynet · Medlem af FMF
+            <a
+              href="https://www.finanstilsynet.dk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[color:var(--color-nordan-ink)]"
+            >
+              Godkendt af Finanstilsynet
+            </a>{" "}
+            ·{" "}
+            <a
+              href="https://forsikringsmaeglerforeningen.dk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[color:var(--color-nordan-ink)]"
+            >
+              Medlem af FMF
+            </a>
           </p>
         </div>
       </section>
@@ -220,7 +273,7 @@ function ProcessPreview() {
     { n: "01", label: "CVR", title: "Virksomhed hentet", status: "done" },
     { n: "02", label: "Fuldmagt", title: "Digital underskrift", status: "done" },
     { n: "03", label: "Policer", title: "Upload eller spring over", status: "active" },
-    { n: "04", label: "Kontakt", title: "Din rådgiver ringer", status: "pending" },
+    { n: "04", label: "Kontakt", title: "Din forsikringsmægler ringer", status: "pending" },
   ] as const;
 
   return (
