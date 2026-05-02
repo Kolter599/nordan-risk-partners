@@ -37,24 +37,14 @@ export default async function AnalysePage({
             Gratis analyse
           </div>
           <h1 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2.1rem,4.4vw,3.4rem)] leading-[1.08] tracking-[-0.018em] mb-5 max-w-3xl text-[color:var(--color-nordan-ink)] text-balance">
-            {hasInitial ? (
-              <>
-                Tak — vi gør jeres{" "}
-                <span className="italic text-[color:var(--color-nordan-accent)]">AI-drevne</span>{" "}
-                analyse klar.
-              </>
-            ) : (
-              <>
-                En{" "}
-                <span className="italic text-[color:var(--color-nordan-accent)]">AI-drevet</span>,
-                gratis analyse af jeres forsikringer.
-              </>
-            )}
+            {hasInitial
+              ? "Tak — vi gør analysen klar til jer."
+              : "Smartere forsikringsanalyse — gratis og uvildig."}
           </h1>
           <p className="text-[1.02rem] sm:text-[1.1rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.65] max-w-2xl">
             {hasInitial
-              ? "Bekræft virksomheden og udfyld de tre felter. Forsikringsmægler ringer inden for én hverdag."
-              : "Indtast CVR. Vi henter virksomhedsdata, læser policer og sammenligner markedet for jer."}
+              ? "Bekræft virksomheden og udfyld de tre felter. Imens scanner vi markedet og forbereder gennemgangen — så jeres forsikringsmægler kan ringe inden for én hverdag med konkrete anbefalinger."
+              : "Vi bruger AI til at læse policer og sammenligne markedet hurtigere. Det giver os mere tid til rådgivning — og jer en bedre løsning til en skarpere pris."}
           </p>
         </div>
       </section>
