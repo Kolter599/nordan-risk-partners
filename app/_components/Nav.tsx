@@ -36,7 +36,7 @@ export function Nav() {
 
   // Pages without a dark hero behind the nav — keep the bar solid even at the top
   // so light/white page backgrounds don't render the nav invisible.
-  const FORCE_SOLID_PAGES = ["/om-os", "/hvorfor-forsikringsmaegler"];
+  const FORCE_SOLID_PAGES = ["/om-os", "/hvorfor-forsikringsmaegler", "/analyse"];
   const forceSolid = FORCE_SOLID_PAGES.includes(pathname ?? "");
   const overlay = !scrolled && !forceSolid;
   const navCls = overlay ? "nav-overlay" : "nav-solid";
