@@ -171,9 +171,9 @@ export function CvrLookup({ headline, initialCvr }: CvrLookupProps = {}) {
       : "max-w-[480px]";
 
   return (
-    <div
-      className={`mx-auto w-full ${widthClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}
-    >
+    <div className={`mx-auto w-full ${widthClass} transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}>
+      <StepProgress step={step} />
+      <div className="bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)]">
       {/* HEADER with progress */}
       <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
         <div className="flex items-center justify-between mb-3">
@@ -236,7 +236,70 @@ export function CvrLookup({ headline, initialCvr }: CvrLookupProps = {}) {
         )}
         {step === "done" && <StepDone company={company} />}
       </div>
+      </div>
     </div>
+  );
+}
+
+/* -------------------- STEP PROGRESS (above the card) -------------------- */
+function StepProgress({ step }: { step: Step }) {
+  const stages = [
+    { key: "cvr", label: "Indtast CVR" },
+    { key: "confirm", label: "Bekræft virksomhed" },
+    { key: "actions", label: "Klargør analyse" },
+  ];
+  const currentIndex =
+    step === "cvr" ? 0 : step === "confirm" ? 1 : step === "actions" || step === "done" ? 2 : 0;
+  const allDone = step === "done";
+
+  return (
+    <ol className="flex flex-wrap items-center gap-x-3 gap-y-3 text-[0.82rem] font-medium mb-6 sm:mb-8">
+      {stages.map((s, i) => {
+        const status: "done" | "active" | "next" =
+          allDone || i < currentIndex ? "done" : i === currentIndex ? "active" : "next";
+        return (
+          <li key={s.key} className="flex items-center gap-3">
+            <span
+              className={`shrink-0 w-7 h-7 rounded-full grid place-items-center text-[0.78rem] font-semibold transition-all duration-500 ${
+                status === "done"
+                  ? "bg-[color:var(--color-nordan-dark)] text-white"
+                  : status === "active"
+                  ? "bg-[color:var(--color-nordan-accent)] text-white ring-4 ring-[color:var(--color-nordan-accent)]/15 scale-105"
+                  : "bg-white border border-[color:var(--color-nordan-line)] text-[color:var(--color-nordan-muted)]"
+              }`}
+              aria-hidden
+            >
+              {status === "done" ? (
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                i + 1
+              )}
+            </span>
+            <span
+              className={`transition-colors duration-500 ${
+                status === "next"
+                  ? "text-[color:var(--color-nordan-muted)]"
+                  : "text-[color:var(--color-nordan-ink)]"
+              }`}
+            >
+              {s.label}
+            </span>
+            {i < stages.length - 1 ? (
+              <span
+                aria-hidden
+                className={`hidden sm:inline-block w-8 h-px transition-colors duration-500 ml-1 ${
+                  status === "done"
+                    ? "bg-[color:var(--color-nordan-accent)]"
+                    : "bg-[color:var(--color-nordan-line)]"
+                }`}
+              />
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
