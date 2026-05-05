@@ -21,27 +21,60 @@ export type SignResult = {
   receiptMessageId?: string;
 };
 
-const INSURER_OPTIONS = [
-  "Tryg",
-  "Topdanmark",
-  "If",
-  "Alm. Brand",
-  "Codan",
-  "Gjensidige",
-  "AIG",
-  "HDI",
-  "Chubb",
-  "Zurich",
-  "Lloyd's",
-  "Allianz",
-  "AXA",
-  "QBE",
-  "LB Forsikring",
-  "Baltic",
-  "Riskpoint",
-  "Viking",
-  "Andet / ved ikke",
+const INSURER_GROUPS: { label: string; items: string[] }[] = [
+  {
+    label: "Danske skadesforsikrings­selskaber",
+    items: [
+      "Tryg Forsikring",
+      "Topdanmark Forsikring",
+      "If Skadeforsikring",
+      "Codan Forsikring",
+      "Alm. Brand Forsikring",
+      "Gjensidige Forsikring",
+      "Alka Forsikring",
+      "LB Forsikring",
+      "GF Forsikring",
+      "AXA Forsikring",
+    ],
+  },
+  {
+    label: "Niche & lokale selskaber",
+    items: [
+      "Aros Forsikring",
+      "Bornholms Brandforsikring",
+      "Sønderjysk Forsikring",
+      "Thisted Forsikring",
+      "FDM Forsikringer",
+      "Europæiske Rejseforsikring",
+      "Forsia Forsikring",
+      "Frida Forsikring",
+      "Dansk Boligforsikring",
+      "Bauta Forsikring",
+      "Alpha Insurance",
+    ],
+  },
+  {
+    label: "Pension & liv",
+    items: ["PFA Pension", "PFA Forsikring", "Danica Pension", "Nordea Liv & Pension"],
+  },
+  {
+    label: "Internationale selskaber",
+    items: [
+      "AIG",
+      "HDI",
+      "Chubb",
+      "Zurich",
+      "Lloyd's",
+      "Allianz",
+      "QBE",
+      "Baltic Finance Underwriting",
+      "Riskpoint",
+      "Viking",
+    ],
+  },
 ];
+
+const INSURER_OPTIONS = INSURER_GROUPS.flatMap((g) => g.items);
 
 type Props = {
   open: boolean;
@@ -62,6 +95,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const [email, setEmail] = useState(defaults.email ?? "");
   const [phone, setPhone] = useState(defaults.phone ?? "");
   const [insurers, setInsurers] = useState<string[]>([]);
+  const [otherInsurers, setOtherInsurers] = useState("");
   const [readOk, setReadOk] = useState(false);
   const [authOk, setAuthOk] = useState(false);
   const [eidasOk, setEidasOk] = useState(false);
@@ -78,6 +112,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setEmail(defaults.email ?? "");
     setPhone(defaults.phone ?? "");
     setInsurers([]);
+    setOtherInsurers("");
     setTitle("");
     setReadOk(false);
     setAuthOk(false);
@@ -126,6 +161,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setSubmitting(true);
     setError(null);
     try {
+      const otherList = otherInsurers
+        .split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const allInsurers = [...insurers, ...otherList];
       const res = await fetch("/api/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,7 +176,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
           phone: phone.trim(),
           companyName: defaults.companyName,
           cvr: defaults.cvr,
-          insurers,
+          insurers: allInsurers,
           consent: { read: readOk, authorized: authOk, eidas: eidasOk },
         }),
       });
@@ -352,36 +392,58 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
             </div>
 
             <div>
-              <div className="flex items-baseline justify-between mb-2">
+              <div className="flex items-baseline justify-between mb-1">
                 <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em]">
-                  Hvilke forsikringsselskaber er I hos?
+                  Forsikringsselskaber I er hos
                 </label>
-                <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
-                  {insurers.length} valgt · vælg flere
-                </span>
+                {insurers.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setInsurers([])}
+                    className="text-[0.7rem] text-[color:var(--color-nordan-muted)] underline hover:text-[color:var(--color-nordan-ink-soft)]"
+                  >
+                    Ryd ({insurers.length})
+                  </button>
+                ) : null}
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {INSURER_OPTIONS.map((opt) => {
-                  const selected = insurers.includes(opt);
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => toggleInsurer(opt)}
-                      className={`px-3 py-1.5 rounded-full text-[0.82rem] border transition-colors ${
-                        selected
-                          ? "bg-[color:var(--color-nordan-accent)] border-[color:var(--color-nordan-accent)] text-white"
-                          : "bg-white border-[color:var(--color-nordan-line)] text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-accent-soft)]"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
+              <p className="text-[0.78rem] text-[color:var(--color-nordan-ink-soft)] leading-snug mb-3">
+                Hjælper os med at gå direkte til de rigtige selskaber for jer. Vælg gerne flere — eller spring over hvis I ikke har nogle endnu.
+              </p>
+              <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1 -mr-1 rounded-[6px]">
+                {INSURER_GROUPS.map((group) => (
+                  <div key={group.label}>
+                    <div className="text-[0.65rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-1.5">
+                      {group.label}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.items.map((opt) => {
+                        const selected = insurers.includes(opt);
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => toggleInsurer(opt)}
+                            className={`px-2.5 py-1.5 rounded-full text-[0.8rem] border transition-colors ${
+                              selected
+                                ? "bg-[color:var(--color-nordan-accent)] border-[color:var(--color-nordan-accent)] text-white"
+                                : "bg-white border-[color:var(--color-nordan-line)] text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-accent-soft)]"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-2">
-                Valgfrit, men hjælper os med at gå direkte til de rigtige selskaber for jer.
-              </div>
+              <input
+                type="text"
+                value={otherInsurers}
+                onChange={(e) => setOtherInsurers(e.target.value)}
+                placeholder="Andet selskab? Skriv her, adskil med komma"
+                className="mt-3 w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.88rem]"
+              />
             </div>
 
             <div className="space-y-2.5 pt-2 border-t border-[color:var(--color-nordan-line)]">

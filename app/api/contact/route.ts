@@ -6,6 +6,7 @@ import {
   escapeHtml,
   EMAIL_COLORS,
 } from "@/lib/email-template";
+import { upsertLead, recordEvent, type LeadSource } from "@/lib/db";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
@@ -144,6 +145,36 @@ export async function POST(req: Request) {
     signedFuldmagt,
   } = body;
   const totalFileCount = attachments.length + urlFiles.length;
+
+  // Track lead — graceful no-op if Supabase isn't configured.
+  const topicLower = topic?.toLowerCase() ?? "";
+  const source: LeadSource = topicLower.includes("hole-in-one")
+    ? "hole_in_one"
+    : topicLower.includes("forsikringsanalyse") || topicLower.includes("cvr-flow")
+    ? "analyse"
+    : topicLower.includes("cvr:")
+    ? "hero"
+    : "kontakt";
+  const leadId = await upsertLead({
+    source,
+    status: signedFuldmagt ? "completed" : "new",
+    name,
+    email,
+    phone: phone ?? null,
+    company: company ?? null,
+    auditId: signedFuldmagt?.auditId ?? null,
+    payload: {
+      topic,
+      customerMessage,
+      filesCount: totalFileCount,
+      hasSignedFuldmagt: !!signedFuldmagt,
+    },
+  });
+  await recordEvent(
+    leadId,
+    source === "analyse" && signedFuldmagt ? "analyse_completed" : `${source}_submitted`,
+    { filesCount: totalFileCount }
+  );
 
   const kvRows: Array<[string, string] | [string, string, "html"]> = [
     ["Navn", name],

@@ -11,6 +11,7 @@ import {
   emailKvTable,
   EMAIL_COLORS,
 } from "@/lib/email-template";
+import { upsertLead, recordEvent } from "@/lib/db";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
@@ -93,6 +94,27 @@ export async function POST(req: Request) {
   };
 
   const { pdfBytes, finalHash } = await buildSignedFuldmagtPdf(signer, audit);
+
+  // Track lead — graceful no-op if Supabase isn't configured.
+  const leadId = await upsertLead({
+    source: "sign",
+    status: "partial",
+    name: signer.name,
+    email: signer.email,
+    phone: signer.phone ?? null,
+    company: signer.companyName,
+    cvr: signer.cvr,
+    auditId: audit.auditId,
+    payload: {
+      title: signer.title,
+      insurers,
+      finalHash,
+    },
+  });
+  await recordEvent(leadId, "sign_completed", {
+    auditId: audit.auditId,
+    insurersCount: insurers.length,
+  });
 
   // Upload signed PDF to Blob storage (graceful fail if not configured)
   let blobUrl: string | null = null;
@@ -196,6 +218,9 @@ export async function POST(req: Request) {
         html: receiptHtml,
         attachments: [attachment],
         headers: { "Message-ID": messageIdFor("receipt", audit.auditId) },
+        // Mads' internal mail goes immediately. Customer receipt is delayed
+        // a few minutes so it feels like a human review step, not a bot.
+        scheduledAt: "in 5 minutes",
       });
     } catch (err) {
       console.error("[sign] Sending receipts failed:", err);
