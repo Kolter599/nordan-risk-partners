@@ -20,13 +20,15 @@ export function HomeContactForm() {
     const first = String(data.get("first_name") ?? "").trim();
     const last = String(data.get("last_name") ?? "").trim();
     const cvr = String(data.get("cvr") ?? "").trim();
+    const userMessage = String(data.get("message") ?? "").trim();
     const payload = {
       name: [first, last].filter(Boolean).join(" "),
       email: String(data.get("email") ?? "").trim(),
       phone: String(data.get("phone") ?? "").trim() || undefined,
       company: String(data.get("company") ?? "").trim() || undefined,
       topic: cvr ? `CVR: ${cvr}` : undefined,
-      message: String(data.get("message") ?? "").trim(),
+      message: userMessage,
+      customerMessage: userMessage,
     };
     setState("submitting");
     setError(null);

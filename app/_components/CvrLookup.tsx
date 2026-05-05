@@ -241,11 +241,23 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     }
     const message = messageParts.join("\n");
 
+    // Customer-facing summary — friendly, no internal jargon.
+    const customerSummaryParts = [
+      `CVR ${company?.vat ?? digits}${company?.name ? ` · ${company.name}` : ""}`,
+      authMethod === "digital" && digitalConfirmed
+        ? "Undersøgelsesfuldmagt underskrevet"
+        : authMethod === "download" && authFile
+        ? "Undersøgelsesfuldmagt vedhæftet"
+        : "",
+      files.length
+        ? `${files.length} ${files.length === 1 ? "police" : "policer"} indsendt til gennemgang`
+        : "",
+    ].filter(Boolean);
+    const customerMessage = customerSummaryParts.join("\n");
+
     try {
       let res: Response;
       if (fellBackToInline.length === 0 || inlineTooLarge) {
-        // Pure JSON path — either everything went to Blob, or the fallback files
-        // are too big to attach inline anyway.
         res = await fetch("/api/contact", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -254,20 +266,21 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             email,
             phone: phone || undefined,
             company: company?.name ?? "Ukendt",
-            topic: "SaaS lead · Gratis forsikringsanalyse",
+            topic: "Forsikringsanalyse · CVR-flow",
             message,
+            customerMessage,
             files: uploaded,
           }),
         });
       } else {
-        // Multipart fallback — Blob isn't configured, send files inline.
         const fd = new FormData();
         fd.append("name", name);
         fd.append("email", email);
         if (phone) fd.append("phone", phone);
         fd.append("company", company?.name ?? "Ukendt");
-        fd.append("topic", "SaaS lead · Gratis forsikringsanalyse");
+        fd.append("topic", "Forsikringsanalyse · CVR-flow");
         fd.append("message", message);
+        fd.append("customerMessage", customerMessage);
         for (const { file } of fellBackToInline) {
           fd.append("files", file, file.name);
         }

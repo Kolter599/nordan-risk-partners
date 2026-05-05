@@ -17,13 +17,15 @@ export function ContactForm() {
       setState("success");
       return;
     }
+    const userMessage = String(data.get("message") ?? "").trim();
     const payload = {
       name: String(data.get("name") ?? "").trim(),
       email: String(data.get("email") ?? "").trim(),
       phone: String(data.get("phone") ?? "").trim() || undefined,
       company: String(data.get("company") ?? "").trim() || undefined,
       topic: String(data.get("topic") ?? "").trim() || undefined,
-      message: String(data.get("message") ?? "").trim(),
+      message: userMessage,
+      customerMessage: userMessage,
     };
 
     setState("submitting");

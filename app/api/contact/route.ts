@@ -25,6 +25,13 @@ type Body = {
   company?: string;
   topic?: string;
   message: string;
+  /** Customer-facing summary shown in the confirmation copy. Optional;
+   *  if omitted, the confirmation email skips the "what you submitted"
+   *  block and just confirms receipt + contact info. The internal `topic`
+   *  and `message` fields are NEVER shown to the customer. */
+  customerMessage?: string;
+  /** Whether to send a confirmation copy to the submitter. Defaults to true. */
+  sendCustomerConfirmation?: boolean;
   files?: UploadedFile[];
 };
 
@@ -74,6 +81,8 @@ export async function POST(req: Request) {
         company: String(form.get("company") ?? "") || undefined,
         topic: String(form.get("topic") ?? "") || undefined,
         message: String(form.get("message") ?? ""),
+        customerMessage: String(form.get("customerMessage") ?? "") || undefined,
+        sendCustomerConfirmation: form.get("sendCustomerConfirmation") !== "false",
       };
     } catch {
       return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
@@ -98,7 +107,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email, phone, company, topic, message } = body;
+  const { name, email, phone, company, topic, message, customerMessage, sendCustomerConfirmation = true } = body;
   const totalFileCount = attachments.length + urlFiles.length;
 
   const kvRows: Array<[string, string] | [string, string, "html"]> = [
@@ -171,36 +180,69 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, queued: true, mailConfigured: false });
   }
 
-  // Confirmation copy sent to the submitter so they have a paper trail of what they sent.
+  // Customer-facing confirmation. Strips internal taxonomy (topic, message,
+  // auth-method jargon, "Policer uploaded: 2") — uses the form-supplied
+  // customerMessage if present and never echoes the internal `topic`.
+  const firstName = name.split(" ")[0] || name;
+  const customerKvRows: Array<[string, string] | [string, string, "html"]> = [
+    ["Navn", name],
+    ["E-mail", email],
+  ];
+  if (phone) customerKvRows.push(["Telefon", phone]);
+  if (company && company !== name) customerKvRows.push(["Virksomhed", company]);
+
+  const customerFilesHtml = urlFiles.length || attachments.length
+    ? (() => {
+        const allNames = [
+          ...urlFiles.map((f) => f.name),
+          ...attachments.map((a) => a.filename),
+        ];
+        return `<div style="margin-top:18px;">
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Vedhæftede dokumenter (${allNames.length})</div>
+          <div style="font-size:14px;line-height:1.7;color:#0a0a0a;">${allNames.map((n) => `· ${escapeHtml(n)}`).join("<br/>")}</div>
+        </div>`;
+      })()
+    : "";
+
+  const summaryBlock = customerMessage
+    ? `<div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Hvad vi har modtaget</div>
+       <div style="font-size:15px;line-height:1.7;color:#0a0a0a;">${escapeHtml(customerMessage).replace(/\n/g, "<br/>")}</div>`
+    : "";
+
   const confirmationHtml = renderBrandedEmail({
-    preheader: `Vi har modtaget jeres henvendelse — vi vender tilbage inden for én hverdag.`,
+    preheader: `Tak — vi har modtaget din henvendelse og vender tilbage inden for én hverdag.`,
     eyebrow: "Bekræftelse",
-    title: "Tak — vi har modtaget jeres henvendelse",
+    title: "Tak — vi er på sagen",
     bodyHtml: `
+      <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">Hej ${escapeHtml(firstName)},</p>
       <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
-        Hej ${escapeHtml(name.split(" ")[0] || name)},
+        Vi har modtaget din henvendelse og vender tilbage til <strong>${escapeHtml(email)}</strong> inden for én hverdag — ofte hurtigere.
       </p>
-      <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
-        Tak for din henvendelse. Vi vender tilbage til ${escapeHtml(email)} inden for én hverdag — typisk hurtigere.
+      <p style="margin:0 0 8px;font-size:15.5px;line-height:1.65;">
+        Skriv eller ring hvis noget skal ændres, eller hvis du kommer i tanker om mere.
       </p>
-      <p style="margin:0 0 18px;font-size:15.5px;line-height:1.65;">
-        Nedenfor kan du se hvad vi har modtaget. Skriv eller ring hvis noget er forkert eller skal ændres.
-      </p>
-      <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Dine oplysninger</div>
-      ${emailKvTable(kvRows)}
-      <div style="margin-top:20px;font-size:15px;line-height:1.65;color:#0a0a0a;">${escapeHtml(message).replace(/\n/g, "<br/>")}</div>
-      ${filesHtml}
-      <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#6b6b6b;">
-        Spørgsmål? Ring <a href="tel:+4553520006" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">+45 53 52 00 06</a> eller svar direkte på denne mail.
+      <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Dine kontaktoplysninger</div>
+      ${emailKvTable(customerKvRows)}
+      ${summaryBlock}
+      ${customerFilesHtml}
+      <p style="margin:28px 0 0;font-size:14px;line-height:1.6;color:#6b6b6b;">
+        Spørgsmål? Ring <a href="tel:+4553520006" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">+45 53 52 00 06</a>
+        eller svar direkte på denne mail.
       </p>
     `,
   });
   const confirmationText =
-    `Hej ${name.split(" ")[0] || name},\n\n` +
-    `Tak for din henvendelse. Vi vender tilbage inden for én hverdag.\n\n` +
-    `Vi har modtaget følgende:\n\n${text}\n\n` +
-    `Skriv eller ring hvis noget skal ændres.\n` +
-    `+45 53 52 00 06 · info@ndrp.dk`;
+    `Hej ${firstName},\n\n` +
+    `Vi har modtaget din henvendelse og vender tilbage til ${email} inden for én hverdag — ofte hurtigere.\n\n` +
+    `Dine kontaktoplysninger:\n` +
+    `Navn: ${name}\nE-mail: ${email}` +
+    (phone ? `\nTelefon: ${phone}` : "") +
+    (company && company !== name ? `\nVirksomhed: ${company}` : "") +
+    (customerMessage ? `\n\nHvad vi har modtaget:\n${customerMessage}` : "") +
+    (urlFiles.length || attachments.length
+      ? `\n\nVedhæftede dokumenter:\n${[...urlFiles.map((f) => f.name), ...attachments.map((a) => a.filename)].map((n) => `- ${n}`).join("\n")}`
+      : "") +
+    `\n\nSpørgsmål? Ring +45 53 52 00 06 eller svar på denne mail.`;
 
   try {
     const resend = new Resend(RESEND_API_KEY);
@@ -219,18 +261,21 @@ export async function POST(req: Request) {
     });
     if (sendError) throw sendError;
 
-    // Confirmation — to submitter (best-effort, don't fail the request if this errors)
-    try {
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: TO_EMAIL,
-        subject: `Bekræftelse · ${topic ?? "Vi har modtaget din henvendelse"}`,
-        html: confirmationHtml,
-        text: confirmationText,
-      });
-    } catch (confirmErr) {
-      console.warn("[contact] Confirmation to submitter failed (non-fatal):", confirmErr);
+    // Confirmation — to submitter (best-effort, don't fail the request if this errors).
+    // Subject is intentionally generic — we never expose the internal `topic` taxonomy.
+    if (sendCustomerConfirmation) {
+      try {
+        await resend.emails.send({
+          from: FROM_EMAIL,
+          to: email,
+          replyTo: TO_EMAIL,
+          subject: "Vi har modtaget din henvendelse — Nordan Risk Partners",
+          html: confirmationHtml,
+          text: confirmationText,
+        });
+      } catch (confirmErr) {
+        console.warn("[contact] Confirmation to submitter failed (non-fatal):", confirmErr);
+      }
     }
 
     return NextResponse.json({ ok: true });

@@ -139,6 +139,15 @@ export function HoleInOneFlow({ initialCvr }: { initialCvr: string }) {
       `Leverandør: ${s.praemieLeverandoer}`,
     ].join("\n");
 
+    const customerMessage = [
+      `Bane / Klub: ${s.klubnavn}`,
+      `Dato: ${s.dato}`,
+      `Hullets nummer: ${s.hulNummer}`,
+      `Antal deltagere: ${s.antalMaend} mænd · ${s.antalDamer} damer · ${s.antalPros} pros`,
+      `Antal runder: ${s.antalRunder}`,
+      `Præmie: ${s.praemieBeskrivelse} (værdi ${s.praemieVaerdi} DKK)`,
+    ].join("\n");
+
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
@@ -150,6 +159,7 @@ export function HoleInOneFlow({ initialCvr }: { initialCvr: string }) {
           company: s.navn,
           topic: "Hole-in-one forsikring · tilbudsanmodning",
           message,
+          customerMessage,
         }),
       });
       const data = await res.json();
