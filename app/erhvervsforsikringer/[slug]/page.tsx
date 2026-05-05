@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { InsurancePageTemplate } from "../../_components/InsurancePageTemplate";
 import { getAllSlugs, getProduct } from "@/lib/insurance-products";
 
-const SITE = "https://nordan-risk-partners.vercel.app";
+const SITE = "https://nordanriskpartners.dk";
 
 export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));

@@ -1,6 +1,6 @@
 import type { InsuranceProduct } from "@/lib/insurance-products";
 
-const SITE = "https://nordan-risk-partners.vercel.app";
+const SITE = "https://nordanriskpartners.dk";
 
 /**
  * Emits a bundle of JSON-LD blocks for a single product page:

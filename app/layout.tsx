@@ -31,7 +31,7 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const SITE_URL = "https://nordan-risk-partners.vercel.app";
+const SITE_URL = "https://nordanriskpartners.dk";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
