@@ -318,10 +318,10 @@ function ProcessPreview() {
       <div className="px-6 md:px-7 py-5 border-b border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)] flex items-center justify-between">
         <div>
           <div className="text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-muted)]">Din analyse</div>
-          <div className="font-[family-name:var(--font-inter)] font-bold text-[1.1rem] mt-0.5">Invisu ApS · CVR 41515180</div>
+          <div className="font-[family-name:var(--font-inter)] font-bold text-[1.1rem] mt-0.5">Dit selskab · CVR 12345678</div>
         </div>
-        <div className="inline-flex items-center gap-2 h-8 px-3 rounded-full bg-[color:var(--color-nordan-accent)]/15 text-[color:var(--color-nordan-accent)] text-[0.72rem] uppercase tracking-[0.18em] font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent)] animate-pulse" />
+        <div className="inline-flex items-center gap-2 h-8 px-3 rounded-full bg-[#22c55e]/12 text-[#15803d] text-[0.72rem] uppercase tracking-[0.18em] font-semibold">
+          <span className="status-blink w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
           I gang
         </div>
       </div>
