@@ -47,7 +47,7 @@ export default function Home() {
       <OrganizationJsonLd />
 
       {/* HERO — Holstrup-style, slim */}
-      <section className="relative overflow-hidden text-white min-h-[88vh] sm:min-h-[82vh] flex items-center">
+      <section className="relative overflow-hidden text-white min-h-[640px] sm:min-h-[68vh] md:min-h-[78vh] flex items-center">
         <div className="absolute inset-0">
           <Image
             src="/images/hero-founders-wide.jpg"

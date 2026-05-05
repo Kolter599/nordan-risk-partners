@@ -41,13 +41,14 @@ export function RotatingWord({ words = DEFAULT_WORDS, color = "var(--color-norda
 
   return (
     <span
-      className="inline-block align-baseline"
+      className="inline-block align-baseline max-w-full"
       style={{
         color,
         transform: animating ? "translateY(-12px)" : "translateY(0)",
         opacity: animating ? 0 : 1,
         transition: "transform 240ms ease, opacity 240ms ease",
-        whiteSpace: "nowrap",
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
       }}
     >
       {words[i]}

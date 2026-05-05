@@ -40,8 +40,10 @@ export function Nav() {
   const forceSolid = FORCE_SOLID_PAGES.includes(pathname ?? "");
   const overlay = !scrolled && !forceSolid;
   const navCls = overlay ? "nav-overlay" : "nav-solid";
-  const barHeightCls = overlay ? "h-20 md:h-28" : "h-16 md:h-20";
-  const logoHeightCls = overlay ? "h-11 md:h-16" : "h-8 md:h-10";
+  // On mobile the bar + logo stay at one fixed size so nav text never reflows
+  // mid-scroll. Only desktop scales between expanded (overlay) and compact.
+  const barHeightCls = overlay ? "h-16 md:h-28" : "h-16 md:h-20";
+  const logoHeightCls = overlay ? "h-9 md:h-16" : "h-9 md:h-10";
 
   return (
     <>
