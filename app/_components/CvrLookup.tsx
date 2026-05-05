@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { track } from "./GoogleAnalytics";
 import { SignDialog, type SignResult } from "./SignDialog";
+import { FilePreviewDialog } from "./FilePreviewDialog";
 
 type UploadedFile = {
   name: string;
@@ -120,6 +121,8 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       track("cvr_company_confirmed_view", { cvr: digits, company: company?.name });
     } else if (step === "actions") {
       track("cvr_step_actions_view");
+      // Only one auth method available — auto-select digital so the SignDialog CTA shows immediately.
+      if (!authMethod) setAuthMethod("digital");
     } else if (step === "done") {
       track("cvr_flow_completed", {
         company: company?.name,
@@ -522,6 +525,7 @@ function StepActions({
   const [isDragging, setIsDragging] = useState(false);
   const [isAuthDragging, setIsAuthDragging] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
 
   const authComplete =
     (authMethod === "digital" && digitalConfirmed) ||
@@ -566,15 +570,8 @@ function StepActions({
               onSelect={() => setAuthMethod("digital")}
               icon={<IconSignature />}
               title="Underskriv digitalt"
-              body="Via MitID (Penneo). Under 1 minut."
-              badge="Anbefalet"
-            />
-            <AuthOption
-              selected={authMethod === "download"}
-              onSelect={() => setAuthMethod("download")}
-              icon={<IconDownload />}
-              title="Underskriv PDF"
-              body="Hent, underskriv og upload den underskrevne version."
+              body="Læs fuldmagten, udfyld dine oplysninger, og bekræft elektronisk."
+              badge="Sikker e-signatur"
             />
           </div>
 
@@ -630,86 +627,6 @@ function StepActions({
           ) : null}
 
           {/* Expanded: download-then-upload flow */}
-          {authMethod === "download" ? (
-            <div className="mt-3 space-y-3">
-              <div className="p-3.5 rounded-[8px] bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)]">
-                <div className="text-[0.82rem] text-[color:var(--color-nordan-ink-soft)] mb-3 leading-relaxed">
-                  1. Hent fuldmagten · 2. Underskriv (papir eller digitalt) · 3. Upload den underskrevne nedenfor.
-                </div>
-                <a
-                  href="/dokumenter/undersoegelsesfuldmagt.pdf"
-                  download
-                  className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.82rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
-                >
-                  Download fuldmagt <span aria-hidden>↓</span>
-                </a>
-              </div>
-              <label
-                htmlFor="auth-file"
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (!isAuthDragging) setIsAuthDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-                  setIsAuthDragging(false);
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsAuthDragging(false);
-                  const f = Array.from(e.dataTransfer.files).find(
-                    (file) => file.type === "application/pdf" || file.type.startsWith("image/")
-                  );
-                  if (f) setAuthFile(f);
-                }}
-                className={`block border-2 border-dashed rounded-[8px] p-4 cursor-pointer transition-all text-center ${
-                  isAuthDragging
-                    ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/10"
-                    : authFile
-                    ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/5"
-                    : "border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-soft)]/40"
-                }`}
-              >
-                <input
-                  id="auth-file"
-                  type="file"
-                  accept="application/pdf,image/*"
-                  onChange={(e) => setAuthFile(e.target.files?.[0] ?? null)}
-                  className="sr-only"
-                />
-                {authFile ? (
-                  <div className="flex items-center gap-2 text-[0.82rem]">
-                    <IconFile />
-                    <span className="flex-1 truncate font-medium text-left">{authFile.name}</span>
-                    <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
-                      {Math.round(authFile.size / 1024)} KB
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setAuthFile(null);
-                      }}
-                      className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-base leading-none"
-                      aria-label="Fjern"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-[0.85rem] font-semibold text-[color:var(--color-nordan-ink)]">
-                      Upload underskrevet fuldmagt
-                    </div>
-                    <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-1">
-                      PDF · træk hertil eller klik
-                    </div>
-                  </>
-                )}
-              </label>
-            </div>
-          ) : null}
         </ActionPanel>
 
         {/* PANEL 2 — UPLOAD */}
@@ -797,8 +714,15 @@ function StepActions({
                     key={`${f.name}-${f.size}-${i}`}
                     className="flex items-center gap-2 px-3 py-1.5 bg-[color:var(--color-nordan-soft)] rounded border border-[color:var(--color-nordan-line)] text-[0.82rem]"
                   >
-                    <IconFile />
-                    <span className="flex-1 truncate">{f.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewFile(f)}
+                      className="flex items-center gap-2 flex-1 min-w-0 text-left hover:text-[color:var(--color-nordan-accent)] transition-colors"
+                      title="Klik for at se filen"
+                    >
+                      <IconFile />
+                      <span className="flex-1 truncate underline-offset-2 hover:underline">{f.name}</span>
+                    </button>
                     <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
                       {Math.round(f.size / 1024)} KB
                     </span>
@@ -893,6 +817,8 @@ function StepActions({
           cvr,
         }}
       />
+
+      <FilePreviewDialog file={previewFile} onClose={() => setPreviewFile(null)} />
     </form>
   );
 }
