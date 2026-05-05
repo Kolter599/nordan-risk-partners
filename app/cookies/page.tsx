@@ -4,6 +4,7 @@ import { PageHero } from "../_components/PageHero";
 export const metadata: Metadata = {
   title: "Cookies",
   description: "Cookie- og privatlivspolitik for nordanriskpartners.dk",
+  alternates: { canonical: "/cookies" },
 };
 
 export default function CookiesPage() {

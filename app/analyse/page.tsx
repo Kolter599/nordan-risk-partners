@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Start din gratis forsikringsanalyse",
   description:
     "Indtast dit CVR og få en gratis, AI-drevet analyse af din virksomheds forsikringer. Vi gennemgår dækninger og forhandler på dine vegne.",
+  alternates: { canonical: "/analyse" },
 };
 
 type SearchParams = Promise<{ cvr?: string | string[] }>;

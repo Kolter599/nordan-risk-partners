@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Erhvervsforsikring",
   description:
     "Uafhængig rådgivning om alle erhvervsforsikringer — fra ansvars- og arbejdsskade til transport, cyber og bestyrelsesansvar. Vi sammenligner markedet for dig.",
+  alternates: { canonical: "/erhvervsforsikringer" },
 };
 
 // Build the A-Å catalog from the CMS data + legacy labels we don't have pages for yet

@@ -9,9 +9,12 @@ import { RotatingWord } from "./_components/RotatingWord";
 import { TestimonialMarquee } from "./_components/TestimonialMarquee";
 
 export const metadata: Metadata = {
-  title: "Digital forsikringsmægler til din virksomhed",
+  title: {
+    absolute: "Nordan Risk Partners — Uafhængig forsikringsmægler til erhverv",
+  },
   description:
     "En smartere tilgang til erhvervsforsikring. Indtast dit CVR og få en gratis analyse af dine forsikringer. Vi sammenligner markedet, optimerer dækning og reducerer præmien.",
+  alternates: { canonical: "/" },
 };
 
 const METRICS = [

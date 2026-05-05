@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Sådan arbejder vi",
   description:
     "Seks strukturerede trin fra indledende dialog til løbende rådgivning. Sådan sikrer vi en gennemtænkt forsikringsløsning til din virksomhed.",
+  alternates: { canonical: "/saadan-arbejder-vi" },
 };
 
 const STEPS = [

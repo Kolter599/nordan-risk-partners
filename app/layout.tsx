@@ -13,22 +13,24 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
+  preload: true,
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
+  weight: ["500"],
+  preload: false,
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["600", "700", "800"],
+  preload: false,
 });
 
 const SITE_URL = "https://nordanriskpartners.dk";
@@ -74,7 +76,10 @@ export const metadata: Metadata = {
     description: "Uvildig rådgivning om erhvervsforsikring. Gratis analyse via CVR.",
     images: ["/images/nordan-75.jpg"],
   },
-  alternates: { canonical: SITE_URL },
+  alternates: {
+    canonical: "/",
+    languages: { "da-DK": "/", "x-default": "/" },
+  },
   robots: {
     index: true,
     follow: true,
@@ -86,11 +91,31 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  verification: {
+    google: "9VfEUUbEdmcp4cVyy916KFrI_svHMOBOBIRXeV1zjkU",
+  },
+};
+
+const WEBSITE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Nordan Risk Partners",
+  url: SITE_URL,
+  inLanguage: "da-DK",
+  publisher: { "@type": "Organization", name: "Nordan Risk Partners ApS" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="da" className={`${montserrat.variable} ${playfair.variable} ${inter.variable}`}>
+      <head>
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSONLD) }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col">
         <Nav />
         <main className="flex-1">{children}</main>

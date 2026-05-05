@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Hvorfor forsikringsmægler?",
   description:
     "En forsikringsmægler er din uafhængige rådgiver der varetager hele processen omkring dit forsikringsprogram — fra analyse til skader.",
+  alternates: { canonical: "/hvorfor-forsikringsmaegler" },
 };
 
 const REASONS = [
@@ -59,9 +60,23 @@ const FAQ = [
   },
 ];
 
+const FAQ_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function HvorforPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }}
+      />
       {/* HERO — text + vertical portrait that sticks while scrolling (mirrors /om-os) */}
       <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-28">
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">

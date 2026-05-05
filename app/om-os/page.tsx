@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Om os",
   description:
     "Nordan Risk Partners er etableret med ambitionen om målrettet, personlig og ærlig forsikringsrådgivning. Over 40 års samlet erfaring.",
+  alternates: { canonical: "/om-os" },
 };
 
 const TEAM = [
