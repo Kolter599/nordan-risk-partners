@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-type Insurer = { name: string; src: string; w: number; h: number };
+type Insurer = { name: string; src: string; w: number; h: number; tall?: boolean };
 
 const INSURERS: Insurer[] = [
   { name: "Tryg", src: "/images/insurers/tryg.png", w: 220, h: 80 },
@@ -14,12 +14,12 @@ const INSURERS: Insurer[] = [
   { name: "Zurich", src: "/images/insurers/zurich.png", w: 220, h: 80 },
   { name: "Lloyd's", src: "/images/insurers/lloyds.png", w: 220, h: 80 },
   { name: "Allianz", src: "/images/insurers/allianz.png", w: 220, h: 80 },
-  { name: "AXA", src: "/images/insurers/axa.png", w: 220, h: 80 },
+  { name: "AXA", src: "/images/insurers/axa.png", w: 220, h: 80, tall: true },
   { name: "QBE", src: "/images/insurers/qbe.png", w: 220, h: 80 },
   { name: "LB Forsikring", src: "/images/insurers/lb.svg", w: 220, h: 80 },
   { name: "Baltic Finance Underwriting Agency", src: "/images/insurers/baltic.png", w: 260, h: 80 },
-  { name: "Riskpoint", src: "/images/insurers/riskpoint.png", w: 220, h: 80 },
-  { name: "Viking", src: "/images/insurers/viking.png", w: 220, h: 80 },
+  { name: "Riskpoint", src: "/images/insurers/riskpoint.png", w: 220, h: 80, tall: true },
+  { name: "Viking", src: "/images/insurers/viking.png", w: 220, h: 80, tall: true },
 ];
 
 export function InsurerMarquee() {
@@ -51,7 +51,7 @@ export function InsurerMarquee() {
                 alt={logo.name}
                 width={logo.w}
                 height={logo.h}
-                className="max-h-12 md:max-h-14 w-auto object-contain"
+                className={`${logo.tall ? "max-h-16 md:max-h-[72px]" : "max-h-12 md:max-h-14"} w-auto object-contain`}
                 loading="lazy"
               />
             </div>
