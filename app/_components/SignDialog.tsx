@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type SignResult = {
   auditId: string;
@@ -107,8 +108,9 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   }
 
   if (!open) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  const dialog = (
     <div className="fixed inset-0 z-[80] flex items-center justify-center px-3 py-6 sm:p-6 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-[820px] max-h-[92vh] bg-white rounded-[12px] shadow-[0_30px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col">
         {/* Header */}
@@ -368,4 +370,6 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 }

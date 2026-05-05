@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   file: File | null;
@@ -34,11 +35,12 @@ export function FilePreviewDialog({ file, onClose }: Props) {
   }, [file, onClose]);
 
   if (!file || !url) return null;
+  if (typeof document === "undefined") return null;
 
   const isImage = file.type.startsWith("image/");
   const isPdf = file.type === "application/pdf";
 
-  return (
+  const dialog = (
     <div
       className="fixed inset-0 z-[90] flex items-center justify-center px-3 py-6 sm:p-6 bg-black/65 backdrop-blur-sm"
       onClick={onClose}
@@ -110,4 +112,6 @@ export function FilePreviewDialog({ file, onClose }: Props) {
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 }
