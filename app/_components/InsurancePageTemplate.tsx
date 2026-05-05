@@ -14,8 +14,17 @@ import {
 
 type Props = { product: InsuranceProduct };
 
+const PRODUCT_REDIRECTS: Record<string, { path: string; ctaLabel: string; headline: string }> = {
+  "hole-in-one-forsikring": {
+    path: "/tilbud/hole-in-one",
+    ctaLabel: "Få tilbud",
+    headline: "Bestil din Hole-in-one forsikring",
+  },
+};
+
 export function InsurancePageTemplate({ product }: Props) {
   const related = getRelated(product.related);
+  const productOverride = PRODUCT_REDIRECTS[product.slug];
 
   return (
     <>
@@ -77,7 +86,7 @@ export function InsurancePageTemplate({ product }: Props) {
             </div>
 
             <div className="mt-10 lg:mt-0 lg:col-span-5 lg:pt-4">
-              <CvrCapture headline={product.cvrLabel} />
+              <CvrCapture headline={productOverride?.headline ?? product.cvrLabel} redirectPath={productOverride?.path} ctaLabel={productOverride?.ctaLabel} />
             </div>
           </div>
         </div>
@@ -188,7 +197,7 @@ export function InsurancePageTemplate({ product }: Props) {
             </ul>
           </div>
           <div className="md:col-span-6">
-            <CvrCapture headline={product.cvrLabel} />
+            <CvrCapture headline={productOverride?.headline ?? product.cvrLabel} redirectPath={productOverride?.path} ctaLabel={productOverride?.ctaLabel} />
           </div>
         </div>
       </section>

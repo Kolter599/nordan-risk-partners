@@ -8,6 +8,9 @@ type Props = {
   headline?: string;
   subline?: string;
   variant?: "card" | "inline";
+  /** Where to send the visitor after a valid CVR. Defaults to the standard analyse flow. */
+  redirectPath?: string;
+  ctaLabel?: string;
 };
 
 /**
@@ -19,6 +22,8 @@ export function CvrCapture({
   headline = "Indtast CVR — start jeres analyse",
   subline = "Vi henter automatisk virksomhedsdata og foreslår de næste skridt.",
   variant = "card",
+  redirectPath = "/analyse",
+  ctaLabel = "Start analyse",
 }: Props) {
   const router = useRouter();
   const [cvr, setCvr] = useState("");
@@ -41,8 +46,9 @@ export function CvrCapture({
     e.preventDefault();
     if (!isComplete || submitting) return;
     setSubmitting(true);
-    track("cvr_submitted", { cvr: digits });
-    router.push(`/analyse?cvr=${digits}`);
+    track("cvr_submitted", { cvr: digits, redirect_path: redirectPath });
+    const sep = redirectPath.includes("?") ? "&" : "?";
+    router.push(`${redirectPath}${sep}cvr=${digits}`);
   }
 
   if (variant === "inline") {
@@ -65,7 +71,7 @@ export function CvrCapture({
           disabled={!isComplete || submitting}
           className="h-12 px-6 inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.9rem] font-semibold tracking-wide rounded-[6px] hover:bg-[#8f715f] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
         >
-          <span>Start analyse</span>
+          <span>{ctaLabel}</span>
           <span aria-hidden>→</span>
         </button>
       </form>
@@ -129,7 +135,7 @@ export function CvrCapture({
           disabled={!isComplete || submitting}
           className="group w-full h-[58px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.95rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:bg-[color:var(--color-nordan-accent-soft)] disabled:hover:bg-[color:var(--color-nordan-accent-soft)] disabled:cursor-not-allowed transition-all"
         >
-          <span>Start analyse</span>
+          <span>{ctaLabel}</span>
           <span className="transition-transform group-hover:translate-x-1" aria-hidden>
             →
           </span>
