@@ -264,12 +264,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIAL MARQUEE */}
-      <TestimonialMarquee
-        eyebrow="Hvad kunderne oplever"
-        title="Virkelige resultater, rene kundeoplevelser"
-        variant="dark"
-      />
+      {/* TESTIMONIAL MARQUEE — hidden until Mads har bekræftet citaterne (mh@ndrp.dk) */}
+      {false ? (
+        <TestimonialMarquee
+          eyebrow="Hvad kunderne oplever"
+          title="Virkelige resultater, rene kundeoplevelser"
+          variant="dark"
+        />
+      ) : null}
 
       {/* BOTTOM DUAL CTA */}
       <section id="lead" className="py-16 sm:py-20 md:py-28 bg-white">
