@@ -38,7 +38,7 @@ export function InsurerMarquee() {
         </p>
       </div>
 
-      <div className="marquee-pause relative">
+      <div className="relative">
         <div className="marquee-track gap-14 md:gap-[39px] px-5 md:px-8 items-center">
           {items.map((logo, i) => (
             <div
