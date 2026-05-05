@@ -95,6 +95,7 @@ export default function HvorforPage() {
                   priority
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 100vw, 40vw"
+                  quality={95}
                 />
               </figure>
             </div>

@@ -70,6 +70,7 @@ export default function OmOsPage() {
                   fill
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 100vw, 40vw"
+                  quality={95}
                 />
               </figure>
               <figcaption className="mt-4 text-[0.82rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
@@ -113,7 +114,7 @@ export default function OmOsPage() {
             {TEAM.map((m) => (
               <article key={m.name} className="bg-white border border-[color:var(--color-nordan-line)] rounded-sm overflow-hidden">
                 <div className="relative aspect-[4/5]">
-                  <Image src={m.image} alt={m.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                  <Image src={m.image} alt={m.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" quality={95} />
                 </div>
                 <div className="p-7 md:p-10">
                   <h3 className="display-md mb-1">{m.name}</h3>

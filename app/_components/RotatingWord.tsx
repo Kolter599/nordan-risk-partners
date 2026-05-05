@@ -8,7 +8,7 @@ const DEFAULT_WORDS = [
   "arbejdsskadeforsikring",
   "cyberforsikring",
   "produktansvarsforsikring",
-  "bestyrelsesansvarsforsikring",
+  "D&O-forsikring",
   "driftstabsforsikring",
   "transportforsikring",
   "entrepriseforsikring",

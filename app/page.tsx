@@ -54,6 +54,7 @@ export default function Home() {
             fetchPriority="high"
             className="object-cover object-center lg:object-[30%_center]"
             sizes="100vw"
+            quality={95}
           />
           <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-92" />
         </div>

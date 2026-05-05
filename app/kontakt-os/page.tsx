@@ -60,7 +60,7 @@ export default function KontaktPage() {
 
           <aside className="md:col-span-5 space-y-8">
             <div className="relative aspect-[4/3] rounded-[8px] overflow-hidden">
-              <Image src="/images/nordan-56.jpg" alt="Nordan Risk Partners kontor" fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" />
+              <Image src="/images/nordan-56.jpg" alt="Nordan Risk Partners kontor" fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" quality={95} />
             </div>
 
             <div className="bg-[color:var(--color-nordan-soft)] p-7 rounded-[8px]">
