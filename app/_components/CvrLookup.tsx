@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { track } from "./GoogleAnalytics";
+import { SignDialog, type SignResult } from "./SignDialog";
 
 type UploadedFile = {
   name: string;
@@ -10,8 +11,6 @@ type UploadedFile = {
   size: number;
   kind: "policy" | "authorization";
 };
-
-const PENNEO_URL = process.env.NEXT_PUBLIC_PENNEO_URL ?? "";
 
 type Company = {
   name: string;
@@ -49,6 +48,11 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   const [files, setFiles] = useState<File[]>([]);
   const [authMethod, setAuthMethod] = useState<"digital" | "download" | null>(null);
   const [digitalConfirmed, setDigitalConfirmed] = useState(false);
+  const [digitalResult, setDigitalResult] = useState<SignResult | null>(null);
+  const [signDialogOpen, setSignDialogOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [authFile, setAuthFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
@@ -56,6 +60,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   // Reset method-specific state when user switches between digital and download.
   useEffect(() => {
     setDigitalConfirmed(false);
+    setDigitalResult(null);
     setAuthFile(null);
   }, [authMethod]);
   const typedOnce = useRef(false);
@@ -167,6 +172,17 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       ...files.map((f) => ({ file: f, kind: "policy" as const })),
       ...(authFile ? [{ file: authFile, kind: "authorization" as const }] : []),
     ];
+    // The digital-sign flow already uploaded its PDF to Blob; we surface that URL in the payload.
+    const preUploaded: UploadedFile[] = digitalResult?.blobUrl
+      ? [
+          {
+            name: digitalResult.fileName,
+            url: digitalResult.blobUrl,
+            size: 0,
+            kind: "authorization",
+          },
+        ]
+      : [];
 
     setSubmitting(true);
     setError(null);
@@ -176,7 +192,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       files_uploaded: files.length,
     });
 
-    const uploaded: UploadedFile[] = [];
+    const uploaded: UploadedFile[] = [...preUploaded];
     setUploadProgress({ current: 0, total: uploadsToDo.length });
     for (let i = 0; i < uploadsToDo.length; i++) {
       const { file, kind } = uploadsToDo[i];
@@ -301,10 +317,26 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             setAuthMethod={setAuthMethod}
             digitalConfirmed={digitalConfirmed}
             setDigitalConfirmed={setDigitalConfirmed}
+            digitalResult={digitalResult}
             authFile={authFile}
             setAuthFile={setAuthFile}
             files={files}
             setFiles={setFiles}
+            contactName={contactName}
+            setContactName={setContactName}
+            contactEmail={contactEmail}
+            setContactEmail={setContactEmail}
+            contactPhone={contactPhone}
+            setContactPhone={setContactPhone}
+            signDialogOpen={signDialogOpen}
+            setSignDialogOpen={setSignDialogOpen}
+            onSignedDigitally={(r) => {
+              setDigitalResult(r);
+              setDigitalConfirmed(true);
+              setSignDialogOpen(false);
+            }}
+            companyName={company?.name ?? "Din virksomhed"}
+            cvr={company?.vat ?? digits}
             onBack={() => setStep("confirm")}
             onSubmit={handleSubmit}
             submitting={submitting}
@@ -439,10 +471,22 @@ function StepActions({
   setAuthMethod,
   digitalConfirmed,
   setDigitalConfirmed,
+  digitalResult,
   authFile,
   setAuthFile,
   files,
   setFiles,
+  contactName,
+  setContactName,
+  contactEmail,
+  setContactEmail,
+  contactPhone,
+  setContactPhone,
+  signDialogOpen,
+  setSignDialogOpen,
+  onSignedDigitally,
+  companyName,
+  cvr,
   onBack,
   onSubmit,
   submitting,
@@ -453,10 +497,22 @@ function StepActions({
   setAuthMethod: (v: "digital" | "download" | null) => void;
   digitalConfirmed: boolean;
   setDigitalConfirmed: (v: boolean) => void;
+  digitalResult: SignResult | null;
   authFile: File | null;
   setAuthFile: (f: File | null) => void;
   files: File[];
   setFiles: (f: File[]) => void;
+  contactName: string;
+  setContactName: (v: string) => void;
+  contactEmail: string;
+  setContactEmail: (v: string) => void;
+  contactPhone: string;
+  setContactPhone: (v: string) => void;
+  signDialogOpen: boolean;
+  setSignDialogOpen: (v: boolean) => void;
+  onSignedDigitally: (r: SignResult) => void;
+  companyName: string;
+  cvr: string;
   onBack: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   submitting: boolean;
@@ -528,44 +584,46 @@ function StepActions({
               {!digitalConfirmed ? (
                 <>
                   <div className="text-[0.82rem] text-[color:var(--color-nordan-ink-soft)] mb-3 leading-relaxed">
-                    Du sendes til Penneo og underskriver med MitID. Vend tilbage hertil bagefter og bekræft.
+                    Læs fuldmagten, udfyld dine oplysninger og tegn din underskrift. Du får kvittering pr. mail.
                   </div>
-                  {PENNEO_URL ? (
-                    <a
-                      href={PENNEO_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setDigitalConfirmed(true)}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.85rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
-                    >
-                      Start signering hos Penneo →
-                    </a>
-                  ) : (
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() => setDigitalConfirmed(true)}
-                        className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.85rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
-                      >
-                        Start signering →
-                      </button>
-                      <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] italic">
-                        Penneo-link kommer snart. Klik herover for at fortsætte i mellemtiden.
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="flex items-center gap-2 text-[0.85rem]">
-                  <span className="w-5 h-5 rounded-full bg-green-600 text-white grid place-items-center text-xs">✓</span>
-                  <span className="font-medium text-[color:var(--color-nordan-ink)]">Digital signering startet</span>
                   <button
                     type="button"
-                    onClick={() => setDigitalConfirmed(false)}
-                    className="ml-auto text-[0.78rem] text-[color:var(--color-nordan-muted)] underline"
+                    onClick={() => setSignDialogOpen(true)}
+                    className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.85rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
                   >
-                    Fortryd
+                    Underskriv elektronisk →
                   </button>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[0.85rem]">
+                    <span className="w-5 h-5 rounded-full bg-green-600 text-white grid place-items-center text-xs">✓</span>
+                    <span className="font-medium text-[color:var(--color-nordan-ink)]">
+                      Underskrevet
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSignDialogOpen(true)}
+                      className="ml-auto text-[0.78rem] text-[color:var(--color-nordan-muted)] underline"
+                    >
+                      Underskriv igen
+                    </button>
+                  </div>
+                  {digitalResult?.blobUrl ? (
+                    <a
+                      href={digitalResult.blobUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[0.78rem] text-[color:var(--color-nordan-accent)] hover:underline"
+                    >
+                      Hent kopi af din underskrift ↓
+                    </a>
+                  ) : null}
+                  {digitalResult?.auditId ? (
+                    <div className="text-[0.7rem] font-mono text-[color:var(--color-nordan-muted)]">
+                      Audit-ID: {digitalResult.auditId}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -766,9 +824,9 @@ function StepActions({
           subtitle="Din forsikringsmægler vender tilbage inden for én hverdag"
         >
           <div className="space-y-3">
-            <InputField name="name" label="Navn" placeholder="Fornavn Efternavn" required />
-            <InputField name="email" label="E-mail" type="email" placeholder="navn@firma.dk" required />
-            <InputField name="phone" label="Telefon" type="tel" placeholder="+45 12 34 56 78" required />
+            <InputField name="name" label="Navn" placeholder="Fornavn Efternavn" required value={contactName} onChange={setContactName} />
+            <InputField name="email" label="E-mail" type="email" placeholder="navn@firma.dk" required value={contactEmail} onChange={setContactEmail} />
+            <InputField name="phone" label="Telefon" type="tel" placeholder="+45 12 34 56 78" required value={contactPhone} onChange={setContactPhone} />
           </div>
         </ActionPanel>
       </div>
@@ -822,6 +880,19 @@ function StepActions({
           )}
         </button>
       </div>
+
+      <SignDialog
+        open={signDialogOpen}
+        onClose={() => setSignDialogOpen(false)}
+        onSigned={onSignedDigitally}
+        defaults={{
+          name: contactName,
+          email: contactEmail,
+          phone: contactPhone,
+          companyName,
+          cvr,
+        }}
+      />
     </form>
   );
 }
@@ -920,12 +991,16 @@ function InputField({
   type = "text",
   placeholder,
   required,
+  value,
+  onChange,
 }: {
   name: string;
   label: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
   return (
     <label className="block">
@@ -937,6 +1012,8 @@ function InputField({
         type={type}
         required={required}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className="w-full h-12 px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[0.95rem] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
       />
     </label>
