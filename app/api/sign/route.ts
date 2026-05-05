@@ -6,6 +6,12 @@ import {
   computeOriginalHash,
   type SignerData,
 } from "@/lib/fuldmagt-pdf";
+import {
+  renderBrandedEmail,
+  emailKvTable,
+  emailCard,
+  EMAIL_COLORS,
+} from "@/lib/email-template";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
@@ -109,12 +115,45 @@ export async function POST(req: Request) {
         content: Buffer.from(pdfBytes),
       };
 
-      // To Nordan
+      const signedHuman = new Date(audit.signedAt).toLocaleString("da-DK", {
+        dateStyle: "long",
+        timeStyle: "short",
+        timeZone: "Europe/Copenhagen",
+      });
+
+      // To Nordan — branded internal notification
+      const internalHtml = renderBrandedEmail({
+        preheader: `${signer.name} har underskrevet en undersøgelsesfuldmagt for ${signer.companyName}`,
+        eyebrow: "Ny underskrift",
+        title: "Underskrevet undersøgelsesfuldmagt",
+        bodyHtml: `
+          <p style="margin:0 0 16px;font-size:15.5px;line-height:1.65;">
+            ${signer.name} har netop underskrevet en undersøgelsesfuldmagt elektronisk. PDF'en er vedhæftet.
+          </p>
+          ${emailKvTable([
+            ["Underskriver", `${signer.name}, ${signer.title}`],
+            ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
+            ["E-mail", signer.email],
+            ...(signer.phone ? [["Telefon", signer.phone] as [string, string]] : []),
+            ["Tidspunkt", signedHuman],
+            ["IP", audit.ip],
+          ])}
+          ${emailCard(`
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Audit-data</div>
+            <div style="font-family:Menlo,Consolas,monospace;font-size:12px;color:${EMAIL_COLORS.ink};line-height:1.7;">
+              <strong>ID:</strong> ${audit.auditId}<br/>
+              <strong>Final hash:</strong> ${finalHash.slice(0, 16)}…<br/>
+              ${blobUrl ? `<strong>Blob:</strong> <a href="${blobUrl}" style="color:${EMAIL_COLORS.accent};">åbn permanent kopi</a>` : ""}
+            </div>
+          `, { tone: "soft" })}
+        `,
+      });
       await resend.emails.send({
         from: FROM_EMAIL,
         to: TO_EMAIL,
         replyTo: signer.email,
         subject,
+        html: internalHtml,
         text:
           `Ny underskrevet undersøgelsesfuldmagt\n\n` +
           `Underskriver: ${signer.name} (${signer.title})\n` +
@@ -128,30 +167,37 @@ export async function POST(req: Request) {
         attachments: [attachment],
       });
 
-      // To signer (receipt copy)
+      // To signer — branded receipt
+      const receiptHtml = renderBrandedEmail({
+        preheader: "Kvittering for din underskrevne undersøgelsesfuldmagt",
+        eyebrow: "Kvittering",
+        title: "Tak for din underskrift",
+        bodyHtml: `
+          <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
+            Hej ${signer.name.split(" ")[0]},
+          </p>
+          <p style="margin:0 0 18px;font-size:15.5px;line-height:1.65;">
+            Vi har modtaget din underskrevne undersøgelsesfuldmagt for <strong>${signer.companyName}</strong>. Den vedhæftes som PDF i denne mail — gem den som dokumentation.
+          </p>
+          ${emailKvTable([
+            ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
+            ["Underskriver", `${signer.name}, ${signer.title}`],
+            ["Tidspunkt", signedHuman],
+            ["Audit-ID", audit.auditId],
+          ])}
+          <p style="margin:24px 0 8px;font-size:14px;line-height:1.6;color:#6b6b6b;">
+            Fuldmagten kan til enhver tid tilbagekaldes skriftligt. Kontakt os på
+            <a href="mailto:info@ndrp.dk" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">info@ndrp.dk</a>
+            eller <a href="tel:+4553520006" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">+45 53 52 00 06</a>.
+          </p>
+        `,
+      });
       await resend.emails.send({
         from: FROM_EMAIL,
         to: signer.email,
-        subject: "Kvittering: din underskrevne undersøgelsesfuldmagt",
-        html: `
-          <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0a0a0a;">
-            <h2 style="font-weight:600;color:#253f32;margin:0 0 8px 0;">Tak for din underskrift</h2>
-            <p style="color:#404040;line-height:1.55;">
-              Vi har modtaget din underskrevne undersøgelsesfuldmagt.
-              Den vedhæftes som PDF i denne mail som dokumentation.
-            </p>
-            <table style="border-collapse:collapse;margin-top:16px;color:#0a0a0a;">
-              <tr><td style="padding:6px 0;color:#6b6b6b;width:140px;">Firma</td><td style="padding:6px 0;">${signer.companyName} (CVR ${signer.cvr})</td></tr>
-              <tr><td style="padding:6px 0;color:#6b6b6b;">Underskriver</td><td style="padding:6px 0;">${signer.name}, ${signer.title}</td></tr>
-              <tr><td style="padding:6px 0;color:#6b6b6b;">Tidspunkt</td><td style="padding:6px 0;">${new Date(audit.signedAt).toLocaleString("da-DK", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Copenhagen" })}</td></tr>
-              <tr><td style="padding:6px 0;color:#6b6b6b;">Audit-ID</td><td style="padding:6px 0;font-family:monospace;font-size:12px;">${audit.auditId}</td></tr>
-            </table>
-            <p style="color:#6b6b6b;font-size:12px;line-height:1.5;margin-top:24px;">
-              Fuldmagten kan til enhver tid tilbagekaldes skriftligt. Kontakt os på
-              <a href="mailto:info@ndrp.dk" style="color:#a58878;">info@ndrp.dk</a>.
-            </p>
-          </div>
-        `,
+        replyTo: TO_EMAIL,
+        subject: "Kvittering · din underskrevne undersøgelsesfuldmagt",
+        html: receiptHtml,
         attachments: [attachment],
       });
 

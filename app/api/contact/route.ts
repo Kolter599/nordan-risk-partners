@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import {
+  renderBrandedEmail,
+  emailKvTable,
+  emailPreBlock,
+  escapeHtml,
+  EMAIL_COLORS,
+} from "@/lib/email-template";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
@@ -39,15 +46,6 @@ function isValid(body: unknown): body is Body {
     typeof b.message === "string" &&
     b.message.trim().length > 5
   );
-}
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 export async function POST(req: Request) {
@@ -104,45 +102,45 @@ export async function POST(req: Request) {
   const { name, email, phone, company, topic, message } = body;
   const totalFileCount = attachments.length + urlFiles.length;
 
-  const rows = [
+  const kvRows: Array<[string, string] | [string, string, "html"]> = [
     ["Navn", name],
-    ["E-mail", `<a href="mailto:${escapeHtml(email)}" style="color:#a58878;">${escapeHtml(email)}</a>`, true],
-    phone ? ["Telefon", phone] : null,
-    company ? ["Virksomhed", company] : null,
-    topic ? ["Emne", topic] : null,
-  ].filter(Boolean) as Array<[string, string, boolean?] | [string, string]>;
+    ["E-mail", `<a href="mailto:${escapeHtml(email)}" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">${escapeHtml(email)}</a>`, "html"],
+  ];
+  if (phone) kvRows.push(["Telefon", phone]);
+  if (company) kvRows.push(["Virksomhed", company]);
+  if (topic) kvRows.push(["Emne", topic]);
 
   const filesHtml = urlFiles.length
-    ? `<hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0;" />
-       <h3 style="font-weight:600;color:#253f32;margin:0 0 12px 0;">Uploadede filer (${urlFiles.length})</h3>
-       <ul style="list-style:none;padding:0;margin:0;">
-         ${urlFiles
-           .map(
-             (f) => `<li style="padding:8px 0;border-bottom:1px solid #f3f1ed;">
-               <a href="${escapeHtml(f.url)}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(f.name)}</a>
-               <span style="color:#6b6b6b;font-size:12px;margin-left:8px;">${f.kind === "authorization" ? "(fuldmagt)" : ""}${f.size ? ` ${Math.round(f.size / 1024)} KB` : ""}</span>
-             </li>`
-           )
-           .join("")}
-       </ul>`
+    ? `<div style="margin-top:24px;">
+         <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:10px;">Uploadede filer (${urlFiles.length})</div>
+         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;">
+           ${urlFiles
+             .map(
+               (f) => `<tr>
+                 <td style="padding:10px 0;border-bottom:1px solid ${EMAIL_COLORS.line};font-family:Arial,Helvetica,sans-serif;font-size:14px;">
+                   <a href="${escapeHtml(f.url)}" style="color:${EMAIL_COLORS.accent};font-weight:600;text-decoration:none;">${escapeHtml(f.name)}</a>
+                   <span style="color:#6b6b6b;font-size:12px;margin-left:8px;">${f.kind === "authorization" ? "fuldmagt" : "police"}${f.size ? ` · ${Math.round(f.size / 1024)} KB` : ""}</span>
+                 </td>
+               </tr>`
+             )
+             .join("")}
+         </table>
+       </div>`
     : "";
 
-  const html = `
-    <div style="font-family:Montserrat,-apple-system,system-ui,sans-serif;max-width:640px;margin:0 auto;color:#0a0a0a;">
-      <h2 style="font-weight:500;color:#253f32;">Ny henvendelse fra nordanriskpartners.dk</h2>
-      <table style="width:100%;border-collapse:collapse;margin-top:16px;">
-        ${rows
-          .map(
-            (r) =>
-              `<tr><td style="padding:8px 0;color:#6b6b6b;width:140px;">${escapeHtml(r[0])}</td><td style="padding:8px 0;">${(r as [string, string, boolean?])[2] ? r[1] : escapeHtml(r[1])}</td></tr>`
-          )
-          .join("")}
-      </table>
-      <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0;" />
-      <div style="white-space:pre-wrap;line-height:1.6;">${escapeHtml(message)}</div>
-      ${filesHtml}
-    </div>
-  `.trim();
+  const bodyHtml = `
+    ${emailKvTable(kvRows)}
+    <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Besked</div>
+    ${emailPreBlock(message)}
+    ${filesHtml}
+  `;
+
+  const html = renderBrandedEmail({
+    preheader: `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}`,
+    eyebrow: topic ?? "Ny henvendelse",
+    title: `${name}${company ? ` · ${company}` : ""}`,
+    bodyHtml,
+  });
 
   const filesText = urlFiles.length
     ? `\n\nUploadede filer:\n${urlFiles.map((f) => `- ${f.name}${f.kind === "authorization" ? " (fuldmagt)" : ""}: ${f.url}`).join("\n")}`
@@ -169,9 +167,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, queued: true, mailConfigured: false });
   }
 
+  // Confirmation copy sent to the submitter so they have a paper trail of what they sent.
+  const confirmationHtml = renderBrandedEmail({
+    preheader: `Vi har modtaget jeres henvendelse — vi vender tilbage inden for én hverdag.`,
+    eyebrow: "Bekræftelse",
+    title: "Tak — vi har modtaget jeres henvendelse",
+    bodyHtml: `
+      <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
+        Hej ${escapeHtml(name.split(" ")[0] || name)},
+      </p>
+      <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
+        Tak for din henvendelse. Vi vender tilbage til ${escapeHtml(email)} inden for én hverdag — typisk hurtigere.
+      </p>
+      <p style="margin:0 0 18px;font-size:15.5px;line-height:1.65;">
+        Nedenfor kan du se hvad vi har modtaget. Skriv eller ring hvis noget er forkert eller skal ændres.
+      </p>
+      <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Dine oplysninger</div>
+      ${emailKvTable(kvRows)}
+      <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Din besked</div>
+      ${emailPreBlock(message)}
+      ${filesHtml}
+      <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#6b6b6b;">
+        Spørgsmål? Ring <a href="tel:+4553520006" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">+45 53 52 00 06</a> eller svar direkte på denne mail.
+      </p>
+    `,
+  });
+  const confirmationText =
+    `Hej ${name.split(" ")[0] || name},\n\n` +
+    `Tak for din henvendelse. Vi vender tilbage inden for én hverdag.\n\n` +
+    `Vi har modtaget følgende:\n\n${text}\n\n` +
+    `Skriv eller ring hvis noget skal ændres.\n` +
+    `+45 53 52 00 06 · info@ndrp.dk`;
+
   try {
     const resend = new Resend(RESEND_API_KEY);
-    const { error } = await resend.emails.send({
+
+    // Internal — to Nordan
+    const { error: sendError } = await resend.emails.send({
       from: FROM_EMAIL,
       to: TO_EMAIL,
       replyTo: email,
@@ -182,13 +214,25 @@ export async function POST(req: Request) {
         ? attachments.map((a) => ({ filename: a.filename, content: a.content }))
         : undefined,
     });
-    if (error) throw error;
+    if (sendError) throw sendError;
+
+    // Confirmation — to submitter (best-effort, don't fail the request if this errors)
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: TO_EMAIL,
+        subject: `Bekræftelse · ${topic ?? "Vi har modtaget din henvendelse"}`,
+        html: confirmationHtml,
+        text: confirmationText,
+      });
+    } catch (confirmErr) {
+      console.warn("[contact] Confirmation to submitter failed (non-fatal):", confirmErr);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[contact] Resend send failed:", err);
-    // Don't fail the user-facing flow even if Resend errors — log loudly,
-    // tell the client it was queued so they see a successful submit.
     return NextResponse.json({
       ok: true,
       queued: true,
