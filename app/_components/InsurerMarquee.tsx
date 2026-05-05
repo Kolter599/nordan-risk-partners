@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-type Insurer = { name: string; src: string; w: number; h: number; tall?: boolean };
+type Insurer = { name: string; src: string; w: number; h: number; tall?: boolean; scale?: number };
 
 const INSURERS: Insurer[] = [
   { name: "Tryg", src: "/images/insurers/tryg.png", w: 220, h: 80 },
@@ -18,8 +18,8 @@ const INSURERS: Insurer[] = [
   { name: "QBE", src: "/images/insurers/qbe.png", w: 220, h: 80 },
   { name: "LB Forsikring", src: "/images/insurers/lb.svg", w: 220, h: 80 },
   { name: "Baltic Finance Underwriting Agency", src: "/images/insurers/baltic.png", w: 260, h: 80 },
-  { name: "Riskpoint", src: "/images/insurers/riskpoint.png", w: 220, h: 80, tall: true },
-  { name: "Viking", src: "/images/insurers/viking.png", w: 220, h: 80, tall: true },
+  { name: "Riskpoint", src: "/images/insurers/riskpoint.png", w: 220, h: 80, tall: true, scale: 1.25 },
+  { name: "Viking", src: "/images/insurers/viking.png", w: 220, h: 80, tall: true, scale: 1.6 },
 ];
 
 export function InsurerMarquee() {
@@ -52,6 +52,7 @@ export function InsurerMarquee() {
                 width={logo.w}
                 height={logo.h}
                 className={`${logo.tall ? "max-h-16 md:max-h-20" : "max-h-12 md:max-h-14"} w-auto object-contain`}
+                style={logo.scale ? { transform: `scale(${logo.scale})` } : undefined}
                 loading="lazy"
               />
             </div>
