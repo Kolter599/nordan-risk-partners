@@ -465,12 +465,22 @@ function StepActions({
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isAuthDragging, setIsAuthDragging] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   const authComplete =
     (authMethod === "digital" && digitalConfirmed) ||
     (authMethod === "download" && authFile !== null);
   const policiesComplete = files.length > 0;
   const canSubmit = authComplete && policiesComplete;
+
+  function handleSubmitClick(e: React.FormEvent<HTMLFormElement>) {
+    if (!canSubmit) {
+      e.preventDefault();
+      setAttemptedSubmit(true);
+      return;
+    }
+    onSubmit(e);
+  }
 
   function addFiles(incoming: FileList | File[] | null) {
     if (!incoming) return;
@@ -482,7 +492,7 @@ function StepActions({
   }
 
   return (
-    <form onSubmit={onSubmit} className="cvr-actions-enter space-y-6">
+    <form onSubmit={handleSubmitClick} className="cvr-actions-enter space-y-6">
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
         Udfyld de tre felter nedenfor i den rækkefølge du har lyst — alt sendes samlet, når du er klar.
       </p>
@@ -767,9 +777,9 @@ function StepActions({
         <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
       ) : null}
 
-      {!canSubmit && !submitting ? (
-        <div className="text-[0.85rem] text-[color:var(--color-nordan-ink-soft)] bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)] rounded px-3.5 py-2.5">
-          <span className="font-semibold text-[color:var(--color-nordan-ink)]">Mangler før du kan sende:</span>{" "}
+      {attemptedSubmit && !canSubmit && !submitting ? (
+        <div className="text-[0.85rem] text-amber-900 bg-amber-50 border border-amber-200 rounded px-3.5 py-2.5">
+          <span className="font-semibold">Mangler før du kan sende:</span>{" "}
           {!authComplete ? "underskreven fuldmagt" : null}
           {!authComplete && !policiesComplete ? " · " : null}
           {!policiesComplete ? "mindst én police uploadet" : null}
@@ -787,8 +797,13 @@ function StepActions({
         </button>
         <button
           type="submit"
-          disabled={submitting || !canSubmit}
-          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          disabled={submitting}
+          aria-disabled={!canSubmit}
+          className={`flex-1 h-[50px] inline-flex items-center justify-center gap-2 text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] transition-colors ${
+            canSubmit
+              ? "bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f]"
+              : "bg-[color:var(--color-nordan-accent)]/50 cursor-not-allowed"
+          } disabled:opacity-60`}
         >
           {submitting ? (
             <>
