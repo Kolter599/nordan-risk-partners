@@ -10,24 +10,24 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // ndrp.dk is the canonical/primary domain. Funnel everything else here
-      // (apex + www on the secondary brand domain, plus www on the primary).
+      // nordanriskpartners.dk is the canonical/primary domain. Funnel
+      // ndrp.dk + www variants onto it (preserves path so SEO equity moves).
       {
         source: "/:path*",
-        has: [{ type: "host", value: "nordanriskpartners.dk" }],
-        destination: "https://ndrp.dk/:path*",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.nordanriskpartners.dk" }],
-        destination: "https://ndrp.dk/:path*",
+        has: [{ type: "host", value: "ndrp.dk" }],
+        destination: "https://nordanriskpartners.dk/:path*",
         permanent: true,
       },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.ndrp.dk" }],
-        destination: "https://ndrp.dk/:path*",
+        destination: "https://nordanriskpartners.dk/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.nordanriskpartners.dk" }],
+        destination: "https://nordanriskpartners.dk/:path*",
         permanent: true,
       },
       // Preserve SEO equity from the old flat URLs
