@@ -196,6 +196,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     });
 
     const uploaded: UploadedFile[] = [...preUploaded];
+    const fellBackToInline: { file: File; kind: "policy" | "authorization" }[] = [];
     setUploadProgress({ current: 0, total: uploadsToDo.length });
     for (let i = 0; i < uploadsToDo.length; i++) {
       const { file, kind } = uploadsToDo[i];
@@ -206,44 +207,72 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
         });
         uploaded.push({ name: file.name, url: blob.url, size: file.size, kind });
       } catch (err) {
-        console.warn("Blob upload failed for", file.name, err);
+        // Blob storage isn't configured (or failed) — fall back to attaching the
+        // file inline via multipart so info@ndrp.dk still receives the document.
+        console.warn("Blob upload failed, will attach inline:", file.name, err);
+        fellBackToInline.push({ file, kind });
       }
       setUploadProgress({ current: i + 1, total: uploadsToDo.length });
     }
     setUploadProgress(null);
 
-    const message = [
+    const inlineTotalBytes = fellBackToInline.reduce((sum, f) => sum + f.file.size, 0);
+    const INLINE_LIMIT = 4 * 1024 * 1024;
+    const inlineTooLarge = inlineTotalBytes > INLINE_LIMIT;
+
+    const messageParts: string[] = [
       `CVR: ${company?.vat ?? digits}`,
-      company?.address ? `Adresse: ${company.address}` : "",
+    ];
+    if (company?.address) messageParts.push(`Adresse: ${company.address}`);
+    messageParts.push(
       authMethod === "digital"
-        ? "Fuldmagt: digital signering (Penneo)"
+        ? "Fuldmagt: digital signering (vores eget e-signatur-flow)"
         : authMethod === "download"
         ? `Fuldmagt: PDF downloaded og uploaded${authFile ? ` (${authFile.name})` : ""}`
-        : "Fuldmagt: ikke valgt",
-      `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`,
-      uploaded.length < uploadsToDo.length
-        ? `Bemærk: ${uploadsToDo.length - uploaded.length} fil(er) kunne ikke uploades — Blob storage er muligvis ikke konfigureret. Bed kunden eftersende.`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+        : "Fuldmagt: ikke valgt"
+    );
+    messageParts.push(
+      `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`
+    );
+    if (inlineTooLarge) {
+      messageParts.push(
+        `Bemærk: ${fellBackToInline.length} fil(er) på ${(inlineTotalBytes / 1024 / 1024).toFixed(1)} MB i alt kunne ikke vedhæftes (over 4 MB-grænsen). Bed kunden eftersende på info@ndrp.dk.`
+      );
+    }
+    const message = messageParts.join("\n");
 
     try {
-      const payload = {
-        name,
-        email,
-        phone: phone || undefined,
-        company: company?.name ?? "Ukendt",
-        topic: "SaaS lead · Gratis forsikringsanalyse",
-        message,
-        files: uploaded,
-      };
-
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let res: Response;
+      if (fellBackToInline.length === 0 || inlineTooLarge) {
+        // Pure JSON path — either everything went to Blob, or the fallback files
+        // are too big to attach inline anyway.
+        res = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            phone: phone || undefined,
+            company: company?.name ?? "Ukendt",
+            topic: "SaaS lead · Gratis forsikringsanalyse",
+            message,
+            files: uploaded,
+          }),
+        });
+      } else {
+        // Multipart fallback — Blob isn't configured, send files inline.
+        const fd = new FormData();
+        fd.append("name", name);
+        fd.append("email", email);
+        if (phone) fd.append("phone", phone);
+        fd.append("company", company?.name ?? "Ukendt");
+        fd.append("topic", "SaaS lead · Gratis forsikringsanalyse");
+        fd.append("message", message);
+        for (const { file } of fellBackToInline) {
+          fd.append("files", file, file.name);
+        }
+        res = await fetch("/api/contact", { method: "POST", body: fd });
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "Noget gik galt. Prøv igen eller ring.");

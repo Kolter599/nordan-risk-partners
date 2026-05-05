@@ -136,7 +136,7 @@ export async function POST(req: Request) {
 
   ${emailKvTable(kvRows)}
 
-  <div style="margin-top:20px;white-space:pre-wrap;font-size:14px;line-height:1.6;color:#0a0a0a;">${escapeHtml(message)}</div>
+  <div style="margin-top:20px;font-size:14px;line-height:1.65;color:#0a0a0a;">${escapeHtml(message).replace(/\n/g, "<br/>")}</div>
   ${filesHtml}
 
   <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
@@ -188,7 +188,7 @@ export async function POST(req: Request) {
       </p>
       <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Dine oplysninger</div>
       ${emailKvTable(kvRows)}
-      <div style="margin-top:20px;white-space:pre-wrap;font-size:15px;line-height:1.65;color:#0a0a0a;">${escapeHtml(message)}</div>
+      <div style="margin-top:20px;font-size:15px;line-height:1.65;color:#0a0a0a;">${escapeHtml(message).replace(/\n/g, "<br/>")}</div>
       ${filesHtml}
       <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#6b6b6b;">
         Spørgsmål? Ring <a href="tel:+4553520006" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">+45 53 52 00 06</a> eller svar direkte på denne mail.
