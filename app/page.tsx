@@ -193,35 +193,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* AI ADVANTAGE — slim band */}
-      <section className="py-14 md:py-20 bg-[color:var(--color-nordan-dark)] text-white">
-        <div className="mx-auto max-w-[1200px] px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-center">
-          <div className="md:col-span-7">
-            <div className="inline-flex items-center gap-2 mb-5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-[0.72rem] uppercase tracking-[0.18em] font-semibold text-white/90">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden>
-                <path d="M12 2l1.7 5.3L19 9l-5.3 1.7L12 16l-1.7-5.3L5 9l5.3-1.7L12 2z" />
-                <path d="M19 14l.85 2.65L22 17l-2.15.35L19 20l-.85-2.65L16 17l2.15-.35L19 14z" />
-              </svg>
-              AI som arbejdshest
+      {/* AI / DIGITAL PLATFORM */}
+      <section className="relative py-16 md:py-28 bg-[color:var(--color-nordan-dark)] text-white overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-[1200px] px-6 md:px-10">
+          <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-start mb-14 md:mb-20">
+            <div className="md:col-span-7">
+              <div className="inline-flex items-center gap-2.5 mb-6 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.12] text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-white/90">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="absolute inset-0 rounded-full bg-[color:var(--color-nordan-accent-soft)] animate-ping opacity-75" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent-soft)]" />
+                </span>
+                Drevet af AI
+              </div>
+              <h2 className="display-lg mb-6 text-white">Indtast jeres CVR — motoren klarer resten.</h2>
+              <p className="text-white/80 leading-relaxed text-[1.02rem] max-w-xl">
+                Forsikringsmægling har historisk været manuelt slid: timer i policer, opslag i prislister, mails frem og tilbage. Vi har bygget en digital motor der tager det tunge løft, så mæglerne kan bruge tiden på det der faktisk betyder noget — dybere analyse, hårdere forhandling, og tættere opfølgning når noget sker.
+              </p>
             </div>
-            <h2 className="display-lg mb-5 text-white">Kompetent rådgivning, hjulpet på vej af AI</h2>
-            <p className="text-white/85 leading-relaxed text-[1.02rem] max-w-2xl">
-              Vi bruger AI til at læse jeres policer, sammenligne markedet og finde huller hurtigere — så I får analysen samme dag i stedet for om to uger. Mæglerne er stadig dem, der rådgiver, forhandler og står på mål for anbefalingerne.
-            </p>
+
+            <ol className="md:col-span-5 space-y-3">
+              {[
+                { n: "01", t: "Jeres CVR", d: "Regnskab, branche, ansatte og risikoprofil hentes automatisk." },
+                { n: "02", t: "Motoren arbejder", d: "AI læser policer, scanner markedet, flagger huller og overlap." },
+                { n: "03", t: "Mægler-verdict", d: "En rigtig rådgiver gennemgår, fortolker og leverer anbefalingen." },
+              ].map((s) => (
+                <li
+                  key={s.n}
+                  className="flex gap-4 p-4 rounded-[10px] border border-white/[0.1] bg-white/[0.03]"
+                >
+                  <div className="shrink-0 text-[color:var(--color-nordan-accent-soft)] font-semibold tracking-[0.18em] text-xs pt-1">
+                    {s.n}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-white mb-1">{s.t}</div>
+                    <div className="text-white/65 text-[0.88rem] leading-snug">{s.d}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
-          <ul className="md:col-span-5 grid sm:grid-cols-2 gap-4 text-[0.95rem] text-white">
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { h: "Hurtigere svar", b: "Police-gennemgang på minutter, ikke uger." },
-              { h: "Færre blinde vinkler", b: "AI flagger huller og overlap, mæglerne fortolker." },
-              { h: "Markedsskanning", b: "Sammenligner tilbud på tværs af selskaberne." },
-              { h: "Personlig rådgivning", b: "Mennesker tager beslutningerne — ikke maskiner." },
+              { h: "Dybere analyse per kunde", b: "Automatiseringen frigør timer, så mæglerne kan gå i dybden der hvor det rykker noget for jer." },
+              { h: "Hele markedet — ikke et udsnit", b: "Tilbud sammenlignet på tværs af alle vores selskaber, ikke bare de tre nemmeste." },
+              { h: "Færre blinde vinkler", b: "AI flagger huller og overlap i programmet. Mæglerne fortolker konteksten." },
+              { h: "Mennesker bag anbefalingen", b: "AI er værktøjet. Det er stadig en mægler, der står på mål for rådet." },
             ].map((b) => (
-              <li key={b.h} className="rounded-[8px] border border-white/15 bg-white/5 p-4">
-                <div className="font-semibold text-white mb-1">{b.h}</div>
-                <div className="text-white/75 leading-[1.5] text-[0.88rem]">{b.b}</div>
-              </li>
+              <div key={b.h} className="rounded-[10px] border border-white/[0.1] bg-white/[0.03] p-5">
+                <div className="font-semibold text-white mb-2 leading-snug">{b.h}</div>
+                <div className="text-white/70 leading-[1.55] text-[0.88rem]">{b.b}</div>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
@@ -273,12 +309,12 @@ function ProcessPreview() {
   const STEPS = [
     { n: "01", label: "CVR", title: "Virksomhed hentet", status: "done" },
     { n: "02", label: "Fuldmagt", title: "Digital underskrift", status: "done" },
-    { n: "03", label: "Policer", title: "Upload eller spring over", status: "active" },
+    { n: "03", label: "Policer", title: "Upload jeres policer", status: "active" },
     { n: "04", label: "Kontakt", title: "Din forsikringsmægler ringer", status: "pending" },
   ] as const;
 
   return (
-    <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[10px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="process-float bg-white border border-[color:var(--color-nordan-line)] rounded-[10px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
       <div className="px-6 md:px-7 py-5 border-b border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)] flex items-center justify-between">
         <div>
           <div className="text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-muted)]">Din analyse</div>

@@ -297,6 +297,19 @@ html, body { overflow-x: hidden; }
   main { padding-bottom: 5rem; }
 }
 
+/* Slow float — subtle breathing for hero process card */
+@keyframes process-float {
+  0%, 100% { transform: translateY(0); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+  50%      { transform: translateY(-6px); box-shadow: 0 28px 80px rgba(0,0,0,0.12); }
+}
+.process-float {
+  animation: process-float 7s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .process-float { animation: none; }
+}
+
 /* CVR action panels — fade-up when expanded */
 @keyframes cvr-actions-in {
   from { opacity: 0; transform: translateY(10px); }
