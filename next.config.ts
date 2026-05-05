@@ -9,8 +9,28 @@ const nextConfig: NextConfig = {
     inlineCss: true,
   },
   async redirects() {
-    // Preserve SEO equity from the old flat URLs
     return [
+      // ndrp.dk is the canonical/primary domain. Funnel everything else here
+      // (apex + www on the secondary brand domain, plus www on the primary).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "nordanriskpartners.dk" }],
+        destination: "https://ndrp.dk/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.nordanriskpartners.dk" }],
+        destination: "https://ndrp.dk/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.ndrp.dk" }],
+        destination: "https://ndrp.dk/:path*",
+        permanent: true,
+      },
+      // Preserve SEO equity from the old flat URLs
       { source: "/arbejdsskadeforsikring", destination: "/erhvervsforsikringer/arbejdsskadeforsikring", permanent: true },
       { source: "/erhvervs-og-produktansvarsforsikring", destination: "/erhvervsforsikringer/erhvervs-og-produktansvarsforsikring", permanent: true },
       { source: "/fredede-ejendomme-forsikring", destination: "/erhvervsforsikringer/fredede-ejendomme-forsikring", permanent: true },
