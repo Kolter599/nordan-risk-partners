@@ -361,34 +361,31 @@ export async function buildSignedFuldmagtPdf(
   );
 
   ctx.y -= 6;
-  ensureSpace(ctx, 90);
-
-  // Optional drawn signature
-  if (signer.signatureDataUrl?.startsWith("data:image/png;base64,")) {
-    try {
-      const b64 = signer.signatureDataUrl.split(",")[1];
-      const bytes = Buffer.from(b64, "base64");
-      const sigImg = await pdfDoc.embedPng(bytes);
-      const targetH = 50;
-      const targetW = Math.min(220, (sigImg.width / sigImg.height) * targetH);
-      ctx.page.drawText("Signatur:", {
-        x: MARGIN_X,
-        y: ctx.y,
-        size: 10,
-        font: fontBold,
-        color: MUTED,
-      });
-      ctx.page.drawImage(sigImg, {
-        x: MARGIN_X + 110,
-        y: ctx.y - targetH + 8,
-        width: targetW,
-        height: targetH,
-      });
-      ctx.y -= targetH + 14;
-    } catch {
-      // Silently skip if signature image fails
-    }
-  }
+  ensureSpace(ctx, 60);
+  const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+  ctx.page.drawText("Signatur:", {
+    x: MARGIN_X,
+    y: ctx.y,
+    size: 10,
+    font: fontBold,
+    color: MUTED,
+  });
+  ctx.page.drawText(signer.name, {
+    x: MARGIN_X + 110,
+    y: ctx.y,
+    size: 16,
+    font: fontItalic,
+    color: NORDAN_GREEN,
+  });
+  ctx.y -= 18;
+  ctx.page.drawText("Underskrevet elektronisk · audit-id " + audit.auditId, {
+    x: MARGIN_X + 110,
+    y: ctx.y,
+    size: 8,
+    font,
+    color: MUTED,
+  });
+  ctx.y -= 18;
 
   // Audit page
   newPage(ctx);

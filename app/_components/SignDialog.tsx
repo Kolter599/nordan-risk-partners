@@ -36,10 +36,6 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const docRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawingRef = useRef(false);
-  const hasDrawnRef = useRef(false);
-  const [hasDrawn, setHasDrawn] = useState(false);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
 
   useEffect(() => {
@@ -51,10 +47,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setAuthOk(false);
     setEidasOk(false);
     setError(null);
-    setHasDrawn(false);
-    hasDrawnRef.current = false;
     setScrolledToBottom(false);
-    setTimeout(() => clearCanvas(), 50);
   }, [open, defaults.name, defaults.email]);
 
   useEffect(() => {
@@ -76,51 +69,6 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     if (reachedBottom && !scrolledToBottom) setScrolledToBottom(true);
   }
 
-  function getCanvasPoint(e: React.PointerEvent<HTMLCanvasElement>) {
-    const c = canvasRef.current!;
-    const rect = c.getBoundingClientRect();
-    return {
-      x: ((e.clientX - rect.left) / rect.width) * c.width,
-      y: ((e.clientY - rect.top) / rect.height) * c.height,
-    };
-  }
-  function startDraw(e: React.PointerEvent<HTMLCanvasElement>) {
-    drawingRef.current = true;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const ctx = canvasRef.current!.getContext("2d")!;
-    const p = getCanvasPoint(e);
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-  }
-  function moveDraw(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (!drawingRef.current) return;
-    const ctx = canvasRef.current!.getContext("2d")!;
-    const p = getCanvasPoint(e);
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "#253f32";
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-    if (!hasDrawnRef.current) {
-      hasDrawnRef.current = true;
-      setHasDrawn(true);
-    }
-  }
-  function endDraw() {
-    drawingRef.current = false;
-  }
-  function clearCanvas() {
-    const c = canvasRef.current;
-    if (!c) return;
-    const ctx = c.getContext("2d")!;
-    ctx.clearRect(0, 0, c.width, c.height);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, c.width, c.height);
-    hasDrawnRef.current = false;
-    setHasDrawn(false);
-  }
-
   const formComplete =
     name.trim().length > 1 &&
     title.trim().length > 0 &&
@@ -128,15 +76,13 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     readOk &&
     authOk &&
     eidasOk &&
-    scrolledToBottom &&
-    hasDrawn;
+    scrolledToBottom;
 
   async function handleSubmit() {
     if (!formComplete || submitting) return;
     setSubmitting(true);
     setError(null);
     try {
-      const signatureDataUrl = canvasRef.current?.toDataURL("image/png");
       const res = await fetch("/api/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -147,7 +93,6 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
           phone: defaults.phone,
           companyName: defaults.companyName,
           cvr: defaults.cvr,
-          signatureDataUrl,
           consent: { read: readOk, authorized: authOk, eidas: eidasOk },
         }),
       });
@@ -344,36 +289,6 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                 <span className="text-[color:var(--color-nordan-muted)]">CVR:</span>{" "}
                 <strong>{defaults.cvr}</strong>
               </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em]">
-                  Tegn din underskrift
-                </label>
-                <button
-                  type="button"
-                  onClick={clearCanvas}
-                  className="text-[0.72rem] text-[color:var(--color-nordan-muted)] underline hover:text-[color:var(--color-nordan-ink-soft)]"
-                >
-                  Ryd
-                </button>
-              </div>
-              <canvas
-                ref={canvasRef}
-                width={520}
-                height={140}
-                onPointerDown={startDraw}
-                onPointerMove={moveDraw}
-                onPointerUp={endDraw}
-                onPointerCancel={endDraw}
-                className="w-full h-[140px] rounded-[6px] border border-dashed border-[color:var(--color-nordan-line)] bg-white touch-none cursor-crosshair"
-              />
-              {!hasDrawn ? (
-                <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-1">
-                  Tegn med musen eller fingeren
-                </div>
-              ) : null}
             </div>
 
             <div className="space-y-2.5 pt-2 border-t border-[color:var(--color-nordan-line)]">
