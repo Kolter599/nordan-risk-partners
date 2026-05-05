@@ -22,6 +22,12 @@ type SignedFuldmagt = {
   auditId: string;
   blobUrl?: string | null;
   signedAt: string;
+  /** Original Message-ID + subject of the sign mails so we can thread under them. */
+  internalMessageId?: string;
+  receiptMessageId?: string;
+  internalSubject?: string;
+  receiptSubject?: string;
+  insurers?: string[];
 };
 
 type Body = {
@@ -39,11 +45,9 @@ type Body = {
   /** Whether to send a confirmation copy to the submitter. Defaults to true. */
   sendCustomerConfirmation?: boolean;
   files?: UploadedFile[];
-  /** When set, the consolidated email references the previously-signed
-   *  fuldmagt and the scheduled abandon-after-sign mails (cancelEmailIds)
-   *  are cancelled so we never double-send. */
+  /** When set, the follow-up mails are sent as replies to the sign mails
+   *  (via In-Reply-To/References headers) so they thread in Outlook/Gmail. */
   signedFuldmagt?: SignedFuldmagt;
-  cancelEmailIds?: string[];
 };
 
 type Attachment = {
@@ -94,7 +98,6 @@ export async function POST(req: Request) {
         }
       }
       const signedRaw = String(form.get("signedFuldmagt") ?? "");
-      const cancelRaw = String(form.get("cancelEmailIds") ?? "");
       body = {
         name: String(form.get("name") ?? ""),
         email: String(form.get("email") ?? ""),
@@ -105,7 +108,6 @@ export async function POST(req: Request) {
         customerMessage: String(form.get("customerMessage") ?? "") || undefined,
         sendCustomerConfirmation: form.get("sendCustomerConfirmation") !== "false",
         signedFuldmagt: signedRaw ? safeJsonParse<SignedFuldmagt>(signedRaw) : undefined,
-        cancelEmailIds: cancelRaw ? safeJsonParse<string[]>(cancelRaw) : undefined,
       };
     } catch {
       return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
@@ -140,7 +142,6 @@ export async function POST(req: Request) {
     customerMessage,
     sendCustomerConfirmation = true,
     signedFuldmagt,
-    cancelEmailIds,
   } = body;
   const totalFileCount = attachments.length + urlFiles.length;
 
@@ -209,13 +210,33 @@ export async function POST(req: Request) {
     `Ny henvendelse fra nordanriskpartners.dk\n\n` +
     `Navn: ${name}\nE-mail: ${email}${phone ? `\nTelefon: ${phone}` : ""}${company ? `\nVirksomhed: ${company}` : ""}${topic ? `\nEmne: ${topic}` : ""}\n\n${message}${filesText}`;
 
-  const subject = `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}${totalFileCount ? ` · ${totalFileCount} fil${totalFileCount === 1 ? "" : "er"}` : ""}`;
+  // If a previous sign mail exists, thread under it. Otherwise normal subject.
+  const internalThreadingHeaders =
+    signedFuldmagt?.internalMessageId
+      ? {
+          "In-Reply-To": signedFuldmagt.internalMessageId,
+          References: signedFuldmagt.internalMessageId,
+        }
+      : undefined;
+  const customerThreadingHeaders =
+    signedFuldmagt?.receiptMessageId
+      ? {
+          "In-Reply-To": signedFuldmagt.receiptMessageId,
+          References: signedFuldmagt.receiptMessageId,
+        }
+      : undefined;
+  const internalSubject = signedFuldmagt?.internalSubject
+    ? `Re: ${signedFuldmagt.internalSubject}`
+    : `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}${totalFileCount ? ` · ${totalFileCount} fil${totalFileCount === 1 ? "" : "er"}` : ""}`;
+  const customerSubject = signedFuldmagt?.receiptSubject
+    ? `Re: ${signedFuldmagt.receiptSubject}`
+    : "Vi har modtaget din henvendelse — Nordan Risk Partners";
 
   // Graceful no-op if Resend not yet configured.
   if (!RESEND_API_KEY) {
     console.warn("[contact] RESEND_API_KEY missing — submission logged but not emailed", {
       to: TO_EMAIL,
-      subject,
+      subject: internalSubject,
       from: email,
       name,
       phone,
@@ -294,30 +315,15 @@ export async function POST(req: Request) {
   try {
     const resend = new Resend(RESEND_API_KEY);
 
-    // Cancel any scheduled abandon-after-sign mails before we send the
-    // consolidated copy. Best-effort — if cancel fails (e.g. email already
-    // delivered, or invalid id) we just log and continue.
-    if (cancelEmailIds && cancelEmailIds.length > 0) {
-      await Promise.all(
-        cancelEmailIds.map(async (id) => {
-          if (!id) return;
-          try {
-            await resend.emails.cancel(id);
-          } catch (cancelErr) {
-            console.warn(`[contact] Could not cancel scheduled email ${id}:`, cancelErr);
-          }
-        })
-      );
-    }
-
     // Internal — to Nordan
     const { error: sendError } = await resend.emails.send({
       from: FROM_EMAIL,
       to: TO_EMAIL,
       replyTo: email,
-      subject,
+      subject: internalSubject,
       html,
       text,
+      headers: internalThreadingHeaders,
       attachments: attachments.length
         ? attachments.map((a) => ({ filename: a.filename, content: a.content }))
         : undefined,
@@ -332,9 +338,10 @@ export async function POST(req: Request) {
           from: FROM_EMAIL,
           to: email,
           replyTo: TO_EMAIL,
-          subject: "Vi har modtaget din henvendelse — Nordan Risk Partners",
+          subject: customerSubject,
           html: confirmationHtml,
           text: confirmationText,
+          headers: customerThreadingHeaders,
         });
       } catch (confirmErr) {
         console.warn("[contact] Confirmation to submitter failed (non-fatal):", confirmErr);

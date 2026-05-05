@@ -9,11 +9,39 @@ export type SignResult = {
   finalHash: string;
   blobUrl: string | null;
   fileName: string;
-  scheduledEmailIds?: { internal?: string; signer?: string };
   signerName?: string;
+  signerEmail?: string;
+  signerPhone?: string | null;
   companyName?: string;
   cvr?: string;
+  insurers?: string[];
+  internalSubject?: string;
+  receiptSubject?: string;
+  internalMessageId?: string;
+  receiptMessageId?: string;
 };
+
+const INSURER_OPTIONS = [
+  "Tryg",
+  "Topdanmark",
+  "If",
+  "Alm. Brand",
+  "Codan",
+  "Gjensidige",
+  "AIG",
+  "HDI",
+  "Chubb",
+  "Zurich",
+  "Lloyd's",
+  "Allianz",
+  "AXA",
+  "QBE",
+  "LB Forsikring",
+  "Baltic",
+  "Riskpoint",
+  "Viking",
+  "Andet / ved ikke",
+];
 
 type Props = {
   open: boolean;
@@ -32,6 +60,8 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const [name, setName] = useState(defaults.name ?? "");
   const [title, setTitle] = useState("");
   const [email, setEmail] = useState(defaults.email ?? "");
+  const [phone, setPhone] = useState(defaults.phone ?? "");
+  const [insurers, setInsurers] = useState<string[]>([]);
   const [readOk, setReadOk] = useState(false);
   const [authOk, setAuthOk] = useState(false);
   const [eidasOk, setEidasOk] = useState(false);
@@ -46,13 +76,15 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     if (!open) return;
     setName(defaults.name ?? "");
     setEmail(defaults.email ?? "");
+    setPhone(defaults.phone ?? "");
+    setInsurers([]);
     setTitle("");
     setReadOk(false);
     setAuthOk(false);
     setEidasOk(false);
     setError(null);
     setScrolledToBottom(false);
-  }, [open, defaults.name, defaults.email]);
+  }, [open, defaults.name, defaults.email, defaults.phone]);
 
   useEffect(() => {
     if (!open) return;
@@ -77,10 +109,17 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     name.trim().length > 1 &&
     title.trim().length > 0 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
+    phone.trim().length >= 6 &&
     readOk &&
     authOk &&
     eidasOk &&
     scrolledToBottom;
+
+  function toggleInsurer(name: string) {
+    setInsurers((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  }
 
   async function handleSubmit() {
     if (!formComplete || submitting) return;
@@ -94,9 +133,10 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
           name: name.trim(),
           title: title.trim(),
           email: email.trim(),
-          phone: defaults.phone,
+          phone: phone.trim(),
           companyName: defaults.companyName,
           cvr: defaults.cvr,
+          insurers,
           consent: { read: readOk, authorized: authOk, eidas: eidasOk },
         }),
       });
@@ -285,6 +325,21 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                 Du modtager en kvittering med den underskrevne PDF
               </div>
             </div>
+            <div>
+              <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em] mb-1.5">
+                Telefonnummer
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+45 12 34 56 78"
+                className="w-full h-11 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.95rem]"
+              />
+              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-1">
+                Vi ringer kun hvis vi har spørgsmål
+              </div>
+            </div>
             <div className="px-3 py-2.5 bg-[color:var(--color-nordan-soft)] rounded-[6px] text-[0.82rem] text-[color:var(--color-nordan-ink-soft)]">
               <div>
                 <span className="text-[color:var(--color-nordan-muted)]">Firma:</span>{" "}
@@ -293,6 +348,39 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               <div>
                 <span className="text-[color:var(--color-nordan-muted)]">CVR:</span>{" "}
                 <strong>{defaults.cvr}</strong>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-baseline justify-between mb-2">
+                <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em]">
+                  Hvilke forsikringsselskaber er I hos?
+                </label>
+                <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+                  {insurers.length} valgt · vælg flere
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {INSURER_OPTIONS.map((opt) => {
+                  const selected = insurers.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => toggleInsurer(opt)}
+                      className={`px-3 py-1.5 rounded-full text-[0.82rem] border transition-colors ${
+                        selected
+                          ? "bg-[color:var(--color-nordan-accent)] border-[color:var(--color-nordan-accent)] text-white"
+                          : "bg-white border-[color:var(--color-nordan-line)] text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-accent-soft)]"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-2">
+                Valgfrit, men hjælper os med at gå direkte til de rigtige selskaber for jer.
               </div>
             </div>
 

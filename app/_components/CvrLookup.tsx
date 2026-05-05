@@ -262,12 +262,12 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             auditId: digitalResult.auditId,
             blobUrl: digitalResult.blobUrl,
             signedAt: digitalResult.signedAt,
+            internalMessageId: digitalResult.internalMessageId,
+            receiptMessageId: digitalResult.receiptMessageId,
+            internalSubject: digitalResult.internalSubject,
+            receiptSubject: digitalResult.receiptSubject,
+            insurers: digitalResult.insurers,
           }
-        : undefined;
-      const cancelEmailIds = digitalResult?.scheduledEmailIds
-        ? [digitalResult.scheduledEmailIds.internal, digitalResult.scheduledEmailIds.signer].filter(
-            (id): id is string => typeof id === "string" && id.length > 0
-          )
         : undefined;
 
       if (fellBackToInline.length === 0 || inlineTooLarge) {
@@ -284,7 +284,6 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             customerMessage,
             files: uploaded,
             signedFuldmagt,
-            cancelEmailIds,
           }),
         });
       } else {
@@ -297,7 +296,6 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
         fd.append("message", message);
         fd.append("customerMessage", customerMessage);
         if (signedFuldmagt) fd.append("signedFuldmagt", JSON.stringify(signedFuldmagt));
-        if (cancelEmailIds) fd.append("cancelEmailIds", JSON.stringify(cancelEmailIds));
         for (const { file } of fellBackToInline) {
           fd.append("files", file, file.name);
         }

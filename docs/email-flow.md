@@ -1,6 +1,6 @@
 # Email-flow logic tree
 
-Beskriver præcist hvilke mails der sendes hvornår, fra hvilket flow, og hvordan duplikater undgås.
+Beskriver præcist hvilke mails der sendes hvornår, fra hvilket flow, og hvordan de threades.
 
 Alle mails sendes via Resend (`info@ndrp.dk`). Interne mails (til Mads) er
 plain forward-friendly. Eksterne mails (til kunden) er fuldt brandede.
@@ -14,8 +14,8 @@ plain forward-friendly. Eksterne mails (til kunden) er fuldt brandede.
 2. Forside HomeContactForm        → /api/contact
 3. /tilbud/hole-in-one (CVR-flow) → /api/contact
 4. /analyse (CvrLookup, fuldt flow)
-   ├─ Underskrift                 → /api/sign  (planlægger fallback-mails)
-   └─ Send & start analyse        → /api/contact (cancel + consolidated)
+   ├─ Underskrift                 → /api/sign  (sender med Message-ID)
+   └─ Send & start analyse        → /api/contact (sender som Re: med In-Reply-To)
 ```
 
 ---
@@ -31,23 +31,24 @@ INDKOMMENDE REQUEST
 ├─ Resend API key konfigureret?
 │  └─ NEJ → log submission til Vercel logs, returnér ok=true (graceful)
 │
-├─ cancelEmailIds[] tilstede?
-│  └─ JA → for hver: Resend.emails.cancel(id)
-│         (best-effort — fejler stille hvis allerede afsendt)
+├─ signedFuldmagt med Message-IDs tilstede?
+│  ├─ JA → subject = "Re: <original sign subject>"
+│  │       headers = { In-Reply-To, References } → email-clients threader
+│  └─ NEJ → normal subject ("Ny henvendelse fra ...")
 │
 ├─ Send INTERN mail til info@ndrp.dk
-│  ├─ Subject: "Ny henvendelse fra <navn> (<firma>) [· N filer]"
 │  ├─ Plain HTML, ingen logo/footer
 │  ├─ Hvis signedFuldmagt → tilføj "Underskrevet fuldmagt"-blok m. blob-link
-│  └─ ReplyTo: kundens email (Mads kan svare direkte)
+│  └─ ReplyTo: kundens email
 │
 └─ sendCustomerConfirmation (default true)?
    └─ JA → Send BEKRÆFTELSE til kunden
-          ├─ Subject: "Vi har modtaget din henvendelse — Nordan Risk Partners"
+          ├─ Subject = "Re: <sign receipt subject>" hvis tidligere underskrevet,
+          │           ellers "Vi har modtaget din henvendelse — Nordan Risk Partners"
+          ├─ headers = { In-Reply-To, References } hvis threading
           ├─ Brandet template (logo, footer)
           ├─ Bruger customerMessage (kunde-venlig opsummering)
           ├─ ALDRIG topic eller message-internt-format
-          ├─ Hvis signedFuldmagt → "✓ Din underskrevne fuldmagt er modtaget"
           └─ ReplyTo: info@ndrp.dk
 ```
 
@@ -56,9 +57,9 @@ INDKOMMENDE REQUEST
 ## /api/sign — digital underskrift
 
 ```
-INDKOMMENDE REQUEST (navn, titel, email, firma, CVR, samtykke)
+INDKOMMENDE REQUEST (navn, titel, email, telefon, firma, CVR, insurers, samtykke)
 │
-├─ Validér felter + alle 3 samtykke-checkboxes
+├─ Validér felter + alle 3 samtykke-checkboxes + telefon
 │  └─ FEJL? → 400 + stop
 │
 ├─ Generér audit (uuid, timestamp, IP, UA, doc hash)
@@ -74,82 +75,102 @@ INDKOMMENDE REQUEST (navn, titel, email, firma, CVR, samtykke)
 │
 ├─ RESEND_API_KEY sat?
 │  ├─ NEJ → Log + skip mails (PDF lever stadig i Blob hvis konfigureret)
-│  └─ JA → PLANLÆG to mails 10 min ud i fremtiden
-│         med scheduledAt: 'in 10 minutes'
+│  └─ JA → SEND STRAKS — to mails:
 │         │
-│         ├─ Intern fallback (til info@ndrp.dk)
-│         │  ├─ Subject: "Underskrevet fuldmagt (uafsluttet flow) · ..."
-│         │  ├─ "Kunde nåede ikke at uploade policer — overvej at følge op"
+│         ├─ Intern mail (til info@ndrp.dk)
+│         │  ├─ Subject: "Underskrevet fuldmagt · Acme ApS (CVR ...)"
+│         │  ├─ Headers: { Message-ID: <internal-{auditId}@nordanriskpartners.dk> }
+│         │  ├─ Indhold: signer info + telefon + insurers (hvis valgt)
 │         │  └─ PDF som attachment + Blob-link
 │         │
-│         └─ Underskriver-fallback (til kunde)
-│            ├─ Subject: "Din underskrevne undersøgelsesfuldmagt"
-│            ├─ Soft nudge: "Vend tilbage til /analyse for at uploade policer"
+│         └─ Underskriver-kvittering (til kunde)
+│            ├─ Subject: "Din underskrevne undersøgelsesfuldmagt — Nordan Risk Partners"
+│            ├─ Headers: { Message-ID: <receipt-{auditId}@nordanriskpartners.dk> }
 │            └─ PDF som attachment
 │
 └─ RETURNÉR til client:
-   { auditId, signedAt, blobUrl, scheduledEmailIds: { internal, signer } }
+   { auditId, signedAt, blobUrl, internalMessageId, receiptMessageId,
+     internalSubject, receiptSubject, insurers }
 ```
 
 ---
 
-## /analyse fuldt flow — stitching
+## /analyse fuldt flow — stitching via threading
 
 ```
 TIDSAKSE
 │
 0:00  Kunde klikker "Underskriv elektronisk →"
 │
-0:01  SignDialog → /api/sign
+0:01  SignDialog → /api/sign (med navn, telefon, insurers, samtykke)
 │     │
-│     ├─ PDF genereret + uploaded til Blob
-│     ├─ TO mails planlagt 10 min ud (scheduledEmailIds)
-│     └─ Returnér { auditId, blobUrl, scheduledEmailIds } til CvrLookup
+│     ├─ PDF genereret + uploadet til Blob
+│     ├─ Internal mail SENDT NU til info@ndrp.dk med Message-ID
+│     ├─ Kvittering SENDT NU til signer med Message-ID
+│     └─ Returnér { auditId, blobUrl, internalMessageId, receiptMessageId, ... }
 │
 │     CvrLookup gemmer digitalResult i state
 │
-│     ───── BRANCH A: Kunde færdiggør indenfor 10 min ─────
+│     ───── BRANCH A: Kunde færdiggør indenfor kort tid ─────
 │
 4:30  Kunde uploader policer + klikker "Send & start analyse"
 │
 4:31  CvrLookup → /api/contact med:
 │     │
-│     ├─ signedFuldmagt: { auditId, blobUrl, signedAt }
-│     ├─ cancelEmailIds: [internal_id, signer_id]
-│     └─ files: [...uploaded]
+│     └─ signedFuldmagt: { auditId, blobUrl, internalMessageId, receiptMessageId,
+│                          internalSubject, receiptSubject, insurers, signedAt }
 │
 4:32  /api/contact:
 │     │
-│     ├─ Resend.emails.cancel(internal_id) ✓
-│     ├─ Resend.emails.cancel(signer_id) ✓
-│     ├─ Send INTERN mail til Mads (alt info + fuldmagt-link + policer)
-│     └─ Send BEKRÆFTELSE til kunde (kontakt-info + opsummering)
+│     ├─ Send INTERN mail som "Re: Underskrevet fuldmagt · Acme ApS (CVR ...)"
+│     │  med In-Reply-To: <internal-{auditId}@nordanriskpartners.dk>
+│     │  ⇒ Outlook/Gmail threader denne mail UNDER den fra T=0
+│     │
+│     └─ Send BEKRÆFTELSE som "Re: Din underskrevne undersøgelsesfuldmagt"
+│        med In-Reply-To: <receipt-{auditId}@nordanriskpartners.dk>
+│        ⇒ Kundens mail-klient threader også
 │
-RESULTAT: 2 mails total (1 til Mads, 1 til kunde) — alt samlet
+RESULTAT: 4 mails total, men de threader så Mads ser ÉN samtale per kunde
 │
 │     ───── BRANCH B: Kunde forsvinder efter underskrift ─────
 │
-10:00 (Resend planlagt tid nået, ingen cancellation)
+∞     Ingen yderligere mails. Mads har stadig fået den underskrevne fuldmagt
+      + telefon + insurers — han kan kontakte kunden direkte.
+      Kunden har stadig fået sin kvittering.
 │
-10:01 Resend leverer:
-│     ├─ Intern fallback til Mads ("uafsluttet flow") + PDF attached
-│     └─ Signer fallback til kunde ("vend tilbage og upload policer") + PDF
-│
-RESULTAT: 2 mails total (begge fuldmagt-only) — vi mister ikke fuldmagten
+RESULTAT: 2 mails total (de to fra T=0).
 ```
+
+---
+
+## Threading kontrakt
+
+For at threading virker korrekt skal følgende headers sættes:
+
+| Mail | Custom header | Værdi |
+|---|---|---|
+| `/api/sign` intern | `Message-ID` | `<internal-{auditId}@nordanriskpartners.dk>` |
+| `/api/sign` kvittering | `Message-ID` | `<receipt-{auditId}@nordanriskpartners.dk>` |
+| `/api/contact` intern (når signedFuldmagt findes) | `In-Reply-To` + `References` | samme værdi som ovenfor |
+| `/api/contact` kvittering (når signedFuldmagt findes) | `In-Reply-To` + `References` | samme værdi som ovenfor |
+
+Subject prefix:
+- Original sign-mail: `"Underskrevet fuldmagt · ..."`
+- Follow-up fra /api/contact: `"Re: Underskrevet fuldmagt · ..."`
+
+Outlook/Gmail bruger Message-ID matching som primær thread-signal med subject som tiebreaker.
 
 ---
 
 ## Edge cases
 
 ```
-Kunde klikker "Send & start analyse" 11+ minutter efter underskrift
+Kunde klikker "Underskriv igen" efter første underskrift
 │
-├─ /api/contact prøver at cancellere planlagte mails
-├─ Resend.emails.cancel() returnerer fejl (allerede afsendt)
-├─ Vi logger fejlen og fortsætter
-└─ Kunde får BÅDE fallback-mailen (afsendt T+10) OG den consolidated mail
-   ⇒ Lille uskønhed, men ingen data tabt
+├─ Ny /api/sign-call genererer nyt auditId og nye Message-IDs
+├─ Mads får 2 sign-mails (en pr. underskrift) — de threader IKKE sammen
+└─ Kunden får også 2 kvitteringer
+   ⇒ Acceptabelt — sjælden adfærd, ingen data tabt
 ```
 
 ```
@@ -171,35 +192,26 @@ BLOB_READ_WRITE_TOKEN mangler
 └─ Resend leverer stadig mailene
 ```
 
-```
-Kunde klikker "Underskriv igen" efter første underskrift
-│
-├─ digitalResult overskrives med nyt resultat fra ny /api/sign-call
-├─ Den FØRSTE planlagte mail bliver IKKE cancelled (vi mister ID)
-└─ Kunde kan modtage 2 fallback-mails hvis de ikke fuldfører
-   ⇒ Acceptabelt — sjældent edge case, ingen data tabt
-   ⇒ Kunne fixes ved at cancellere gammel før ny /api/sign-call
-```
-
 ---
 
 ## Hvilke mails går til hvem
 
-| Trigger                           | Til Mads (info@ndrp.dk) | Til kunde |
-|-----------------------------------|--------------------------|-----------|
-| /kontakt-os submit                | ✓ intern                 | ✓ bekræftelse |
-| Forside hero-form submit          | ✓ intern                 | ✓ bekræftelse |
-| /tilbud/hole-in-one submit        | ✓ intern                 | ✓ bekræftelse |
-| /analyse: kun underskrift         | ✓ planlagt T+10min       | ✓ planlagt T+10min |
-| /analyse: underskrift + send      | ✓ konsolideret           | ✓ konsolideret |
-| /analyse: send uden underskrift   | ✓ intern (uden fuldmagt) | ✓ bekræftelse |
+| Trigger                              | Til Mads (info@ndrp.dk)   | Til kunde |
+|--------------------------------------|----------------------------|-----------|
+| /kontakt-os submit                   | ✓ intern                   | ✓ bekræftelse |
+| Forside hero-form submit             | ✓ intern                   | ✓ bekræftelse |
+| /tilbud/hole-in-one submit           | ✓ intern                   | ✓ bekræftelse |
+| /analyse: kun underskrift            | ✓ sign-mail STRAKS         | ✓ kvittering STRAKS |
+| /analyse: send efter underskrift     | ✓ Re: i samme tråd         | ✓ Re: i samme tråd |
+| /analyse: send uden underskrift      | ✓ intern (ingen threading) | ✓ bekræftelse |
 
 ---
 
-## Når noget skal ændres
+## Hvor man tweaker hvad
 
-- **Tidsforsinkelsen**: ændr `scheduledAt: "in 10 minutes"` i `app/api/sign/route.ts`
+- **Threading**: Message-ID-prefix sættes i `app/api/sign/route.ts` (`messageIdFor` helper)
 - **Mail-templates**: brandet shell ligger i `lib/email-template.ts`, route-specifik HTML inline
-- **Subject-linjer**: hardkodet i hver route — søg efter `subject:` i `/api/contact` og `/api/sign`
+- **Subject-linjer**: hardkodet i hver route — søg efter `subject:` eller `internalSubject` / `receiptSubject`
+- **Insurer-liste i SignDialog**: `INSURER_OPTIONS` array i `app/_components/SignDialog.tsx`
 - **Afsender**: env var `MAIL_FROM` (default `Nordan Risk Partners <info@ndrp.dk>`)
 - **Modtager**: env var `CONTACT_TO_EMAIL` (default `info@ndrp.dk`)

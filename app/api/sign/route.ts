@@ -24,12 +24,18 @@ type SignRequest = {
   companyName?: string;
   cvr?: string;
   signatureDataUrl?: string;
+  insurers?: string[];
   consent: {
     read?: boolean;
     authorized?: boolean;
     eidas?: boolean;
   };
 };
+
+function messageIdFor(kind: "internal" | "receipt", auditId: string): string {
+  // Stable Message-ID so /api/contact can thread the consolidated mail via In-Reply-To.
+  return `<${kind}-${auditId}@nordanriskpartners.dk>`;
+}
 
 function isNonEmpty(s: unknown): s is string {
   return typeof s === "string" && s.trim().length > 0;
@@ -50,6 +56,7 @@ export async function POST(req: Request) {
     !isNonEmpty(body.email) ||
     !isNonEmpty(body.companyName) ||
     !isNonEmpty(body.cvr) ||
+    !isNonEmpty(body.phone) ||
     !body.consent?.read ||
     !body.consent?.authorized ||
     !body.consent?.eidas
@@ -59,6 +66,10 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+
+  const insurers = Array.isArray(body.insurers)
+    ? body.insurers.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    : [];
 
   const signer: SignerData = {
     name: body.name.trim(),
@@ -102,10 +113,10 @@ export async function POST(req: Request) {
     console.warn("[sign] BLOB_READ_WRITE_TOKEN not set — skipping permanent storage");
   }
 
-  // Schedule receipt emails 10 minutes out. If the user completes the analyse
-  // form in time, /api/contact cancels them and sends a single consolidated
-  // mail instead. Otherwise these go out as the abandoned-after-signing fallback.
-  const scheduledEmailIds: { internal?: string; signer?: string } = {};
+  // Send IMMEDIATE notification — info@ndrp.dk gets the signer's basic data
+  // and the signed PDF right away. If they later complete /analyse, /api/contact
+  // posts a follow-up that threads under the same conversation via the
+  // Message-ID we set here.
   if (RESEND_API_KEY) {
     try {
       const resend = new Resend(RESEND_API_KEY);
@@ -116,15 +127,17 @@ export async function POST(req: Request) {
         timeStyle: "short",
         timeZone: "Europe/Copenhagen",
       });
-      const scheduledAt = "in 10 minutes";
+      const insurersBlock = insurers.length
+        ? `<div style="margin-top:14px;padding:10px 12px;background:#faf7f2;border-left:3px solid #a58878;border-radius:4px;">
+             <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:#a58878;margin-bottom:6px;">Selskaber kunden er hos</div>
+             <div style="font-size:13px;color:#0a0a0a;line-height:1.55;">${insurers.map((s) => s.replace(/[<>&]/g, "")).join(" · ")}</div>
+           </div>`
+        : "";
 
-      // Internal abandoned-after-sign notice — only delivered if the user doesn't
-      // complete the rest of the analyse flow within 10 minutes.
       const internalHtml = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:14px;line-height:1.55;">
 <div style="max-width:640px;">
-  <div style="font-size:13px;color:#6b6b6b;margin-bottom:6px;">Underskrevet fuldmagt — kunde færdiggjorde ikke flowet</div>
+  <div style="font-size:13px;color:#6b6b6b;margin-bottom:6px;">Underskrevet fuldmagt fra nordanriskpartners.dk</div>
   <h2 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#253f32;">${signer.name} <span style="color:#6b6b6b;font-weight:500;">· ${signer.companyName}</span></h2>
-  <p style="margin:0 0 14px;color:#404040;">Kunden underskrev fuldmagten, men nåede ikke at uploade policer eller sende formularen. PDF er vedhæftet — overvej at følge op direkte.</p>
 
   ${emailKvTable([
     ["Underskriver", `${signer.name}, ${signer.title}`],
@@ -132,41 +145,35 @@ export async function POST(req: Request) {
     ["E-mail", signer.email],
     ...(signer.phone ? [["Telefon", signer.phone] as [string, string]] : []),
     ["Tidspunkt", signedHuman],
-    ["IP", audit.ip],
     ["Audit-ID", audit.auditId],
     ...(blobUrl ? [["Blob-link", `<a href="${blobUrl}" style="color:#a58878;">åbn permanent kopi</a>`, "html"] as [string, string, "html"]] : []),
   ])}
+  ${insurersBlock}
 
   <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
   <div style="font-size:12px;color:#6b6b6b;">
-    PDF vedhæftet. Svar går direkte til underskriver (reply-to: <a href="mailto:${signer.email}" style="color:#a58888;">${signer.email}</a>).
+    Hvis kunden uploader policer i flowet kommer de som svar i samme tråd. Reply-to går direkte til underskriver (<a href="mailto:${signer.email}" style="color:#a58878;">${signer.email}</a>).
   </div>
 </div>
 </body></html>`;
-      const internalRes = await resend.emails.send({
+      await resend.emails.send({
         from: FROM_EMAIL,
         to: TO_EMAIL,
         replyTo: signer.email,
-        subject: `Underskrevet fuldmagt (uafsluttet flow) · ${signer.companyName} (CVR ${signer.cvr})`,
+        subject: `Underskrevet fuldmagt · ${signer.companyName} (CVR ${signer.cvr})`,
         html: internalHtml,
         attachments: [attachment],
-        scheduledAt,
+        headers: { "Message-ID": messageIdFor("internal", audit.auditId) },
       });
-      if (internalRes.data?.id) scheduledEmailIds.internal = internalRes.data.id;
 
-      // Signer-facing receipt — also delivered only if they abandon. Soft nudge
-      // back to the flow so they can finish if they want.
       const receiptHtml = renderBrandedEmail({
-        preheader: "Vi har din underskrift — du kan stadig vende tilbage og uploade dine policer",
+        preheader: "Kvittering for din underskrevne undersøgelsesfuldmagt",
         eyebrow: "Kvittering",
         title: "Tak for din underskrift",
         bodyHtml: `
           <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">Hej ${signer.name.split(" ")[0]},</p>
           <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
-            Vi har modtaget din underskrevne undersøgelsesfuldmagt for <strong>${signer.companyName}</strong>. Den er vedhæftet — gem den som dokumentation.
-          </p>
-          <p style="margin:0 0 18px;font-size:15.5px;line-height:1.65;">
-            Bemærk at du ikke nåede at færdiggøre selve analysen. Hvis du gerne vil have os til at gennemgå jeres forsikringer, så <a href="https://nordanriskpartners.dk/analyse" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">vend tilbage til /analyse</a> og upload jeres policer — så går vi i gang.
+            Vi har modtaget din underskrevne undersøgelsesfuldmagt for <strong>${signer.companyName}</strong>. Den er vedhæftet som PDF — gem den som dokumentation.
           </p>
           ${emailKvTable([
             ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
@@ -181,18 +188,17 @@ export async function POST(req: Request) {
           </p>
         `,
       });
-      const signerRes = await resend.emails.send({
+      await resend.emails.send({
         from: FROM_EMAIL,
         to: signer.email,
         replyTo: TO_EMAIL,
         subject: "Din underskrevne undersøgelsesfuldmagt — Nordan Risk Partners",
         html: receiptHtml,
         attachments: [attachment],
-        scheduledAt,
+        headers: { "Message-ID": messageIdFor("receipt", audit.auditId) },
       });
-      if (signerRes.data?.id) scheduledEmailIds.signer = signerRes.data.id;
     } catch (err) {
-      console.error("[sign] Scheduling receipts failed:", err);
+      console.error("[sign] Sending receipts failed:", err);
     }
   } else {
     console.warn("[sign] RESEND_API_KEY missing — receipts skipped", {
@@ -206,10 +212,16 @@ export async function POST(req: Request) {
     auditId: audit.auditId,
     signedAt: audit.signedAt,
     finalHash,
-    scheduledEmailIds,
     signerName: signer.name,
+    signerEmail: signer.email,
+    signerPhone: signer.phone ?? null,
     companyName: signer.companyName,
     cvr: signer.cvr,
+    insurers,
+    internalSubject: `Underskrevet fuldmagt · ${signer.companyName} (CVR ${signer.cvr})`,
+    receiptSubject: "Din underskrevne undersøgelsesfuldmagt — Nordan Risk Partners",
+    internalMessageId: messageIdFor("internal", audit.auditId),
+    receiptMessageId: messageIdFor("receipt", audit.auditId),
     blobUrl,
     fileName: `Undersogelsesfuldmagt-${signer.companyName.replace(/[^\w]/g, "_")}.pdf`,
     mailConfigured: !!RESEND_API_KEY,
