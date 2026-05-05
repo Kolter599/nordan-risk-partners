@@ -9,7 +9,6 @@ import {
 import {
   renderBrandedEmail,
   emailKvTable,
-  emailCard,
   EMAIL_COLORS,
 } from "@/lib/email-template";
 
@@ -121,33 +120,29 @@ export async function POST(req: Request) {
         timeZone: "Europe/Copenhagen",
       });
 
-      // To Nordan — branded internal notification
-      const internalHtml = renderBrandedEmail({
-        preheader: `${signer.name} har underskrevet en undersøgelsesfuldmagt for ${signer.companyName}`,
-        eyebrow: "Ny underskrift",
-        title: "Underskrevet undersøgelsesfuldmagt",
-        bodyHtml: `
-          <p style="margin:0 0 16px;font-size:15.5px;line-height:1.65;">
-            ${signer.name} har netop underskrevet en undersøgelsesfuldmagt elektronisk. PDF'en er vedhæftet.
-          </p>
-          ${emailKvTable([
-            ["Underskriver", `${signer.name}, ${signer.title}`],
-            ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
-            ["E-mail", signer.email],
-            ...(signer.phone ? [["Telefon", signer.phone] as [string, string]] : []),
-            ["Tidspunkt", signedHuman],
-            ["IP", audit.ip],
-          ])}
-          ${emailCard(`
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Audit-data</div>
-            <div style="font-family:Menlo,Consolas,monospace;font-size:12px;color:${EMAIL_COLORS.ink};line-height:1.7;">
-              <strong>ID:</strong> ${audit.auditId}<br/>
-              <strong>Final hash:</strong> ${finalHash.slice(0, 16)}…<br/>
-              ${blobUrl ? `<strong>Blob:</strong> <a href="${blobUrl}" style="color:${EMAIL_COLORS.accent};">åbn permanent kopi</a>` : ""}
-            </div>
-          `, { tone: "soft" })}
-        `,
-      });
+      // To Nordan — plain & forward-friendly. PDF is the main thing; metadata is reference.
+      const internalHtml = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:14px;line-height:1.55;">
+<div style="max-width:640px;">
+  <div style="font-size:13px;color:#6b6b6b;margin-bottom:6px;">Underskrevet fuldmagt fra nordanriskpartners.dk</div>
+  <h2 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#253f32;">${signer.name} <span style="color:#6b6b6b;font-weight:500;">· ${signer.companyName}</span></h2>
+
+  ${emailKvTable([
+    ["Underskriver", `${signer.name}, ${signer.title}`],
+    ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
+    ["E-mail", signer.email],
+    ...(signer.phone ? [["Telefon", signer.phone] as [string, string]] : []),
+    ["Tidspunkt", signedHuman],
+    ["IP", audit.ip],
+    ["Audit-ID", audit.auditId],
+    ...(blobUrl ? [["Blob-link", `<a href="${blobUrl}" style="color:#a58878;">åbn permanent kopi</a>`, "html"] as [string, string, "html"]] : []),
+  ])}
+
+  <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
+  <div style="font-size:12px;color:#6b6b6b;">
+    PDF vedhæftet. Svar går direkte til underskriver (reply-to: <a href="mailto:${signer.email}" style="color:#a58878;">${signer.email}</a>).
+  </div>
+</div>
+</body></html>`;
       await resend.emails.send({
         from: FROM_EMAIL,
         to: TO_EMAIL,

@@ -128,19 +128,25 @@ export async function POST(req: Request) {
        </div>`
     : "";
 
-  const bodyHtml = `
-    ${emailKvTable(kvRows)}
-    <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Besked</div>
-    ${emailPreBlock(message)}
-    ${filesHtml}
-  `;
+  // Internal mail to Mads — plain & forward-friendly. No logo wrap, no footer.
+  // Structured so the whole client block is easy to copy/paste or forward as-is.
+  const html = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:14px;line-height:1.55;">
+<div style="max-width:640px;">
+  <div style="font-size:13px;color:#6b6b6b;margin-bottom:6px;">Henvendelse fra nordanriskpartners.dk${topic ? ` · ${escapeHtml(topic)}` : ""}</div>
+  <h2 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#253f32;">${escapeHtml(name)}${company ? ` <span style="color:#6b6b6b;font-weight:500;">· ${escapeHtml(company)}</span>` : ""}</h2>
 
-  const html = renderBrandedEmail({
-    preheader: `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}`,
-    eyebrow: topic ?? "Ny henvendelse",
-    title: `${name}${company ? ` · ${company}` : ""}`,
-    bodyHtml,
-  });
+  ${emailKvTable(kvRows)}
+
+  <div style="margin-top:18px;font-size:12px;font-weight:600;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Besked</div>
+  ${emailPreBlock(message)}
+  ${filesHtml}
+
+  <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
+  <div style="font-size:12px;color:#6b6b6b;">
+    Svar går direkte til kunden (reply-to: <a href="mailto:${escapeHtml(email)}" style="color:#a58878;">${escapeHtml(email)}</a>).
+  </div>
+</div>
+</body></html>`;
 
   const filesText = urlFiles.length
     ? `\n\nUploadede filer:\n${urlFiles.map((f) => `- ${f.name}${f.kind === "authorization" ? " (fuldmagt)" : ""}: ${f.url}`).join("\n")}`
