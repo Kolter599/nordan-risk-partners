@@ -56,6 +56,21 @@ export function isDbConfigured(): boolean {
   return !!DATABASE_URL;
 }
 
+/**
+ * Quick health check — does the leads table exist? Used by /admin to know
+ * whether to show the setup banner instead of the dashboard.
+ */
+export async function isSchemaReady(): Promise<boolean> {
+  const sql = getDb();
+  if (!sql) return false;
+  try {
+    await sql`SELECT 1 FROM leads LIMIT 1`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /* -------------------- Lead helpers -------------------- */
 
 type UpsertLeadInput = {

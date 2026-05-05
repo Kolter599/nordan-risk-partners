@@ -164,6 +164,11 @@ export function HoleInOneFlow({ initialCvr }: { initialCvr: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Kunne ikke sende.");
+      track("hole_in_one_completed", {
+        cvr: s.cvr,
+        praemie_vaerdi: s.praemieVaerdi,
+        klubnavn: s.klubnavn,
+      });
       setStage("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noget gik galt.");

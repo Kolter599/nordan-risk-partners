@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "./GoogleAnalytics";
 
 type State = "idle" | "submitting" | "success" | "error";
 
@@ -42,9 +43,14 @@ export function HomeContactForm() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "Noget gik galt. Prøv igen eller ring.");
       }
+      track("hero_submitted", {
+        has_cvr: !!cvr,
+        has_phone: !!payload.phone,
+      });
       setState("success");
       form.reset();
     } catch (err) {
+      track("hero_error");
       setState("error");
       setError(err instanceof Error ? err.message : "Noget gik galt.");
     }

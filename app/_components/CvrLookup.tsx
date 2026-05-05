@@ -305,6 +305,12 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "Noget gik galt. Prøv igen eller ring.");
       }
+      track("analyse_completed", {
+        files_count: uploadsToDo.length,
+        signed: !!digitalResult,
+        cvr: company?.vat ?? digits,
+        company: company?.name,
+      });
       setStep("done");
     } catch (err) {
       track("cvr_contact_error");

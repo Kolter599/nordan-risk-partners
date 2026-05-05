@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { track } from "./GoogleAnalytics";
 
 export type SignResult = {
   auditId: string;
@@ -108,6 +109,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    track("sign_dialog_opened", { company: defaults.companyName, cvr: defaults.cvr });
     setName(defaults.name ?? "");
     setEmail(defaults.email ?? "");
     setPhone(defaults.phone ?? "");
@@ -182,6 +184,12 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Kunne ikke underskrive");
+      track("sign_completed", {
+        company: defaults.companyName,
+        cvr: defaults.cvr,
+        insurers_count: allInsurers.length,
+        audit_id: (data as SignResult).auditId,
+      });
       onSigned(data as SignResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noget gik galt");
