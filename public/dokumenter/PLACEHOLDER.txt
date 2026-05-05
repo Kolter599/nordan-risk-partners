@@ -1,0 +1,4 @@
+Læg den rigtige undersoegelsesfuldmagt.pdf i denne mappe.
+
+Frontend henter den fra: /dokumenter/undersoegelsesfuldmagt.pdf
+(refereret i app/_components/CvrLookup.tsx på "Underskriv PDF"-flowet)

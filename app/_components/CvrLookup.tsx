@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import { track } from "./GoogleAnalytics";
+
+type UploadedFile = {
+  name: string;
+  url: string;
+  size: number;
+  kind: "policy" | "authorization";
+};
+
+const PENNEO_URL = process.env.NEXT_PUBLIC_PENNEO_URL ?? "";
 
 type Company = {
   name: string;
@@ -38,7 +48,16 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [authMethod, setAuthMethod] = useState<"digital" | "download" | null>(null);
+  const [digitalConfirmed, setDigitalConfirmed] = useState(false);
+  const [authFile, setAuthFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
+
+  // Reset method-specific state when user switches between digital and download.
+  useEffect(() => {
+    setDigitalConfirmed(false);
+    setAuthFile(null);
+  }, [authMethod]);
   const typedOnce = useRef(false);
   const prefillRan = useRef(false);
 
@@ -132,43 +151,79 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     const email = String(data.get("email") ?? "").trim();
     const phone = String(data.get("phone") ?? "").trim();
 
-    const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
-    const MAX_TOTAL = 4 * 1024 * 1024;
-    if (totalBytes > MAX_TOTAL) {
-      setError(
-        `Policerne fylder ${(totalBytes / 1024 / 1024).toFixed(1)} MB i alt. Vi kan modtage op til 4 MB direkte — send de øvrige til info@ndrp.dk, eller fjern nogle filer og prøv igen.`
-      );
+    const authComplete =
+      (authMethod === "digital" && digitalConfirmed) ||
+      (authMethod === "download" && authFile !== null);
+    if (!authComplete) {
+      setError("Underskriv fuldmagten først — digitalt eller upload den underskrevne PDF.");
+      return;
+    }
+    if (files.length === 0) {
+      setError("Upload mindst én police før du sender.");
       return;
     }
 
-    const message = [
-      `CVR: ${company?.vat ?? digits}`,
-      company?.address ? `Adresse: ${company.address}` : "",
-      authMethod ? `Fuldmagt: ${authMethod === "digital" ? "digital signering" : "downloaded/uploaded"}` : "Fuldmagt: ikke valgt",
-      `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const uploadsToDo: { file: File; kind: "policy" | "authorization" }[] = [
+      ...files.map((f) => ({ file: f, kind: "policy" as const })),
+      ...(authFile ? [{ file: authFile, kind: "authorization" as const }] : []),
+    ];
 
     setSubmitting(true);
+    setError(null);
     track("cvr_contact_submitted", {
       has_phone: !!phone,
       auth_method: authMethod ?? "skipped",
       files_uploaded: files.length,
     });
+
+    const uploaded: UploadedFile[] = [];
+    setUploadProgress({ current: 0, total: uploadsToDo.length });
+    for (let i = 0; i < uploadsToDo.length; i++) {
+      const { file, kind } = uploadsToDo[i];
+      try {
+        const blob = await upload(`uploads/${Date.now()}-${file.name}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload-token",
+        });
+        uploaded.push({ name: file.name, url: blob.url, size: file.size, kind });
+      } catch (err) {
+        console.warn("Blob upload failed for", file.name, err);
+      }
+      setUploadProgress({ current: i + 1, total: uploadsToDo.length });
+    }
+    setUploadProgress(null);
+
+    const message = [
+      `CVR: ${company?.vat ?? digits}`,
+      company?.address ? `Adresse: ${company.address}` : "",
+      authMethod === "digital"
+        ? "Fuldmagt: digital signering (Penneo)"
+        : authMethod === "download"
+        ? `Fuldmagt: PDF downloaded og uploaded${authFile ? ` (${authFile.name})` : ""}`
+        : "Fuldmagt: ikke valgt",
+      `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`,
+      uploaded.length < uploadsToDo.length
+        ? `Bemærk: ${uploadsToDo.length - uploaded.length} fil(er) kunne ikke uploades — Blob storage er muligvis ikke konfigureret. Bed kunden eftersende.`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     try {
-      const payload = new FormData();
-      payload.append("name", name);
-      payload.append("email", email);
-      if (phone) payload.append("phone", phone);
-      payload.append("company", company?.name ?? "Ukendt");
-      payload.append("topic", "SaaS lead · Gratis forsikringsanalyse");
-      payload.append("message", message);
-      files.forEach((f) => payload.append("files", f, f.name));
+      const payload = {
+        name,
+        email,
+        phone: phone || undefined,
+        company: company?.name ?? "Ukendt",
+        topic: "SaaS lead · Gratis forsikringsanalyse",
+        message,
+        files: uploaded,
+      };
 
       const res = await fetch("/api/contact", {
         method: "POST",
-        body: payload,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -244,11 +299,16 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
           <StepActions
             authMethod={authMethod}
             setAuthMethod={setAuthMethod}
+            digitalConfirmed={digitalConfirmed}
+            setDigitalConfirmed={setDigitalConfirmed}
+            authFile={authFile}
+            setAuthFile={setAuthFile}
             files={files}
             setFiles={setFiles}
             onBack={() => setStep("confirm")}
             onSubmit={handleSubmit}
             submitting={submitting}
+            uploadProgress={uploadProgress}
             error={error}
           />
         )}
@@ -377,23 +437,40 @@ function StepConfirm({
 function StepActions({
   authMethod,
   setAuthMethod,
+  digitalConfirmed,
+  setDigitalConfirmed,
+  authFile,
+  setAuthFile,
   files,
   setFiles,
   onBack,
   onSubmit,
   submitting,
+  uploadProgress,
   error,
 }: {
   authMethod: "digital" | "download" | null;
   setAuthMethod: (v: "digital" | "download" | null) => void;
+  digitalConfirmed: boolean;
+  setDigitalConfirmed: (v: boolean) => void;
+  authFile: File | null;
+  setAuthFile: (f: File | null) => void;
   files: File[];
   setFiles: (f: File[]) => void;
   onBack: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   submitting: boolean;
+  uploadProgress: { current: number; total: number } | null;
   error: string | null;
 }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isAuthDragging, setIsAuthDragging] = useState(false);
+
+  const authComplete =
+    (authMethod === "digital" && digitalConfirmed) ||
+    (authMethod === "download" && authFile !== null);
+  const policiesComplete = files.length > 0;
+  const canSubmit = authComplete && policiesComplete;
 
   function addFiles(incoming: FileList | File[] | null) {
     if (!incoming) return;
@@ -430,21 +507,141 @@ function StepActions({
               selected={authMethod === "download"}
               onSelect={() => setAuthMethod("download")}
               icon={<IconDownload />}
-              title="Download PDF"
-              body="Hent, underskriv og upload med policerne."
-              action={
-                <a
-                  href="/dokumenter/undersoegelsesfuldmagt.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-[color:var(--color-nordan-accent)] hover:underline"
-                >
-                  Download <span aria-hidden>↓</span>
-                </a>
-              }
+              title="Underskriv PDF"
+              body="Hent, underskriv og upload den underskrevne version."
             />
           </div>
+
+          {/* Expanded: digital signing flow */}
+          {authMethod === "digital" ? (
+            <div className="mt-3 p-3.5 rounded-[8px] bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)]">
+              {!digitalConfirmed ? (
+                <>
+                  <div className="text-[0.82rem] text-[color:var(--color-nordan-ink-soft)] mb-3 leading-relaxed">
+                    Du sendes til Penneo og underskriver med MitID. Vend tilbage hertil bagefter og bekræft.
+                  </div>
+                  {PENNEO_URL ? (
+                    <a
+                      href={PENNEO_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setDigitalConfirmed(true)}
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.85rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
+                    >
+                      Start signering hos Penneo →
+                    </a>
+                  ) : (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setDigitalConfirmed(true)}
+                        className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.85rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
+                      >
+                        Start signering →
+                      </button>
+                      <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] italic">
+                        Penneo-link kommer snart. Klik herover for at fortsætte i mellemtiden.
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-[0.85rem]">
+                  <span className="w-5 h-5 rounded-full bg-green-600 text-white grid place-items-center text-xs">✓</span>
+                  <span className="font-medium text-[color:var(--color-nordan-ink)]">Digital signering startet</span>
+                  <button
+                    type="button"
+                    onClick={() => setDigitalConfirmed(false)}
+                    className="ml-auto text-[0.78rem] text-[color:var(--color-nordan-muted)] underline"
+                  >
+                    Fortryd
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {/* Expanded: download-then-upload flow */}
+          {authMethod === "download" ? (
+            <div className="mt-3 space-y-3">
+              <div className="p-3.5 rounded-[8px] bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)]">
+                <div className="text-[0.82rem] text-[color:var(--color-nordan-ink-soft)] mb-3 leading-relaxed">
+                  1. Hent fuldmagten · 2. Underskriv (papir eller digitalt) · 3. Upload den underskrevne nedenfor.
+                </div>
+                <a
+                  href="/dokumenter/undersoegelsesfuldmagt.pdf"
+                  download
+                  className="inline-flex items-center gap-2 h-9 px-3.5 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.82rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
+                >
+                  Download fuldmagt <span aria-hidden>↓</span>
+                </a>
+              </div>
+              <label
+                htmlFor="auth-file"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!isAuthDragging) setIsAuthDragging(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                  setIsAuthDragging(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsAuthDragging(false);
+                  const f = Array.from(e.dataTransfer.files).find(
+                    (file) => file.type === "application/pdf" || file.type.startsWith("image/")
+                  );
+                  if (f) setAuthFile(f);
+                }}
+                className={`block border-2 border-dashed rounded-[8px] p-4 cursor-pointer transition-all text-center ${
+                  isAuthDragging
+                    ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/10"
+                    : authFile
+                    ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/5"
+                    : "border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-soft)]/40"
+                }`}
+              >
+                <input
+                  id="auth-file"
+                  type="file"
+                  accept="application/pdf,image/*"
+                  onChange={(e) => setAuthFile(e.target.files?.[0] ?? null)}
+                  className="sr-only"
+                />
+                {authFile ? (
+                  <div className="flex items-center gap-2 text-[0.82rem]">
+                    <IconFile />
+                    <span className="flex-1 truncate font-medium text-left">{authFile.name}</span>
+                    <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+                      {Math.round(authFile.size / 1024)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setAuthFile(null);
+                      }}
+                      className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-base leading-none"
+                      aria-label="Fjern"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[0.85rem] font-semibold text-[color:var(--color-nordan-ink)]">
+                      Upload underskrevet fuldmagt
+                    </div>
+                    <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-1">
+                      PDF · træk hertil eller klik
+                    </div>
+                  </>
+                )}
+              </label>
+            </div>
+          ) : null}
         </ActionPanel>
 
         {/* PANEL 2 — UPLOAD */}
@@ -570,6 +767,15 @@ function StepActions({
         <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
       ) : null}
 
+      {!canSubmit && !submitting ? (
+        <div className="text-[0.85rem] text-[color:var(--color-nordan-ink-soft)] bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)] rounded px-3.5 py-2.5">
+          <span className="font-semibold text-[color:var(--color-nordan-ink)]">Mangler før du kan sende:</span>{" "}
+          {!authComplete ? "underskreven fuldmagt" : null}
+          {!authComplete && !policiesComplete ? " · " : null}
+          {!policiesComplete ? "mindst én police uploadet" : null}
+        </div>
+      ) : null}
+
       <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-2">
         <button
           type="button"
@@ -581,13 +787,17 @@ function StepActions({
         </button>
         <button
           type="submit"
-          disabled={submitting}
-          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:opacity-60 transition-colors"
+          disabled={submitting || !canSubmit}
+          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? (
             <>
               <Spinner />
-              <span>Sender…</span>
+              <span>
+                {uploadProgress
+                  ? `Uploader ${uploadProgress.current}/${uploadProgress.total}…`
+                  : "Sender…"}
+              </span>
             </>
           ) : (
             <>

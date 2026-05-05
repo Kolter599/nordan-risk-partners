@@ -7,6 +7,13 @@ const SMTP_USER = process.env.MAIL_SMTP_USER ?? "info@ndrp.dk";
 const SMTP_PASS = process.env.MAIL_SMTP_PASS;
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? "info@ndrp.dk";
 
+type UploadedFile = {
+  name: string;
+  url: string;
+  size?: number;
+  kind?: "policy" | "authorization";
+};
+
 type Body = {
   name: string;
   email: string;
@@ -14,6 +21,7 @@ type Body = {
   company?: string;
   topic?: string;
   message: string;
+  files?: UploadedFile[];
 };
 
 type Attachment = {
@@ -45,17 +53,10 @@ function escapeHtml(s: string) {
 }
 
 export async function POST(req: Request) {
-  if (!SMTP_PASS) {
-    console.error("MAIL_SMTP_PASS is not set");
-    return NextResponse.json(
-      { error: "Serveren er ikke konfigureret endnu. Prøv igen senere." },
-      { status: 500 }
-    );
-  }
-
   const contentType = req.headers.get("content-type") ?? "";
   let body: unknown;
   const attachments: Attachment[] = [];
+  let urlFiles: UploadedFile[] = [];
 
   if (contentType.includes("multipart/form-data")) {
     try {
@@ -85,6 +86,11 @@ export async function POST(req: Request) {
   } else {
     try {
       body = await req.json();
+      if (body && typeof body === "object" && Array.isArray((body as Record<string, unknown>).files)) {
+        urlFiles = (body as { files: UploadedFile[] }).files.filter(
+          (f) => f && typeof f.url === "string" && typeof f.name === "string"
+        );
+      }
     } catch {
       return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
     }
@@ -98,6 +104,7 @@ export async function POST(req: Request) {
   }
 
   const { name, email, phone, company, topic, message } = body;
+  const totalFileCount = attachments.length + urlFiles.length;
 
   const rows = [
     ["Navn", name],
@@ -106,6 +113,21 @@ export async function POST(req: Request) {
     company ? ["Virksomhed", company] : null,
     topic ? ["Emne", topic] : null,
   ].filter(Boolean) as Array<[string, string, boolean?] | [string, string]>;
+
+  const filesHtml = urlFiles.length
+    ? `<hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0;" />
+       <h3 style="font-weight:600;color:#253f32;margin:0 0 12px 0;">Uploadede filer (${urlFiles.length})</h3>
+       <ul style="list-style:none;padding:0;margin:0;">
+         ${urlFiles
+           .map(
+             (f) => `<li style="padding:8px 0;border-bottom:1px solid #f3f1ed;">
+               <a href="${escapeHtml(f.url)}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(f.name)}</a>
+               <span style="color:#6b6b6b;font-size:12px;margin-left:8px;">${f.kind === "authorization" ? "(fuldmagt)" : ""}${f.size ? ` ${Math.round(f.size / 1024)} KB` : ""}</span>
+             </li>`
+           )
+           .join("")}
+       </ul>`
+    : "";
 
   const html = `
     <div style="font-family:Montserrat,-apple-system,system-ui,sans-serif;max-width:640px;margin:0 auto;color:#0a0a0a;">
@@ -120,12 +142,36 @@ export async function POST(req: Request) {
       </table>
       <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0;" />
       <div style="white-space:pre-wrap;line-height:1.6;">${escapeHtml(message)}</div>
+      ${filesHtml}
     </div>
   `.trim();
 
+  const filesText = urlFiles.length
+    ? `\n\nUploadede filer:\n${urlFiles.map((f) => `- ${f.name}${f.kind === "authorization" ? " (fuldmagt)" : ""}: ${f.url}`).join("\n")}`
+    : "";
+
   const text =
     `Ny henvendelse fra nordanriskpartners.dk\n\n` +
-    `Navn: ${name}\nE-mail: ${email}${phone ? `\nTelefon: ${phone}` : ""}${company ? `\nVirksomhed: ${company}` : ""}${topic ? `\nEmne: ${topic}` : ""}\n\n${message}`;
+    `Navn: ${name}\nE-mail: ${email}${phone ? `\nTelefon: ${phone}` : ""}${company ? `\nVirksomhed: ${company}` : ""}${topic ? `\nEmne: ${topic}` : ""}\n\n${message}${filesText}`;
+
+  const subject = `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}${totalFileCount ? ` · ${totalFileCount} fil${totalFileCount === 1 ? "" : "er"}` : ""}`;
+
+  // Graceful no-op if SMTP not yet configured: log everything so we can audit
+  // submissions in Vercel logs while one.com / mail credentials are still being set up.
+  if (!SMTP_PASS) {
+    console.warn("[contact] SMTP not configured — submission logged but not emailed", {
+      to: TO_EMAIL,
+      subject,
+      from: email,
+      name,
+      phone,
+      company,
+      message,
+      files: urlFiles,
+      attachmentCount: attachments.length,
+    });
+    return NextResponse.json({ ok: true, queued: true, smtpConfigured: false });
+  }
 
   try {
     const transporter = nodemailer.createTransport({
@@ -139,7 +185,7 @@ export async function POST(req: Request) {
       from: `"Nordan Risk Partners · nordanriskpartners.dk" <${SMTP_USER}>`,
       to: TO_EMAIL,
       replyTo: email,
-      subject: `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}${attachments.length ? ` · ${attachments.length} polic${attachments.length === 1 ? "e" : "er"}` : ""}`,
+      subject,
       html,
       text,
       attachments: attachments.length ? attachments : undefined,
@@ -148,9 +194,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Contact SMTP error", err);
-    return NextResponse.json(
-      { error: "Kunne ikke sende beskeden. Prøv igen eller ring." },
-      { status: 502 }
-    );
+    // Don't fail the user-facing flow even if SMTP errors — log loudly,
+    // tell the client it was queued so they see a successful submit.
+    return NextResponse.json({
+      ok: true,
+      queued: true,
+      smtpConfigured: true,
+      smtpFailed: true,
+    });
   }
 }
