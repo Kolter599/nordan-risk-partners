@@ -46,7 +46,7 @@ export function FilePreviewDialog({ file, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[920px] max-h-[92vh] bg-white rounded-[12px] shadow-[0_30px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col"
+        className="w-full max-w-[920px] xl:max-w-[1100px] 2xl:max-w-[1300px] max-h-[92vh] bg-white rounded-[12px] shadow-[0_30px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

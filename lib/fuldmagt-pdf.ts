@@ -47,26 +47,26 @@ async function loadLogo(pdfDoc: PDFDocument) {
 
 function drawHeader(page: PDFPage, logo: Awaited<ReturnType<typeof loadLogo>>, fontBold: PDFFont) {
   if (logo) {
-    const logoH = 28;
+    const logoH = 52;
     const logoW = (logo.width / logo.height) * logoH;
     page.drawImage(logo, {
       x: MARGIN_X,
-      y: PAGE_HEIGHT - 60,
+      y: PAGE_HEIGHT - 80,
       width: logoW,
       height: logoH,
     });
   } else {
     page.drawText("NORDAN RISK PARTNERS", {
       x: MARGIN_X,
-      y: PAGE_HEIGHT - 50,
-      size: 12,
+      y: PAGE_HEIGHT - 56,
+      size: 16,
       font: fontBold,
       color: NORDAN_GREEN,
     });
   }
   page.drawLine({
-    start: { x: MARGIN_X, y: PAGE_HEIGHT - 75 },
-    end: { x: PAGE_WIDTH - MARGIN_X, y: PAGE_HEIGHT - 75 },
+    start: { x: MARGIN_X, y: PAGE_HEIGHT - 96 },
+    end: { x: PAGE_WIDTH - MARGIN_X, y: PAGE_HEIGHT - 96 },
     thickness: 0.5,
     color: LINE,
   });
@@ -110,7 +110,7 @@ function newPage(ctx: WriterContext) {
   drawHeader(page, ctx.logo, ctx.fontBold);
   ctx.pageList.push(page);
   ctx.page = page;
-  ctx.y = PAGE_HEIGHT - 110;
+  ctx.y = PAGE_HEIGHT - 130;
 }
 
 function ensureSpace(ctx: WriterContext, needed: number) {
@@ -262,7 +262,7 @@ export async function buildSignedFuldmagtPdf(
 
   const ctx: WriterContext = {
     page: pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]),
-    y: PAGE_HEIGHT - 110,
+    y: PAGE_HEIGHT - 130,
     pdfDoc,
     font,
     fontBold,
