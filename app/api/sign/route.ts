@@ -102,29 +102,29 @@ export async function POST(req: Request) {
     console.warn("[sign] BLOB_READ_WRITE_TOKEN not set — skipping permanent storage");
   }
 
-  // Send receipt emails via Resend (graceful fail if not configured)
-  let emailSent = false;
+  // Schedule receipt emails 10 minutes out. If the user completes the analyse
+  // form in time, /api/contact cancels them and sends a single consolidated
+  // mail instead. Otherwise these go out as the abandoned-after-signing fallback.
+  const scheduledEmailIds: { internal?: string; signer?: string } = {};
   if (RESEND_API_KEY) {
     try {
       const resend = new Resend(RESEND_API_KEY);
-      const subject = `Underskrevet undersøgelsesfuldmagt · ${signer.companyName} (CVR ${signer.cvr})`;
       const filename = `Undersogelsesfuldmagt-${signer.companyName.replace(/[^\w]/g, "_")}.pdf`;
-      const attachment = {
-        filename,
-        content: Buffer.from(pdfBytes),
-      };
-
+      const attachment = { filename, content: Buffer.from(pdfBytes) };
       const signedHuman = new Date(audit.signedAt).toLocaleString("da-DK", {
         dateStyle: "long",
         timeStyle: "short",
         timeZone: "Europe/Copenhagen",
       });
+      const scheduledAt = "in 10 minutes";
 
-      // To Nordan — plain & forward-friendly. PDF is the main thing; metadata is reference.
+      // Internal abandoned-after-sign notice — only delivered if the user doesn't
+      // complete the rest of the analyse flow within 10 minutes.
       const internalHtml = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:14px;line-height:1.55;">
 <div style="max-width:640px;">
-  <div style="font-size:13px;color:#6b6b6b;margin-bottom:6px;">Underskrevet fuldmagt fra nordanriskpartners.dk</div>
+  <div style="font-size:13px;color:#6b6b6b;margin-bottom:6px;">Underskrevet fuldmagt — kunde færdiggjorde ikke flowet</div>
   <h2 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#253f32;">${signer.name} <span style="color:#6b6b6b;font-weight:500;">· ${signer.companyName}</span></h2>
+  <p style="margin:0 0 14px;color:#404040;">Kunden underskrev fuldmagten, men nåede ikke at uploade policer eller sende formularen. PDF er vedhæftet — overvej at følge op direkte.</p>
 
   ${emailKvTable([
     ["Underskriver", `${signer.name}, ${signer.title}`],
@@ -139,40 +139,34 @@ export async function POST(req: Request) {
 
   <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
   <div style="font-size:12px;color:#6b6b6b;">
-    PDF vedhæftet. Svar går direkte til underskriver (reply-to: <a href="mailto:${signer.email}" style="color:#a58878;">${signer.email}</a>).
+    PDF vedhæftet. Svar går direkte til underskriver (reply-to: <a href="mailto:${signer.email}" style="color:#a58888;">${signer.email}</a>).
   </div>
 </div>
 </body></html>`;
-      await resend.emails.send({
+      const internalRes = await resend.emails.send({
         from: FROM_EMAIL,
         to: TO_EMAIL,
         replyTo: signer.email,
-        subject,
+        subject: `Underskrevet fuldmagt (uafsluttet flow) · ${signer.companyName} (CVR ${signer.cvr})`,
         html: internalHtml,
-        text:
-          `Ny underskrevet undersøgelsesfuldmagt\n\n` +
-          `Underskriver: ${signer.name} (${signer.title})\n` +
-          `Firma: ${signer.companyName} (CVR ${signer.cvr})\n` +
-          `E-mail: ${signer.email}${signer.phone ? `\nTelefon: ${signer.phone}` : ""}\n` +
-          `Tidspunkt: ${audit.signedAt}\n` +
-          `IP: ${audit.ip}\n` +
-          `Audit-ID: ${audit.auditId}\n` +
-          `Final hash: ${finalHash}\n` +
-          (blobUrl ? `\nBlob-URL: ${blobUrl}\n` : ""),
         attachments: [attachment],
+        scheduledAt,
       });
+      if (internalRes.data?.id) scheduledEmailIds.internal = internalRes.data.id;
 
-      // To signer — branded receipt
+      // Signer-facing receipt — also delivered only if they abandon. Soft nudge
+      // back to the flow so they can finish if they want.
       const receiptHtml = renderBrandedEmail({
-        preheader: "Kvittering for din underskrevne undersøgelsesfuldmagt",
+        preheader: "Vi har din underskrift — du kan stadig vende tilbage og uploade dine policer",
         eyebrow: "Kvittering",
         title: "Tak for din underskrift",
         bodyHtml: `
+          <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">Hej ${signer.name.split(" ")[0]},</p>
           <p style="margin:0 0 14px;font-size:15.5px;line-height:1.65;">
-            Hej ${signer.name.split(" ")[0]},
+            Vi har modtaget din underskrevne undersøgelsesfuldmagt for <strong>${signer.companyName}</strong>. Den er vedhæftet — gem den som dokumentation.
           </p>
           <p style="margin:0 0 18px;font-size:15.5px;line-height:1.65;">
-            Vi har modtaget din underskrevne undersøgelsesfuldmagt for <strong>${signer.companyName}</strong>. Den vedhæftes som PDF i denne mail — gem den som dokumentation.
+            Bemærk at du ikke nåede at færdiggøre selve analysen. Hvis du gerne vil have os til at gennemgå jeres forsikringer, så <a href="https://nordanriskpartners.dk/analyse" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">vend tilbage til /analyse</a> og upload jeres policer — så går vi i gang.
           </p>
           ${emailKvTable([
             ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
@@ -187,18 +181,18 @@ export async function POST(req: Request) {
           </p>
         `,
       });
-      await resend.emails.send({
+      const signerRes = await resend.emails.send({
         from: FROM_EMAIL,
         to: signer.email,
         replyTo: TO_EMAIL,
-        subject: "Kvittering · din underskrevne undersøgelsesfuldmagt",
+        subject: "Din underskrevne undersøgelsesfuldmagt — Nordan Risk Partners",
         html: receiptHtml,
         attachments: [attachment],
+        scheduledAt,
       });
-
-      emailSent = true;
+      if (signerRes.data?.id) scheduledEmailIds.signer = signerRes.data.id;
     } catch (err) {
-      console.error("[sign] Email send failed:", err);
+      console.error("[sign] Scheduling receipts failed:", err);
     }
   } else {
     console.warn("[sign] RESEND_API_KEY missing — receipts skipped", {
@@ -212,9 +206,12 @@ export async function POST(req: Request) {
     auditId: audit.auditId,
     signedAt: audit.signedAt,
     finalHash,
+    scheduledEmailIds,
+    signerName: signer.name,
+    companyName: signer.companyName,
+    cvr: signer.cvr,
     blobUrl,
     fileName: `Undersogelsesfuldmagt-${signer.companyName.replace(/[^\w]/g, "_")}.pdf`,
-    emailSent,
     mailConfigured: !!RESEND_API_KEY,
     blobConfigured: !!process.env.BLOB_READ_WRITE_TOKEN,
   });

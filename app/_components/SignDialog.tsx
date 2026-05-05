@@ -9,7 +9,10 @@ export type SignResult = {
   finalHash: string;
   blobUrl: string | null;
   fileName: string;
-  emailSent: boolean;
+  scheduledEmailIds?: { internal?: string; signer?: string };
+  signerName?: string;
+  companyName?: string;
+  cvr?: string;
 };
 
 type Props = {

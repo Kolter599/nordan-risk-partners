@@ -257,6 +257,19 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
 
     try {
       let res: Response;
+      const signedFuldmagt = digitalResult
+        ? {
+            auditId: digitalResult.auditId,
+            blobUrl: digitalResult.blobUrl,
+            signedAt: digitalResult.signedAt,
+          }
+        : undefined;
+      const cancelEmailIds = digitalResult?.scheduledEmailIds
+        ? [digitalResult.scheduledEmailIds.internal, digitalResult.scheduledEmailIds.signer].filter(
+            (id): id is string => typeof id === "string" && id.length > 0
+          )
+        : undefined;
+
       if (fellBackToInline.length === 0 || inlineTooLarge) {
         res = await fetch("/api/contact", {
           method: "POST",
@@ -270,6 +283,8 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             message,
             customerMessage,
             files: uploaded,
+            signedFuldmagt,
+            cancelEmailIds,
           }),
         });
       } else {
@@ -281,6 +296,8 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
         fd.append("topic", "Forsikringsanalyse · CVR-flow");
         fd.append("message", message);
         fd.append("customerMessage", customerMessage);
+        if (signedFuldmagt) fd.append("signedFuldmagt", JSON.stringify(signedFuldmagt));
+        if (cancelEmailIds) fd.append("cancelEmailIds", JSON.stringify(cancelEmailIds));
         for (const { file } of fellBackToInline) {
           fd.append("files", file, file.name);
         }

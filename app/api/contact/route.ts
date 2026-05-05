@@ -18,6 +18,12 @@ type UploadedFile = {
   kind?: "policy" | "authorization";
 };
 
+type SignedFuldmagt = {
+  auditId: string;
+  blobUrl?: string | null;
+  signedAt: string;
+};
+
 type Body = {
   name: string;
   email: string;
@@ -33,6 +39,11 @@ type Body = {
   /** Whether to send a confirmation copy to the submitter. Defaults to true. */
   sendCustomerConfirmation?: boolean;
   files?: UploadedFile[];
+  /** When set, the consolidated email references the previously-signed
+   *  fuldmagt and the scheduled abandon-after-sign mails (cancelEmailIds)
+   *  are cancelled so we never double-send. */
+  signedFuldmagt?: SignedFuldmagt;
+  cancelEmailIds?: string[];
 };
 
 type Attachment = {
@@ -40,6 +51,14 @@ type Attachment = {
   content: Buffer;
   contentType: string;
 };
+
+function safeJsonParse<T>(s: string): T | undefined {
+  try {
+    return JSON.parse(s) as T;
+  } catch {
+    return undefined;
+  }
+}
 
 function isValid(body: unknown): body is Body {
   if (!body || typeof body !== "object") return false;
@@ -74,6 +93,8 @@ export async function POST(req: Request) {
           });
         }
       }
+      const signedRaw = String(form.get("signedFuldmagt") ?? "");
+      const cancelRaw = String(form.get("cancelEmailIds") ?? "");
       body = {
         name: String(form.get("name") ?? ""),
         email: String(form.get("email") ?? ""),
@@ -83,6 +104,8 @@ export async function POST(req: Request) {
         message: String(form.get("message") ?? ""),
         customerMessage: String(form.get("customerMessage") ?? "") || undefined,
         sendCustomerConfirmation: form.get("sendCustomerConfirmation") !== "false",
+        signedFuldmagt: signedRaw ? safeJsonParse<SignedFuldmagt>(signedRaw) : undefined,
+        cancelEmailIds: cancelRaw ? safeJsonParse<string[]>(cancelRaw) : undefined,
       };
     } catch {
       return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
@@ -107,7 +130,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email, phone, company, topic, message, customerMessage, sendCustomerConfirmation = true } = body;
+  const {
+    name,
+    email,
+    phone,
+    company,
+    topic,
+    message,
+    customerMessage,
+    sendCustomerConfirmation = true,
+    signedFuldmagt,
+    cancelEmailIds,
+  } = body;
   const totalFileCount = attachments.length + urlFiles.length;
 
   const kvRows: Array<[string, string] | [string, string, "html"]> = [
@@ -136,6 +170,17 @@ export async function POST(req: Request) {
        </div>`
     : "";
 
+  const fuldmagtHtml = signedFuldmagt
+    ? `<div style="margin-top:18px;padding:12px 14px;background:#faf7f2;border-left:3px solid #a58878;border-radius:4px;">
+         <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:#a58878;margin-bottom:6px;">Underskrevet fuldmagt</div>
+         <div style="font-size:13px;color:#0a0a0a;">
+           Audit-ID: <span style="font-family:Menlo,Consolas,monospace;font-size:12px;">${escapeHtml(signedFuldmagt.auditId)}</span><br/>
+           Tidspunkt: ${escapeHtml(new Date(signedFuldmagt.signedAt).toLocaleString("da-DK", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Copenhagen" }))}
+           ${signedFuldmagt.blobUrl ? `<br/>PDF: <a href="${escapeHtml(signedFuldmagt.blobUrl)}" style="color:#a58878;font-weight:600;">åbn underskrevet fuldmagt</a>` : ""}
+         </div>
+       </div>`
+    : "";
+
   // Internal mail to Mads — plain & forward-friendly. No logo wrap, no footer.
   // Structured so the whole client block is easy to copy/paste or forward as-is.
   const html = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:14px;line-height:1.55;">
@@ -146,6 +191,7 @@ export async function POST(req: Request) {
   ${emailKvTable(kvRows)}
 
   <div style="margin-top:20px;font-size:14px;line-height:1.65;color:#0a0a0a;">${escapeHtml(message).replace(/\n/g, "<br/>")}</div>
+  ${fuldmagtHtml}
   ${filesHtml}
 
   <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
@@ -224,6 +270,7 @@ export async function POST(req: Request) {
       <div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Dine kontaktoplysninger</div>
       ${emailKvTable(customerKvRows)}
       ${summaryBlock}
+      ${signedFuldmagt ? `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:#0a0a0a;">✓ Din underskrevne undersøgelsesfuldmagt er modtaget${signedFuldmagt.blobUrl ? ` — <a href="${escapeHtml(signedFuldmagt.blobUrl)}" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">hent kopi</a>` : ""}.</p>` : ""}
       ${customerFilesHtml}
       <p style="margin:28px 0 0;font-size:14px;line-height:1.6;color:#6b6b6b;">
         Spørgsmål? Ring <a href="tel:+4553520006" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">+45 53 52 00 06</a>
@@ -246,6 +293,22 @@ export async function POST(req: Request) {
 
   try {
     const resend = new Resend(RESEND_API_KEY);
+
+    // Cancel any scheduled abandon-after-sign mails before we send the
+    // consolidated copy. Best-effort — if cancel fails (e.g. email already
+    // delivered, or invalid id) we just log and continue.
+    if (cancelEmailIds && cancelEmailIds.length > 0) {
+      await Promise.all(
+        cancelEmailIds.map(async (id) => {
+          if (!id) return;
+          try {
+            await resend.emails.cancel(id);
+          } catch (cancelErr) {
+            console.warn(`[contact] Could not cancel scheduled email ${id}:`, cancelErr);
+          }
+        })
+      );
+    }
 
     // Internal — to Nordan
     const { error: sendError } = await resend.emails.send({
