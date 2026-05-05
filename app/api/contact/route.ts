@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const SMTP_HOST = process.env.MAIL_SMTP_HOST ?? "smtp.migadu.com";
-const SMTP_PORT = Number(process.env.MAIL_SMTP_PORT ?? 465);
-const SMTP_USER = process.env.MAIL_SMTP_USER ?? "info@ndrp.dk";
-const SMTP_PASS = process.env.MAIL_SMTP_PASS;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? "info@ndrp.dk";
 
 type UploadedFile = {
@@ -156,51 +154,46 @@ export async function POST(req: Request) {
 
   const subject = `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}${totalFileCount ? ` · ${totalFileCount} fil${totalFileCount === 1 ? "" : "er"}` : ""}`;
 
-  // Graceful no-op if SMTP not yet configured: log everything so we can audit
-  // submissions in Vercel logs while one.com / mail credentials are still being set up.
-  if (!SMTP_PASS) {
-    console.warn("[contact] SMTP not configured — submission logged but not emailed", {
+  // Graceful no-op if Resend not yet configured.
+  if (!RESEND_API_KEY) {
+    console.warn("[contact] RESEND_API_KEY missing — submission logged but not emailed", {
       to: TO_EMAIL,
       subject,
       from: email,
       name,
       phone,
       company,
-      message,
       files: urlFiles,
       attachmentCount: attachments.length,
     });
-    return NextResponse.json({ ok: true, queued: true, smtpConfigured: false });
+    return NextResponse.json({ ok: true, queued: true, mailConfigured: false });
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    });
-
-    await transporter.sendMail({
-      from: `"Nordan Risk Partners · nordanriskpartners.dk" <${SMTP_USER}>`,
+    const resend = new Resend(RESEND_API_KEY);
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: TO_EMAIL,
       replyTo: email,
       subject,
       html,
       text,
-      attachments: attachments.length ? attachments : undefined,
+      attachments: attachments.length
+        ? attachments.map((a) => ({ filename: a.filename, content: a.content }))
+        : undefined,
     });
+    if (error) throw error;
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Contact SMTP error", err);
-    // Don't fail the user-facing flow even if SMTP errors — log loudly,
+    console.error("[contact] Resend send failed:", err);
+    // Don't fail the user-facing flow even if Resend errors — log loudly,
     // tell the client it was queued so they see a successful submit.
     return NextResponse.json({
       ok: true,
       queued: true,
-      smtpConfigured: true,
-      smtpFailed: true,
+      mailConfigured: true,
+      mailFailed: true,
     });
   }
 }

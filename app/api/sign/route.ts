@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import {
   buildSignedFuldmagtPdf,
   computeOriginalHash,
   type SignerData,
 } from "@/lib/fuldmagt-pdf";
 
-const SMTP_HOST = process.env.MAIL_SMTP_HOST ?? "smtp.migadu.com";
-const SMTP_PORT = Number(process.env.MAIL_SMTP_PORT ?? 465);
-const SMTP_USER = process.env.MAIL_SMTP_USER ?? "info@ndrp.dk";
-const SMTP_PASS = process.env.MAIL_SMTP_PASS;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? "info@ndrp.dk";
 
 type SignRequest = {
@@ -99,28 +97,21 @@ export async function POST(req: Request) {
     console.warn("[sign] BLOB_READ_WRITE_TOKEN not set — skipping permanent storage");
   }
 
-  // Send receipt emails (graceful fail if SMTP not configured)
+  // Send receipt emails via Resend (graceful fail if not configured)
   let emailSent = false;
-  if (SMTP_PASS) {
+  if (RESEND_API_KEY) {
     try {
-      const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: SMTP_PORT,
-        secure: SMTP_PORT === 465,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
-      });
-
+      const resend = new Resend(RESEND_API_KEY);
       const subject = `Underskrevet undersøgelsesfuldmagt · ${signer.companyName} (CVR ${signer.cvr})`;
       const filename = `Undersogelsesfuldmagt-${signer.companyName.replace(/[^\w]/g, "_")}.pdf`;
       const attachment = {
         filename,
         content: Buffer.from(pdfBytes),
-        contentType: "application/pdf",
       };
 
       // To Nordan
-      await transporter.sendMail({
-        from: `"Nordan Risk Partners · nordanriskpartners.dk" <${SMTP_USER}>`,
+      await resend.emails.send({
+        from: FROM_EMAIL,
         to: TO_EMAIL,
         replyTo: signer.email,
         subject,
@@ -138,8 +129,8 @@ export async function POST(req: Request) {
       });
 
       // To signer (receipt copy)
-      await transporter.sendMail({
-        from: `"Nordan Risk Partners" <${SMTP_USER}>`,
+      await resend.emails.send({
+        from: FROM_EMAIL,
         to: signer.email,
         subject: "Kvittering: din underskrevne undersøgelsesfuldmagt",
         html: `
@@ -169,7 +160,7 @@ export async function POST(req: Request) {
       console.error("[sign] Email send failed:", err);
     }
   } else {
-    console.warn("[sign] SMTP not configured — receipts skipped", {
+    console.warn("[sign] RESEND_API_KEY missing — receipts skipped", {
       auditId: audit.auditId,
       signer: signer.email,
     });
@@ -183,7 +174,7 @@ export async function POST(req: Request) {
     blobUrl,
     fileName: `Undersogelsesfuldmagt-${signer.companyName.replace(/[^\w]/g, "_")}.pdf`,
     emailSent,
-    smtpConfigured: !!SMTP_PASS,
+    mailConfigured: !!RESEND_API_KEY,
     blobConfigured: !!process.env.BLOB_READ_WRITE_TOKEN,
   });
 }
