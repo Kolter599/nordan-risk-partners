@@ -378,6 +378,18 @@ function StepActions({
   submitting: boolean;
   error: string | null;
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  function addFiles(incoming: FileList | File[] | null) {
+    if (!incoming) return;
+    const next = Array.from(incoming).filter(
+      (f) => f.type === "application/pdf" || f.type.startsWith("image/")
+    );
+    if (!next.length) return;
+    const existing = new Set(files.map((f) => `${f.name}-${f.size}`));
+    setFiles([...files, ...next.filter((f) => !existing.has(`${f.name}-${f.size}`))]);
+  }
+
   return (
     <form onSubmit={onSubmit} className="cvr-actions-enter space-y-6">
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
@@ -425,51 +437,104 @@ function StepActions({
         <ActionPanel
           step="02"
           title="Upload jeres policer"
-          subtitle="PDF, JPG eller PNG — kan også eftersendes"
+          subtitle="Træk én eller flere filer hertil — eller klik"
         >
           <label
             htmlFor="policer"
-            className="block border-2 border-dashed border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] rounded-[8px] p-5 text-center cursor-pointer transition-colors bg-[color:var(--color-nordan-soft)]/50"
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (!isDragging) setIsDragging(true);
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+              setIsDragging(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              addFiles(e.dataTransfer.files);
+            }}
+            className={`group relative block border-2 border-dashed rounded-[10px] py-8 px-5 text-center cursor-pointer transition-all ${
+              isDragging
+                ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/10 scale-[1.01]"
+                : "border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-soft)]/50"
+            }`}
           >
             <input
               id="policer"
               type="file"
               multiple
               accept="application/pdf,image/*"
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              onChange={(e) => {
+                addFiles(e.target.files);
+                e.target.value = "";
+              }}
               className="sr-only"
             />
-            <div className="inline-flex flex-col items-center gap-2">
-              <span className="w-10 h-10 rounded-full bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)]">
-                <IconUpload />
+            <div className="inline-flex flex-col items-center gap-3">
+              <span className="relative w-14 h-12 grid place-items-center">
+                <span className="absolute left-0 top-1 w-10 h-12 rounded-md bg-white border border-[color:var(--color-nordan-line)] -rotate-6 origin-bottom-left" />
+                <span className="absolute right-0 top-0 w-10 h-12 rounded-md bg-white border border-[color:var(--color-nordan-line)] rotate-6 origin-bottom-right" />
+                <span className="relative w-10 h-12 rounded-md bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)] shadow-sm">
+                  <IconUpload />
+                </span>
               </span>
-              <div className="font-semibold text-[0.88rem]">Træk filer hertil eller klik</div>
-              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)]">PDF · JPG · PNG · max 20 MB</div>
+              <div>
+                <div className="font-semibold text-[0.95rem] text-[color:var(--color-nordan-ink)]">
+                  {isDragging ? "Slip filerne her" : "Træk policer hertil — én eller flere"}
+                </div>
+                <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mt-1">
+                  PDF · JPG · PNG · max 20 MB pr. fil
+                </div>
+              </div>
+              <div className="text-[0.78rem] text-[color:var(--color-nordan-accent)] font-semibold underline-offset-2 group-hover:underline">
+                eller vælg fra computer
+              </div>
             </div>
           </label>
+
           {files.length > 0 ? (
-            <ul className="mt-3 space-y-1.5">
-              {files.map((f, i) => (
-                <li
-                  key={`${f.name}-${i}`}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-[color:var(--color-nordan-soft)] rounded border border-[color:var(--color-nordan-line)] text-[0.82rem]"
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[0.78rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
+                  {files.length} {files.length === 1 ? "fil tilføjet" : "filer tilføjet"}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFiles([])}
+                  className="text-[0.78rem] text-[color:var(--color-nordan-muted)] hover:text-red-600"
                 >
-                  <IconFile />
-                  <span className="flex-1 truncate">{f.name}</span>
-                  <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
-                    {Math.round(f.size / 1024)} KB
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
-                    className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-base leading-none"
-                    aria-label="Fjern"
+                  Ryd alle
+                </button>
+              </div>
+              <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {files.map((f, i) => (
+                  <li
+                    key={`${f.name}-${f.size}-${i}`}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-[color:var(--color-nordan-soft)] rounded border border-[color:var(--color-nordan-line)] text-[0.82rem]"
                   >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <IconFile />
+                    <span className="flex-1 truncate">{f.name}</span>
+                    <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+                      {Math.round(f.size / 1024)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
+                      className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-base leading-none"
+                      aria-label="Fjern"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : null}
         </ActionPanel>
 
