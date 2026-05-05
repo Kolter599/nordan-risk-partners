@@ -4,10 +4,9 @@ type Insurer = { name: string; src: string; w: number; h: number };
 
 const INSURERS: Insurer[] = [
   { name: "Tryg", src: "/images/insurers/tryg.png", w: 220, h: 80 },
-  { name: "Topdanmark", src: "/images/insurers/topdanmark.svg", w: 220, h: 80 },
+  { name: "If & Topdanmark", src: "/images/insurers/top-if.png", w: 320, h: 80 },
   { name: "Alm. Brand", src: "/images/insurers/alm-brand.png", w: 220, h: 80 },
   { name: "Codan", src: "/images/insurers/codan.png", w: 220, h: 80 },
-  { name: "If", src: "/images/insurers/if.png", w: 220, h: 80 },
   { name: "Gjensidige", src: "/images/insurers/gjensidige.png", w: 220, h: 80 },
   { name: "AIG", src: "/images/insurers/aig.png", w: 220, h: 80 },
   { name: "HDI", src: "/images/insurers/hdi.png", w: 220, h: 80 },
@@ -18,6 +17,9 @@ const INSURERS: Insurer[] = [
   { name: "AXA", src: "/images/insurers/axa.png", w: 220, h: 80 },
   { name: "QBE", src: "/images/insurers/qbe.png", w: 220, h: 80 },
   { name: "LB Forsikring", src: "/images/insurers/lb.svg", w: 220, h: 80 },
+  { name: "Baltic Finance Underwriting Agency", src: "/images/insurers/baltic.png", w: 260, h: 80 },
+  { name: "Riskpoint", src: "/images/insurers/riskpoint.png", w: 220, h: 80 },
+  { name: "Viking", src: "/images/insurers/viking.png", w: 220, h: 80 },
 ];
 
 export function InsurerMarquee() {
