@@ -16,6 +16,12 @@ type Body = {
   message: string;
 };
 
+type Attachment = {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+};
+
 function isValid(body: unknown): body is Body {
   if (!body || typeof body !== "object") return false;
   const b = body as Record<string, unknown>;
@@ -47,11 +53,41 @@ export async function POST(req: Request) {
     );
   }
 
+  const contentType = req.headers.get("content-type") ?? "";
   let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
+  const attachments: Attachment[] = [];
+
+  if (contentType.includes("multipart/form-data")) {
+    try {
+      const form = await req.formData();
+      const filesRaw = form.getAll("files");
+      for (const f of filesRaw) {
+        if (f instanceof File && f.size > 0) {
+          const buf = Buffer.from(await f.arrayBuffer());
+          attachments.push({
+            filename: f.name || "fil",
+            content: buf,
+            contentType: f.type || "application/octet-stream",
+          });
+        }
+      }
+      body = {
+        name: String(form.get("name") ?? ""),
+        email: String(form.get("email") ?? ""),
+        phone: String(form.get("phone") ?? "") || undefined,
+        company: String(form.get("company") ?? "") || undefined,
+        topic: String(form.get("topic") ?? "") || undefined,
+        message: String(form.get("message") ?? ""),
+      };
+    } catch {
+      return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
+    }
+  } else {
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
+    }
   }
 
   if (!isValid(body)) {
@@ -103,9 +139,10 @@ export async function POST(req: Request) {
       from: `"Nordan Risk Partners · nordanriskpartners.dk" <${SMTP_USER}>`,
       to: TO_EMAIL,
       replyTo: email,
-      subject: `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}`,
+      subject: `Ny henvendelse fra ${name}${company ? ` (${company})` : ""}${attachments.length ? ` · ${attachments.length} polic${attachments.length === 1 ? "e" : "er"}` : ""}`,
       html,
       text,
+      attachments: attachments.length ? attachments : undefined,
     });
 
     return NextResponse.json({ ok: true });

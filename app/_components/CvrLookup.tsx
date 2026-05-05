@@ -128,32 +128,47 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
-    const payload = {
-      name: String(data.get("name") ?? "").trim(),
-      email: String(data.get("email") ?? "").trim(),
-      phone: String(data.get("phone") ?? "").trim() || undefined,
-      company: company?.name ?? "Ukendt",
-      topic: "SaaS lead · Gratis forsikringsanalyse",
-      message: [
-        `CVR: ${company?.vat ?? digits}`,
-        company?.address ? `Adresse: ${company.address}` : "",
-        authMethod ? `Fuldmagt: ${authMethod === "digital" ? "digital signering" : "downloaded/uploaded"}` : "Fuldmagt: ikke valgt",
-        `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    };
+    const name = String(data.get("name") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    const phone = String(data.get("phone") ?? "").trim();
+
+    const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+    const MAX_TOTAL = 4 * 1024 * 1024;
+    if (totalBytes > MAX_TOTAL) {
+      setError(
+        `Policerne fylder ${(totalBytes / 1024 / 1024).toFixed(1)} MB i alt. Vi kan modtage op til 4 MB direkte — send de øvrige til info@ndrp.dk, eller fjern nogle filer og prøv igen.`
+      );
+      return;
+    }
+
+    const message = [
+      `CVR: ${company?.vat ?? digits}`,
+      company?.address ? `Adresse: ${company.address}` : "",
+      authMethod ? `Fuldmagt: ${authMethod === "digital" ? "digital signering" : "downloaded/uploaded"}` : "Fuldmagt: ikke valgt",
+      `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     setSubmitting(true);
     track("cvr_contact_submitted", {
-      has_phone: !!payload.phone,
+      has_phone: !!phone,
       auth_method: authMethod ?? "skipped",
       files_uploaded: files.length,
     });
     try {
+      const payload = new FormData();
+      payload.append("name", name);
+      payload.append("email", email);
+      if (phone) payload.append("phone", phone);
+      payload.append("company", company?.name ?? "Ukendt");
+      payload.append("topic", "SaaS lead · Gratis forsikringsanalyse");
+      payload.append("message", message);
+      files.forEach((f) => payload.append("files", f, f.name));
+
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -386,8 +401,7 @@ function StepActions({
       (f) => f.type === "application/pdf" || f.type.startsWith("image/")
     );
     if (!next.length) return;
-    const existing = new Set(files.map((f) => `${f.name}-${f.size}`));
-    setFiles([...files, ...next.filter((f) => !existing.has(`${f.name}-${f.size}`))]);
+    setFiles([...files, ...next]);
   }
 
   return (
@@ -489,7 +503,7 @@ function StepActions({
                   {isDragging ? "Slip filerne her" : "Træk policer hertil — én eller flere"}
                 </div>
                 <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mt-1">
-                  PDF · JPG · PNG · max 20 MB pr. fil
+                  PDF · JPG · PNG · max 4 MB i alt
                 </div>
               </div>
               <div className="text-[0.78rem] text-[color:var(--color-nordan-accent)] font-semibold underline-offset-2 group-hover:underline">
