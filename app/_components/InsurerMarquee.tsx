@@ -4,7 +4,7 @@ type Insurer = { name: string; src: string; w: number; h: number; tall?: boolean
 
 const INSURERS: Insurer[] = [
   { name: "Tryg", src: "/images/insurers/tryg.png", w: 220, h: 80 },
-  { name: "If & Topdanmark", src: "/images/insurers/top-if.png", w: 320, h: 80 },
+  { name: "If & Topdanmark", src: "/images/insurers/top-if.png", w: 320, h: 80, tall: true },
   { name: "Alm. Brand", src: "/images/insurers/alm-brand.png", w: 220, h: 80 },
   { name: "Codan", src: "/images/insurers/codan.png", w: 220, h: 80 },
   { name: "Gjensidige", src: "/images/insurers/gjensidige.png", w: 220, h: 80 },
@@ -51,7 +51,7 @@ export function InsurerMarquee() {
                 alt={logo.name}
                 width={logo.w}
                 height={logo.h}
-                className={`${logo.tall ? "max-h-16 md:max-h-[72px]" : "max-h-12 md:max-h-14"} w-auto object-contain`}
+                className={`${logo.tall ? "max-h-16 md:max-h-20" : "max-h-12 md:max-h-14"} w-auto object-contain`}
                 loading="lazy"
               />
             </div>
