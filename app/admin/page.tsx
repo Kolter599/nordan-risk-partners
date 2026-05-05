@@ -35,11 +35,12 @@ export default async function AdminDashboard() {
       <main className="min-h-screen bg-[color:var(--color-nordan-soft)] px-5 py-16">
         <div className="mx-auto max-w-[920px] bg-white rounded-[10px] p-8 shadow-sm">
           <h1 className="font-[family-name:var(--font-playfair)] text-[1.6rem] mb-3">
-            Supabase ikke konfigureret endnu
+            Database ikke konfigureret endnu
           </h1>
           <p className="text-[color:var(--color-nordan-ink-soft)] leading-relaxed mb-4">
-            Sæt <code>SUPABASE_URL</code> og <code>SUPABASE_SERVICE_ROLE_KEY</code> i Vercel env vars,
-            og kør migration <code>supabase/migrations/0001_init.sql</code> i Supabase SQL editor.
+            Sæt <code>DATABASE_URL</code> i Vercel env vars (Neon-integration injecter den
+            automatisk hvis du har koblet projektet sammen), og kør{" "}
+            <code>docs/neon-init.sql</code> i Neon Console SQL Editor.
           </p>
         </div>
       </main>

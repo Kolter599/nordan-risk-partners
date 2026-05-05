@@ -1,12 +1,12 @@
 /**
- * Supabase data layer for lead + event tracking.
+ * Neon (serverless Postgres) data layer for lead + event tracking.
  *
  * Every API route writes through these helpers. They no-op gracefully when
- * env vars aren't set yet — so the user-facing site keeps working even before
- * the Supabase project is wired up.
+ * DATABASE_URL isn't set yet — so the user-facing site keeps working even
+ * before Neon is wired up.
  */
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
 export type LeadSource = "kontakt" | "hero" | "analyse" | "hole_in_one" | "sign";
 export type LeadStatus =
@@ -41,22 +41,19 @@ export type LeadEvent = {
   metadata: Record<string, unknown>;
 };
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const DATABASE_URL = process.env.DATABASE_URL;
 
-let cached: SupabaseClient | null = null;
+let cached: NeonQueryFunction<false, false> | null = null;
 
-export function getDb(): SupabaseClient | null {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+function getDb(): NeonQueryFunction<false, false> | null {
+  if (!DATABASE_URL) return null;
   if (cached) return cached;
-  cached = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  cached = neon(DATABASE_URL);
   return cached;
 }
 
 export function isDbConfigured(): boolean {
-  return !!(SUPABASE_URL && SUPABASE_SERVICE_KEY);
+  return !!DATABASE_URL;
 }
 
 /* -------------------- Lead helpers -------------------- */
@@ -74,66 +71,60 @@ type UpsertLeadInput = {
 };
 
 /**
- * Upsert a lead by (email + source) — so re-submissions update existing
- * rows instead of creating duplicates. Returns the lead id.
+ * Upsert a lead by (email + source) — re-submissions update existing rows
+ * instead of creating duplicates. Returns the lead id.
  */
 export async function upsertLead(input: UpsertLeadInput): Promise<string | null> {
-  const db = getDb();
-  if (!db) return null;
+  const sql = getDb();
+  if (!sql) return null;
   try {
-    const { data: existing } = await db
-      .from("leads")
-      .select("id, payload, status")
-      .eq("email", input.email.toLowerCase())
-      .eq("source", input.source)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const emailLower = input.email.toLowerCase();
+    const existing = (await sql`
+      SELECT id, payload, status FROM leads
+      WHERE email = ${emailLower} AND source = ${input.source}
+      ORDER BY created_at DESC
+      LIMIT 1
+    `) as Array<{ id: string; payload: Record<string, unknown>; status: LeadStatus }>;
 
     const merged = {
-      ...(existing?.payload ?? {}),
+      ...(existing[0]?.payload ?? {}),
       ...(input.payload ?? {}),
     };
 
-    if (existing?.id) {
-      const { error } = await db
-        .from("leads")
-        .update({
-          status: input.status ?? existing.status ?? "new",
-          name: input.name ?? null,
-          phone: input.phone ?? null,
-          company: input.company ?? null,
-          cvr: input.cvr ?? null,
-          audit_id: input.auditId ?? null,
-          payload: merged,
-        })
-        .eq("id", existing.id);
-      if (error) console.error("[db] update lead failed:", error);
-      return existing.id;
+    if (existing[0]?.id) {
+      const updated = (await sql`
+        UPDATE leads SET
+          status = ${input.status ?? existing[0].status ?? "new"},
+          name = ${input.name ?? null},
+          phone = ${input.phone ?? null},
+          company = ${input.company ?? null},
+          cvr = ${input.cvr ?? null},
+          audit_id = ${input.auditId ?? null},
+          payload = ${JSON.stringify(merged)}::jsonb
+        WHERE id = ${existing[0].id}
+        RETURNING id
+      `) as Array<{ id: string }>;
+      return updated[0]?.id ?? null;
     }
 
-    const { data, error } = await db
-      .from("leads")
-      .insert({
-        source: input.source,
-        status: input.status ?? "new",
-        name: input.name ?? null,
-        email: input.email.toLowerCase(),
-        phone: input.phone ?? null,
-        company: input.company ?? null,
-        cvr: input.cvr ?? null,
-        audit_id: input.auditId ?? null,
-        payload: input.payload ?? {},
-      })
-      .select("id")
-      .single();
-    if (error) {
-      console.error("[db] insert lead failed:", error);
-      return null;
-    }
-    return data?.id ?? null;
+    const inserted = (await sql`
+      INSERT INTO leads (source, status, name, email, phone, company, cvr, audit_id, payload)
+      VALUES (
+        ${input.source},
+        ${input.status ?? "new"},
+        ${input.name ?? null},
+        ${emailLower},
+        ${input.phone ?? null},
+        ${input.company ?? null},
+        ${input.cvr ?? null},
+        ${input.auditId ?? null},
+        ${JSON.stringify(input.payload ?? {})}::jsonb
+      )
+      RETURNING id
+    `) as Array<{ id: string }>;
+    return inserted[0]?.id ?? null;
   } catch (err) {
-    console.error("[db] upsertLead exception:", err);
+    console.error("[db] upsertLead failed:", err);
     return null;
   }
 }
@@ -143,15 +134,15 @@ export async function recordEvent(
   type: string,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
-  const db = getDb();
-  if (!db) return;
+  const sql = getDb();
+  if (!sql) return;
   try {
-    const { error } = await db
-      .from("events")
-      .insert({ lead_id: leadId, type, metadata });
-    if (error) console.error("[db] insert event failed:", error);
+    await sql`
+      INSERT INTO events (lead_id, type, metadata)
+      VALUES (${leadId}, ${type}, ${JSON.stringify(metadata)}::jsonb)
+    `;
   } catch (err) {
-    console.error("[db] recordEvent exception:", err);
+    console.error("[db] recordEvent failed:", err);
   }
 }
 
@@ -163,40 +154,75 @@ export async function listLeads(opts: {
   source?: LeadSource | "all";
   since?: Date;
 } = {}): Promise<Lead[]> {
-  const db = getDb();
-  if (!db) return [];
-  let q = db
-    .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(opts.limit ?? 200);
-  if (opts.status && opts.status !== "all") q = q.eq("status", opts.status);
-  if (opts.source && opts.source !== "all") q = q.eq("source", opts.source);
-  if (opts.since) q = q.gte("created_at", opts.since.toISOString());
-  const { data, error } = await q;
-  if (error) {
-    console.error("[db] listLeads failed:", error);
+  const sql = getDb();
+  if (!sql) return [];
+  try {
+    const limit = opts.limit ?? 200;
+    // Build query incrementally — Neon's tagged template handles the
+    // parameter binding for each branch.
+    if (opts.status && opts.status !== "all" && opts.source && opts.source !== "all" && opts.since) {
+      return (await sql`
+        SELECT * FROM leads
+        WHERE status = ${opts.status} AND source = ${opts.source} AND created_at >= ${opts.since.toISOString()}
+        ORDER BY created_at DESC LIMIT ${limit}
+      `) as Lead[];
+    }
+    if (opts.status && opts.status !== "all" && opts.source && opts.source !== "all") {
+      return (await sql`
+        SELECT * FROM leads
+        WHERE status = ${opts.status} AND source = ${opts.source}
+        ORDER BY created_at DESC LIMIT ${limit}
+      `) as Lead[];
+    }
+    if (opts.status && opts.status !== "all") {
+      return (await sql`
+        SELECT * FROM leads WHERE status = ${opts.status}
+        ORDER BY created_at DESC LIMIT ${limit}
+      `) as Lead[];
+    }
+    if (opts.source && opts.source !== "all") {
+      return (await sql`
+        SELECT * FROM leads WHERE source = ${opts.source}
+        ORDER BY created_at DESC LIMIT ${limit}
+      `) as Lead[];
+    }
+    if (opts.since) {
+      return (await sql`
+        SELECT * FROM leads WHERE created_at >= ${opts.since.toISOString()}
+        ORDER BY created_at DESC LIMIT ${limit}
+      `) as Lead[];
+    }
+    return (await sql`SELECT * FROM leads ORDER BY created_at DESC LIMIT ${limit}`) as Lead[];
+  } catch (err) {
+    console.error("[db] listLeads failed:", err);
     return [];
   }
-  return (data ?? []) as Lead[];
 }
 
 export async function getLead(id: string): Promise<Lead | null> {
-  const db = getDb();
-  if (!db) return null;
-  const { data } = await db.from("leads").select("*").eq("id", id).maybeSingle();
-  return (data as Lead) ?? null;
+  const sql = getDb();
+  if (!sql) return null;
+  try {
+    const rows = (await sql`SELECT * FROM leads WHERE id = ${id} LIMIT 1`) as Lead[];
+    return rows[0] ?? null;
+  } catch (err) {
+    console.error("[db] getLead failed:", err);
+    return null;
+  }
 }
 
 export async function listEventsForLead(leadId: string): Promise<LeadEvent[]> {
-  const db = getDb();
-  if (!db) return [];
-  const { data } = await db
-    .from("events")
-    .select("*")
-    .eq("lead_id", leadId)
-    .order("created_at", { ascending: true });
-  return (data ?? []) as LeadEvent[];
+  const sql = getDb();
+  if (!sql) return [];
+  try {
+    return (await sql`
+      SELECT * FROM events WHERE lead_id = ${leadId}
+      ORDER BY created_at ASC
+    `) as LeadEvent[];
+  } catch (err) {
+    console.error("[db] listEventsForLead failed:", err);
+    return [];
+  }
 }
 
 export async function updateLeadStatus(
@@ -204,10 +230,17 @@ export async function updateLeadStatus(
   status: LeadStatus,
   notes?: string
 ): Promise<void> {
-  const db = getDb();
-  if (!db) return;
-  await db.from("leads").update({ status, notes: notes ?? null }).eq("id", id);
-  await recordEvent(id, "status_changed", { status, notes });
+  const sql = getDb();
+  if (!sql) return;
+  try {
+    await sql`
+      UPDATE leads SET status = ${status}, notes = ${notes ?? null}
+      WHERE id = ${id}
+    `;
+    await recordEvent(id, "status_changed", { status, notes });
+  } catch (err) {
+    console.error("[db] updateLeadStatus failed:", err);
+  }
 }
 
 /* -------------------- Stats for monthly report -------------------- */
@@ -226,7 +259,7 @@ export async function getStatsBetween(
   from: Date,
   to: Date
 ): Promise<MonthlyStats> {
-  const db = getDb();
+  const sql = getDb();
   const empty: MonthlyStats = {
     totalLeads: 0,
     bySource: {},
@@ -236,26 +269,31 @@ export async function getStatsBetween(
     quotedCount: 0,
     wonCount: 0,
   };
-  if (!db) return empty;
-  const { data: leads } = await db
-    .from("leads")
-    .select("source, status, audit_id")
-    .gte("created_at", from.toISOString())
-    .lte("created_at", to.toISOString());
-  const all = (leads ?? []) as Pick<Lead, "source" | "status" | "audit_id">[];
-  const bySource: Record<string, number> = {};
-  const byStatus: Record<string, number> = {};
-  for (const l of all) {
-    bySource[l.source] = (bySource[l.source] ?? 0) + 1;
-    byStatus[l.status] = (byStatus[l.status] ?? 0) + 1;
+  if (!sql) return empty;
+  try {
+    const rows = (await sql`
+      SELECT source, status, audit_id FROM leads
+      WHERE created_at >= ${from.toISOString()} AND created_at <= ${to.toISOString()}
+    `) as Array<Pick<Lead, "source" | "status" | "audit_id">>;
+    const bySource: Record<string, number> = {};
+    const byStatus: Record<string, number> = {};
+    for (const l of rows) {
+      bySource[l.source] = (bySource[l.source] ?? 0) + 1;
+      byStatus[l.status] = (byStatus[l.status] ?? 0) + 1;
+    }
+    return {
+      totalLeads: rows.length,
+      bySource,
+      byStatus,
+      signedCount: rows.filter((l) => !!l.audit_id).length,
+      completedCount: rows.filter(
+        (l) => l.status === "completed" || l.status === "quoted" || l.status === "won"
+      ).length,
+      quotedCount: rows.filter((l) => l.status === "quoted" || l.status === "won").length,
+      wonCount: rows.filter((l) => l.status === "won").length,
+    };
+  } catch (err) {
+    console.error("[db] getStatsBetween failed:", err);
+    return empty;
   }
-  return {
-    totalLeads: all.length,
-    bySource,
-    byStatus,
-    signedCount: all.filter((l) => !!l.audit_id).length,
-    completedCount: all.filter((l) => l.status === "completed" || l.status === "quoted" || l.status === "won").length,
-    quotedCount: all.filter((l) => l.status === "quoted" || l.status === "won").length,
-    wonCount: all.filter((l) => l.status === "won").length,
-  };
 }

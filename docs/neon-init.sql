@@ -1,26 +1,37 @@
--- Nordan Risk Partners — leads + events tracking
+-- Nordan Risk Partners — leads + events tracking (Neon Postgres)
 --
--- Run this once after creating a Supabase project. Copy/paste into
--- Supabase dashboard → SQL Editor → New Query → Run.
+-- Run this once after connecting Neon to the Vercel project.
+-- Open Neon Console → SQL Editor → paste this whole file → Run.
+-- All statements are idempotent so re-running is safe.
 
 create extension if not exists "pgcrypto";
 
-create type lead_source as enum (
-  'kontakt',
-  'hero',
-  'analyse',
-  'hole_in_one',
-  'sign'
-);
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lead_source') then
+    create type lead_source as enum (
+      'kontakt',
+      'hero',
+      'analyse',
+      'hole_in_one',
+      'sign'
+    );
+  end if;
+end $$;
 
-create type lead_status as enum (
-  'new',          -- just landed
-  'partial',     -- engaged but not finished (e.g. signed without uploading)
-  'completed',   -- finished the flow they started
-  'quoted',      -- Mads has sent a quote
-  'won',         -- they accepted
-  'lost'         -- closed without conversion
-);
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'lead_status') then
+    create type lead_status as enum (
+      'new',
+      'partial',
+      'completed',
+      'quoted',
+      'won',
+      'lost'
+    );
+  end if;
+end $$;
 
 create table if not exists leads (
   id uuid default gen_random_uuid() primary key,
@@ -67,7 +78,5 @@ create trigger leads_touch
   for each row
   execute function touch_updated_at();
 
--- RLS: only the service role (used from API routes) can read/write.
--- Anonymous client never touches these tables directly.
-alter table leads enable row level security;
-alter table events enable row level security;
+-- Neon connection uses DATABASE_URL with full credentials. We never expose
+-- a public-facing client to the DB, so RLS isn't necessary.
