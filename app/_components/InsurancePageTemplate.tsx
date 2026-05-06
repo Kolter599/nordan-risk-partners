@@ -34,7 +34,7 @@ export function InsurancePageTemplate({ product }: Props) {
         <div className="absolute inset-0">
           <Image
             src={product.heroImage}
-            alt=""
+            alt={`${product.title} — uafhængig rådgivning fra Nordan Risk Partners`}
             fill
             priority
             fetchPriority="high"
@@ -242,7 +242,7 @@ function FeatureSection({ feature, index }: { feature: FeatureBlock; index: numb
         <div className={`md:col-span-6 ${imageRight ? "md:order-2" : "md:order-1"} relative aspect-[4/3] overflow-hidden rounded-[8px]`}>
           <Image
             src={feature.image}
-            alt=""
+            alt={feature.title}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"

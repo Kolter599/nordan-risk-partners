@@ -2,12 +2,37 @@ import type { Metadata } from "next";
 import { CvrCtaSection } from "../_components/CvrCtaSection";
 import { PageHero } from "../_components/PageHero";
 import { Reveal } from "../_components/Reveal";
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const SAA_TITLE = "Sådan arbejder vi — vores 6-trins proces til erhvervsforsikring";
+const SAA_DESC =
+  "Sådan finder vi den rigtige forsikringsløsning til din virksomhed: dialog, dataindsamling, udbudsanalyse, markedsforhandling, anbefaling og løbende rådgivning. Klar proces, ingen overraskelser.";
 
 export const metadata: Metadata = {
-  title: "Sådan arbejder vi",
-  description:
-    "Seks strukturerede trin fra indledende dialog til løbende rådgivning. Sådan sikrer vi en gennemtænkt forsikringsløsning til din virksomhed.",
+  title: SAA_TITLE,
+  description: SAA_DESC,
   alternates: { canonical: "/saadan-arbejder-vi" },
+  openGraph: pageOpenGraph({ title: SAA_TITLE, description: SAA_DESC, path: "/saadan-arbejder-vi" }),
+  twitter: pageTwitter({ title: SAA_TITLE, description: SAA_DESC }),
+};
+
+const SAA_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Sådan arbejder vi", path: "/saadan-arbejder-vi" },
+    ]),
+    {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/saadan-arbejder-vi#webpage`,
+      url: `${SITE_URL}/saadan-arbejder-vi`,
+      name: SAA_TITLE,
+      description: SAA_DESC,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 const STEPS = [
@@ -46,11 +71,16 @@ const STEPS = [
 export default function SaadanArbejderViPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(SAA_JSONLD) }}
+      />
       <PageHero
         eyebrow="Vores proces"
         title={<>Sådan arbejder vi — trin for trin</>}
         body="Som uafhængige forsikringsmæglere arbejder vi ud fra en struktureret og veldokumenteret proces. Det sikrer at du som kunde får en gennemtænkt løsning der matcher netop din virksomheds behov."
         image="/images/unsplash-meeting.jpg"
+        imageAlt="Forsikringsmægler i møde med erhvervskunde — gennemgang af forsikringsprogram"
       />
 
       <section className="py-20 md:py-28">

@@ -68,13 +68,13 @@ export const metadata: Metadata = {
     title: "Nordan Risk Partners — Uafhængig forsikringsmægler",
     description:
       "Uvildig rådgivning om erhvervsforsikring. Direkte adgang til erfarne rådgivere — ingen telefonsluser. Gratis analyse via CVR.",
-    images: [{ url: "/images/nordan-75.jpg", width: 1200, height: 630, alt: "Nordan Risk Partners — uafhængig forsikringsmægler" }],
+    images: [{ url: "/images/og-default.png", width: 1200, height: 630, alt: "Nordan Risk Partners — uafhængig forsikringsmægler" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nordan Risk Partners — Uafhængig forsikringsmægler",
     description: "Uvildig rådgivning om erhvervsforsikring. Gratis analyse via CVR.",
-    images: ["/images/nordan-75.jpg"],
+    images: ["/images/og-default.png"],
   },
   alternates: {
     canonical: "/",
@@ -96,13 +96,72 @@ export const metadata: Metadata = {
   },
 };
 
-const WEBSITE_JSONLD = {
+const SITE_JSONLD = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Nordan Risk Partners",
-  url: SITE_URL,
-  inLanguage: "da-DK",
-  publisher: { "@type": "Organization", name: "Nordan Risk Partners ApS" },
+  "@graph": [
+    {
+      "@type": "InsuranceAgency",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Nordan Risk Partners ApS",
+      legalName: "Nordan Risk Partners ApS",
+      alternateName: ["Nordan Risk Partners", "NDRP"],
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/images/logo.png`,
+        width: 1500,
+        height: 400,
+      },
+      image: `${SITE_URL}/images/og-default.png`,
+      description:
+        "Uafhængig forsikringsmægler. Uvildig rådgivning om erhvervsforsikring i Danmark — ingen bindinger, ingen telefonsluser.",
+      email: "info@ndrp.dk",
+      telephone: "+4553520006",
+      taxID: "45953769",
+      priceRange: "Gratis indledende analyse",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Toftevej 15B",
+        postalCode: "3450",
+        addressLocality: "Allerød",
+        addressCountry: "DK",
+      },
+      geo: { "@type": "GeoCoordinates", latitude: 55.872, longitude: 12.348 },
+      areaServed: { "@type": "Country", name: "Denmark" },
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          telephone: "+4553520006",
+          email: "info@ndrp.dk",
+          contactType: "customer service",
+          availableLanguage: ["Danish", "English"],
+          areaServed: "DK",
+        },
+      ],
+      openingHoursSpecification: [
+        { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday"], opens: "08:30", closes: "16:00" },
+        { "@type": "OpeningHoursSpecification", dayOfWeek: "Friday", opens: "08:30", closes: "15:00" },
+      ],
+      sameAs: [
+        "https://www.linkedin.com/company/nordan-risk-partners/",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Nordan Risk Partners",
+      description:
+        "Uafhængig forsikringsmægler — uvildig rådgivning om erhvervsforsikring i Danmark.",
+      inLanguage: "da-DK",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/?s={search_term_string}` },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -113,7 +172,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSONLD) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSONLD) }}
         />
       </head>
       <body className="min-h-screen flex flex-col">

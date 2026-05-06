@@ -4,12 +4,37 @@ import { CvrCtaSection } from "../_components/CvrCtaSection";
 import { PageHero } from "../_components/PageHero";
 import { Reveal } from "../_components/Reveal";
 import { INSURANCE_PRODUCTS } from "@/lib/insurance-products";
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const ERH_TITLE = "Erhvervsforsikring — komplet katalog over forsikringer til virksomheder";
+const ERH_DESC =
+  "Hele kataloget af erhvervsforsikringer fra A til Å — ansvar, arbejdsskade, cyber, bestyrelsesansvar, transport, ejendom. Uafhængig rådgivning, vi sammenligner markedet.";
 
 export const metadata: Metadata = {
-  title: "Erhvervsforsikring",
-  description:
-    "Uafhængig rådgivning om alle erhvervsforsikringer — fra ansvars- og arbejdsskade til transport, cyber og bestyrelsesansvar. Vi sammenligner markedet for dig.",
+  title: ERH_TITLE,
+  description: ERH_DESC,
   alternates: { canonical: "/erhvervsforsikringer" },
+  openGraph: pageOpenGraph({ title: ERH_TITLE, description: ERH_DESC, path: "/erhvervsforsikringer" }),
+  twitter: pageTwitter({ title: ERH_TITLE, description: ERH_DESC }),
+};
+
+const ERH_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Erhvervsforsikringer", path: "/erhvervsforsikringer" },
+    ]),
+    {
+      "@type": "CollectionPage",
+      "@id": `${SITE_URL}/erhvervsforsikringer#collectionpage`,
+      url: `${SITE_URL}/erhvervsforsikringer`,
+      name: ERH_TITLE,
+      description: ERH_DESC,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 // Build the A-Å catalog from the CMS data + legacy labels we don't have pages for yet
@@ -69,6 +94,10 @@ const CATEGORIES = buildCategories();
 export default function ErhvervsforsikringerPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ERH_JSONLD) }}
+      />
       <PageHero
         eyebrow="Erhvervsforsikring"
         title={<>Erhvervsforsikring med Nordan Risk Partners</>}
@@ -83,6 +112,7 @@ export default function ErhvervsforsikringerPage() {
           </>
         }
         image="/images/copenhagen.jpg"
+        imageAlt="København — danske virksomheder vi rådgiver om erhvervsforsikring"
       />
 
       <section className="py-20 md:py-28 bg-[color:var(--color-nordan-soft)]">

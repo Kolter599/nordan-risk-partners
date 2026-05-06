@@ -3,18 +3,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { CvrCapture } from "./_components/CvrCapture";
 import { InsurerMarquee } from "./_components/InsurerMarquee";
-import { OrganizationJsonLd } from "./_components/JsonLd";
 import { Reveal } from "./_components/Reveal";
 import { RotatingWord } from "./_components/RotatingWord";
 import { TestimonialMarquee } from "./_components/TestimonialMarquee";
+import { pageOpenGraph, pageTwitter } from "@/lib/seo";
+
+const HOME_TITLE = "Nordan Risk Partners — Uafhængig forsikringsmægler til erhverv";
+const HOME_DESC =
+  "Uafhængig forsikringsmægler i Danmark med 40+ års erfaring. Indtast dit CVR og få en gratis analyse — vi finder huller, dropper overlap og forhandler præmien ned. Ingen binding.";
 
 export const metadata: Metadata = {
-  title: {
-    absolute: "Nordan Risk Partners — Uafhængig forsikringsmægler til erhverv",
-  },
-  description:
-    "En smartere tilgang til erhvervsforsikring. Indtast dit CVR og få en gratis analyse af dine forsikringer. Vi sammenligner markedet, optimerer dækning og reducerer præmien.",
+  title: { absolute: HOME_TITLE },
+  description: HOME_DESC,
   alternates: { canonical: "/" },
+  openGraph: pageOpenGraph({ title: HOME_TITLE, description: HOME_DESC, path: "/" }),
+  twitter: pageTwitter({ title: HOME_TITLE, description: HOME_DESC }),
 };
 
 const METRICS = [
@@ -44,8 +47,6 @@ const STEPS = [
 export default function Home() {
   return (
     <>
-      <OrganizationJsonLd />
-
       {/* HERO — Holstrup-style, slim */}
       <section className="relative overflow-hidden text-white min-h-[640px] sm:min-h-[68vh] md:min-h-[78vh] flex items-center">
         <div className="absolute inset-0">

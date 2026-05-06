@@ -1,11 +1,36 @@
 import type { Metadata } from "next";
 import { AnalyseFlow } from "./AnalyseFlow";
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const ANALYSE_TITLE = "Gratis forsikringsanalyse — indtast CVR og se hvor du kan spare";
+const ANALYSE_DESC =
+  "Få en gratis, uvildig analyse af din virksomheds forsikringer. Indtast CVR — vi henter data, gennemgår dækninger og forhandler præmien ned. Ingen binding, intet salgsspil.";
 
 export const metadata: Metadata = {
-  title: "Start din gratis forsikringsanalyse",
-  description:
-    "Indtast dit CVR og få en gratis, AI-drevet analyse af din virksomheds forsikringer. Vi gennemgår dækninger og forhandler på dine vegne.",
+  title: ANALYSE_TITLE,
+  description: ANALYSE_DESC,
   alternates: { canonical: "/analyse" },
+  openGraph: pageOpenGraph({ title: ANALYSE_TITLE, description: ANALYSE_DESC, path: "/analyse" }),
+  twitter: pageTwitter({ title: ANALYSE_TITLE, description: ANALYSE_DESC }),
+};
+
+const ANALYSE_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Gratis analyse", path: "/analyse" },
+    ]),
+    {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/analyse#webpage`,
+      url: `${SITE_URL}/analyse`,
+      name: ANALYSE_TITLE,
+      description: ANALYSE_DESC,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 type SearchParams = Promise<{ cvr?: string | string[] }>;
@@ -22,6 +47,10 @@ export default async function AnalysePage({
 
   return (
     <main className="bg-[color:var(--color-nordan-soft)] min-h-[calc(100vh-80px)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ANALYSE_JSONLD) }}
+      />
       {/* HERO BAND — restrained but grand */}
       <section className="pt-24 sm:pt-32 md:pt-40 pb-8 md:pb-14 relative overflow-hidden">
         {/* subtle radial glow for depth */}

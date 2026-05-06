@@ -5,13 +5,14 @@ type Props = {
   title: React.ReactNode;
   body?: React.ReactNode;
   image?: string;
+  imageAlt?: string;
 };
 
-export function PageHero({ eyebrow, title, body, image = "/images/nordan-52.jpg" }: Props) {
+export function PageHero({ eyebrow, title, body, image = "/images/nordan-52.jpg", imageAlt = "" }: Props) {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0">
-        <Image src={image} alt="" fill priority className="object-cover object-center" sizes="100vw" quality={95} />
+        <Image src={image} alt={imageAlt} fill priority className="object-cover object-center" sizes="100vw" quality={95} />
         <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--color-nordan-dark)]/92 via-[color:var(--color-nordan-dark)]/82 to-[color:var(--color-nordan-dark)]/95" />
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8 py-24 md:py-36 text-white">

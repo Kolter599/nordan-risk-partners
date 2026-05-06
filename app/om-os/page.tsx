@@ -2,12 +2,37 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CvrCtaSection } from "../_components/CvrCtaSection";
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const OM_TITLE = "Om Nordan Risk Partners — mød Mads og Leo, dine forsikringsmæglere";
+const OM_DESC =
+  "Mød folkene bag Nordan Risk Partners. To forsikringsmæglere med 40+ års samlet erfaring og en simpel mission: ærlig, uvildig rådgivning om erhvervsforsikring — uden binding.";
 
 export const metadata: Metadata = {
-  title: "Om os",
-  description:
-    "Nordan Risk Partners er etableret med ambitionen om målrettet, personlig og ærlig forsikringsrådgivning. Over 40 års samlet erfaring.",
+  title: OM_TITLE,
+  description: OM_DESC,
   alternates: { canonical: "/om-os" },
+  openGraph: pageOpenGraph({ title: OM_TITLE, description: OM_DESC, path: "/om-os" }),
+  twitter: pageTwitter({ title: OM_TITLE, description: OM_DESC }),
+};
+
+const OM_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Om os", path: "/om-os" },
+    ]),
+    {
+      "@type": "AboutPage",
+      "@id": `${SITE_URL}/om-os#aboutpage`,
+      url: `${SITE_URL}/om-os`,
+      name: OM_TITLE,
+      description: OM_DESC,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 const TEAM = [
@@ -36,6 +61,10 @@ const TEAM = [
 export default function OmOsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(OM_JSONLD) }}
+      />
       {/* HERO — text + full vertical founders portrait */}
       <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-28">
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
@@ -115,7 +144,7 @@ export default function OmOsPage() {
             {TEAM.map((m) => (
               <article key={m.name} className="bg-white border border-[color:var(--color-nordan-line)] rounded-sm overflow-hidden">
                 <div className="relative aspect-[4/5]">
-                  <Image src={m.image} alt={m.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" quality={95} />
+                  <Image src={m.image} alt={`${m.name} — ${m.role}, Nordan Risk Partners`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" quality={95} />
                 </div>
                 <div className="p-7 md:p-10">
                   <h3 className="display-md mb-1">{m.name}</h3>

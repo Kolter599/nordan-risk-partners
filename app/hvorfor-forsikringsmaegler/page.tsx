@@ -2,12 +2,37 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { CvrCtaSection } from "../_components/CvrCtaSection";
 import { Reveal } from "../_components/Reveal";
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const HVORFOR_TITLE = "Hvorfor bruge en forsikringsmægler? — fordele, pris og hvad det reelt gør";
+const HVORFOR_DESC =
+  "En forsikringsmægler er din uafhængige rådgiver — vi forhandler markedet, gennemskuer dækninger, hjælper når der sker skade. Læs hvornår en mægler giver mening for din virksomhed.";
 
 export const metadata: Metadata = {
-  title: "Hvorfor forsikringsmægler?",
-  description:
-    "En forsikringsmægler er din uafhængige rådgiver der varetager hele processen omkring dit forsikringsprogram — fra analyse til skader.",
+  title: HVORFOR_TITLE,
+  description: HVORFOR_DESC,
   alternates: { canonical: "/hvorfor-forsikringsmaegler" },
+  openGraph: pageOpenGraph({ title: HVORFOR_TITLE, description: HVORFOR_DESC, path: "/hvorfor-forsikringsmaegler" }),
+  twitter: pageTwitter({ title: HVORFOR_TITLE, description: HVORFOR_DESC }),
+};
+
+const HVORFOR_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Hvorfor forsikringsmægler?", path: "/hvorfor-forsikringsmaegler" },
+    ]),
+    {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/hvorfor-forsikringsmaegler#webpage`,
+      url: `${SITE_URL}/hvorfor-forsikringsmaegler`,
+      name: HVORFOR_TITLE,
+      description: HVORFOR_DESC,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 const REASONS = [
@@ -76,6 +101,10 @@ export default function HvorforPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(HVORFOR_JSONLD) }}
       />
       {/* HERO — text + vertical portrait that sticks while scrolling (mirrors /om-os) */}
       <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-28">

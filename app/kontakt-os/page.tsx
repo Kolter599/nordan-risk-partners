@@ -4,44 +4,37 @@ import { CvrCapture } from "../_components/CvrCapture";
 import { PageHero } from "../_components/PageHero";
 import { ContactForm } from "./ContactForm";
 
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const KONTAKT_TITLE = "Kontakt Nordan Risk Partners — ring, skriv eller start din analyse";
+const KONTAKT_DESC =
+  "Kontakt Nordan Risk Partners direkte. Ring 53 52 00 06, skriv til info@ndrp.dk eller start din gratis CVR-analyse. Ingen telefonsluser — du taler med Mads eller Leo.";
+
 export const metadata: Metadata = {
-  title: "Kontakt os",
-  description:
-    "Kontakt Nordan Risk Partners. Start din gratis analyse via CVR, send en besked, ring +45 53 52 00 06 eller skriv til info@ndrp.dk.",
+  title: KONTAKT_TITLE,
+  description: KONTAKT_DESC,
   alternates: { canonical: "/kontakt-os" },
+  openGraph: pageOpenGraph({ title: KONTAKT_TITLE, description: KONTAKT_DESC, path: "/kontakt-os" }),
+  twitter: pageTwitter({ title: KONTAKT_TITLE, description: KONTAKT_DESC }),
 };
 
 const KONTAKT_JSONLD = {
   "@context": "https://schema.org",
-  "@type": "InsuranceAgency",
-  "@id": "https://nordanriskpartners.dk/#kontakt",
-  name: "Nordan Risk Partners ApS",
-  url: "https://nordanriskpartners.dk/kontakt-os",
-  logo: "https://nordanriskpartners.dk/images/logo.png",
-  image: "https://nordanriskpartners.dk/images/nordan-12.jpg",
-  telephone: "+4553520006",
-  email: "info@ndrp.dk",
-  priceRange: "Gratis indledende analyse",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Toftevej 15B",
-    postalCode: "3450",
-    addressLocality: "Allerød",
-    addressCountry: "DK",
-  },
-  geo: { "@type": "GeoCoordinates", latitude: 55.872, longitude: 12.348 },
-  contactPoint: {
-    "@type": "ContactPoint",
-    telephone: "+4553520006",
-    contactType: "customer service",
-    email: "info@ndrp.dk",
-    availableLanguage: ["Danish", "English"],
-    areaServed: "DK",
-  },
-  areaServed: { "@type": "Country", name: "Denmark" },
-  openingHoursSpecification: [
-    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday"], opens: "08:30", closes: "16:00" },
-    { "@type": "OpeningHoursSpecification", dayOfWeek: "Friday", opens: "08:30", closes: "15:00" },
+  "@graph": [
+    { "@id": `${SITE_URL}/#organization` },
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Kontakt os", path: "/kontakt-os" },
+    ]),
+    {
+      "@type": "ContactPage",
+      "@id": `${SITE_URL}/kontakt-os#contactpage`,
+      url: `${SITE_URL}/kontakt-os`,
+      name: "Kontakt Nordan Risk Partners",
+      description: KONTAKT_DESC,
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#organization` },
+    },
   ],
 };
 
@@ -57,6 +50,7 @@ export default function KontaktPage() {
         title={<>Lad os tage en uforpligtende snak</>}
         body="Vælg selv hvordan. Start analysen via CVR — eller skriv til os direkte. Ingen salgsretorik, ingen telefonsluser."
         image="/images/nordan-12.jpg"
+        imageAlt="Nordan Risk Partners — kontaktsiden"
       />
 
       {/* CVR ANALYSE FØRST — den hurtigste vej */}

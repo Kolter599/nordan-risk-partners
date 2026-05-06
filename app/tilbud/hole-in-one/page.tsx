@@ -1,12 +1,42 @@
 import type { Metadata } from "next";
 import { HoleInOneFlow } from "./HoleInOneFlow";
+import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const HIO_TITLE = "Hole-in-one forsikring til golfturnering — tilbud på 1 hverdag";
+const HIO_DESC =
+  "Skal jeres golfturnering have en Hole-in-one præmie? Få et skarpt tilbud inden for én hverdag. Indtast turnering og præmie — vi sender pris og dækning. Ingen binding.";
 
 export const metadata: Metadata = {
-  title: "Bestil din Hole-in-one forsikring",
-  description:
-    "Udfyld få oplysninger om turneringen og præmien. Vi vender tilbage med et tilbud på din Hole-in-one forsikring inden for én hverdag.",
+  title: HIO_TITLE,
+  description: HIO_DESC,
   alternates: { canonical: "/tilbud/hole-in-one" },
-  robots: { index: false, follow: true },
+  openGraph: pageOpenGraph({ title: HIO_TITLE, description: HIO_DESC, path: "/tilbud/hole-in-one" }),
+  twitter: pageTwitter({ title: HIO_TITLE, description: HIO_DESC }),
+};
+
+const HIO_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    breadcrumbJsonLd([
+      { name: "Forside", path: "/" },
+      { name: "Hole-in-one forsikring", path: "/tilbud/hole-in-one" },
+    ]),
+    {
+      "@type": "Service",
+      "@id": `${SITE_URL}/tilbud/hole-in-one#service`,
+      serviceType: "Hole-in-one forsikring",
+      name: "Hole-in-one forsikring",
+      description: HIO_DESC,
+      url: `${SITE_URL}/tilbud/hole-in-one`,
+      provider: { "@id": `${SITE_URL}/#organization` },
+      areaServed: { "@type": "Country", name: "Denmark" },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "DKK",
+        description: "Pris afhænger af turnering og præmie — gratis tilbud inden for 1 hverdag",
+      },
+    },
+  ],
 };
 
 type SearchParams = Promise<{ cvr?: string | string[] }>;
@@ -23,6 +53,10 @@ export default async function HoleInOneTilbudPage({
 
   return (
     <main className="bg-[color:var(--color-nordan-soft)] min-h-[calc(100vh-80px)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(HIO_JSONLD) }}
+      />
       {/* HERO BAND — mirrors /analyse */}
       <section className="pt-24 sm:pt-32 md:pt-40 pb-8 md:pb-14 relative overflow-hidden">
         <div
