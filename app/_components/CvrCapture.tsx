@@ -92,16 +92,23 @@ export function CvrCapture({
     );
   }
 
-  // Personalized post-sign state — only shown on the homepage where the
-  // hero CvrCapture passed showRecentSigned. Replaces the input + CTA with
-  // a "Tak <Firma>, vi er i gang"-card that auto-clears after the TTL.
+  // Personalized post-submit state — only shown on the homepage. Copy
+  // varies by which flow the user just finished (analyse vs hole-in-one).
   if (recentSigned) {
+    const isHoleInOne = recentSigned.kind === "hole_in_one";
+    const headlineLabel = isHoleInOne ? "Bestilling modtaget" : "Modtaget";
+    const bodyTitle = isHoleInOne
+      ? "Vi er i gang med dit hole-in-one tilbud"
+      : "Vi er i gang med at indhente jeres oplysninger";
+    const bodyText = isHoleInOne
+      ? "Tjek din indbakke for kvitteringen — vi vender tilbage med et skarpt tilbud inden for én hverdag."
+      : "Tjek din indbakke for kvitteringen — har I jeres policer ved hånden, så send dem som svar på den mail. Det hjælper os med at gå hurtigere i gang.";
     return (
       <div className="bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)]">
         <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
           <div className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-3">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent-soft)]" />
-            Modtaget
+            {headlineLabel}
           </div>
           <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] sm:text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
             Tak {recentSigned.companyName}
@@ -116,10 +123,10 @@ export function CvrCapture({
             </span>
             <div>
               <div className="font-semibold text-[1rem] text-[color:var(--color-nordan-ink)] mb-0.5">
-                Vi er i gang med at indhente jeres oplysninger
+                {bodyTitle}
               </div>
               <p className="text-[0.88rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
-                Tjek din indbakke for kvitteringen — har I jeres policer ved hånden, så send dem som svar på den mail. Det hjælper os med at gå hurtigere i gang.
+                {bodyText}
               </p>
             </div>
           </div>

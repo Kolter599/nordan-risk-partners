@@ -17,6 +17,9 @@ export type RecentSigned = {
   signedAt: string; // ISO
   companyName: string;
   cvr: string;
+  /** What flow they just finished. Lets the homepage card show different
+   *  copy ("Vi er i gang med jeres analyse" vs "Tilbud på hole-in-one"). */
+  kind?: "analyse" | "hole_in_one";
 };
 
 export function setRecentSigned(value: RecentSigned): void {
