@@ -107,6 +107,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
   const docRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
+  const [scrolledToBottom, setScrolledToBottom] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -123,10 +124,47 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setTitle("");
     setError(null);
     userScrolledRef.current = false;
+    setScrolledToBottom(false);
   }, [open, defaults.name, defaults.email, defaults.phone]);
 
-  // Auto-bounce the document every 7s to hint that it's scrollable —
-  // stops as soon as the user makes any real scroll gesture themselves.
+  // Track whether the user has reached the bottom of the doc — used to swap
+  // the sticky bottom hint between "scroll to read" and "you've read it all".
+  useEffect(() => {
+    if (!open) return;
+    const node = docRef.current;
+    if (!node) return;
+    const onScroll = () => {
+      const reachedBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 24;
+      if (reachedBottom) setScrolledToBottom(true);
+    };
+    node.addEventListener("scroll", onScroll, { passive: true });
+    return () => node.removeEventListener("scroll", onScroll);
+  }, [open]);
+
+  // Smooth, eased scroll using requestAnimationFrame — much softer than the
+  // browser's default smooth-scroll, so the bounce hint reads as intentional.
+  function easedScrollTo(target: number, duration = 1300) {
+    const node = docRef.current;
+    if (!node) return;
+    const start = node.scrollTop;
+    const distance = target - start;
+    if (Math.abs(distance) < 1) return;
+    const startTime = performance.now();
+    const ease = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    function step(now: number) {
+      const node = docRef.current;
+      if (!node) return;
+      // If user took over, abort the programmatic scroll mid-flight.
+      if (userScrolledRef.current) return;
+      const progress = Math.min((now - startTime) / duration, 1);
+      node.scrollTop = start + distance * ease(progress);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Auto-bounce the document every 7s until the user takes over scrolling.
   useEffect(() => {
     if (!open) return;
     const node = docRef.current;
@@ -141,14 +179,14 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
     const interval = setInterval(() => {
       if (userScrolledRef.current || !docRef.current) return;
-      // Only bounce if we're at the top — once they're elsewhere they got it.
-      if (docRef.current.scrollTop > 4) return;
-      docRef.current.scrollTo({ top: 32, behavior: "smooth" });
+      // Only bounce if still parked at the top — if they've started reading,
+      // we trust them to keep going.
+      if (docRef.current.scrollTop > 6) return;
+      // Down ~80px softly, hold a beat, then back up — total ~3 seconds.
+      easedScrollTo(80, 1300);
       setTimeout(() => {
-        if (docRef.current && !userScrolledRef.current) {
-          docRef.current.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }, 900);
+        if (!userScrolledRef.current) easedScrollTo(0, 1300);
+      }, 1500);
     }, 7000);
 
     return () => {
@@ -273,40 +311,38 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
         {/* Two-column body: doc on left (scrolls), form on right (fits without scrolling) */}
         <div className="flex-1 overflow-hidden grid lg:grid-cols-[1fr_1.05fr]">
           {/* LEFT — document, scrollable, with scroll-hint bounce */}
-          <div
-            ref={docRef}
-            tabIndex={0}
-            className="overflow-y-auto px-5 sm:px-7 py-6 border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[40vh] lg:max-h-none scroll-smooth"
-          >
-            {/* TL;DR card */}
-            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[10px] p-5 mb-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent)]" />
-                <h3 className="text-[0.74rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
-                  Hvad du underskriver
-                </h3>
+          <div className="relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[40vh] lg:max-h-none flex flex-col overflow-hidden">
+            <div
+              ref={docRef}
+              tabIndex={0}
+              className="flex-1 overflow-y-auto px-5 sm:px-7 py-6 pb-16"
+            >
+              {/* TL;DR card */}
+              <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[10px] p-5 mb-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent)]" />
+                  <h3 className="text-[0.74rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
+                    Hvad du underskriver
+                  </h3>
+                </div>
+                <ul className="space-y-1.5 text-[0.9rem] text-[color:var(--color-nordan-ink)] leading-relaxed">
+                  <li className="flex gap-2">
+                    <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
+                    <span>Tilladelse til at <strong>indhente policer og skadehistorik</strong>.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
+                    <span><strong>Ingen forsikringer ændres eller opsiges</strong> — kun analyse.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
+                    <span><strong>Kan tilbagekaldes når som helst</strong>; ophører automatisk efter 1 år.</span>
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-1.5 text-[0.9rem] text-[color:var(--color-nordan-ink)] leading-relaxed">
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
-                  <span>Tilladelse til at <strong>indhente policer og skadehistorik</strong>.</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
-                  <span><strong>Ingen forsikringer ændres eller opsiges</strong> — kun analyse.</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
-                  <span><strong>Kan tilbagekaldes når som helst</strong>; ophører automatisk efter 1 år.</span>
-                </li>
-              </ul>
-              <div className="mt-3 text-[0.74rem] text-[color:var(--color-nordan-muted)] italic">
-                ↓ Scroll for at læse fuldmagten
-              </div>
-            </div>
 
-            {/* Full document */}
-            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] p-5 sm:p-6 text-[0.9rem] leading-[1.6] text-[color:var(--color-nordan-ink)] shadow-sm">
+              {/* Full document */}
+              <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] p-5 sm:p-6 text-[0.9rem] leading-[1.6] text-[color:var(--color-nordan-ink)] shadow-sm">
               <div className="text-center mb-5">
                 <div className="font-bold text-[1.2rem] text-[color:var(--color-nordan-dark)]">
                   Undersøgelsesfuldmagt
@@ -356,13 +392,27 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                 Underskriver indestår for at være berettiget til at underskrive denne undersøgelsesfuldmagt og dermed berettiget til at forpligte Fuldmagtsgiver.
               </p>
             </div>
+            </div>
+
+            {/* Sticky bottom hint — always visible while scrolling the doc */}
+            <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 py-3 pointer-events-none bg-gradient-to-t from-[color:var(--color-nordan-soft)] via-[color:var(--color-nordan-soft)]/95 to-transparent">
+              <div
+                className={`text-center text-[0.8rem] uppercase tracking-[0.16em] font-bold transition-colors duration-500 ${
+                  scrolledToBottom ? "text-green-700" : "text-[color:var(--color-nordan-accent)]"
+                }`}
+              >
+                {scrolledToBottom
+                  ? "✓ Du har læst hele teksten"
+                  : "↓ Scroll til bunden for at læse fuldmagten"}
+              </div>
+            </div>
           </div>
 
           {/* RIGHT — compact form, no internal scroll */}
           <div className="p-5 sm:p-7 flex flex-col gap-5 overflow-y-auto lg:overflow-visible">
             {/* Signer */}
             <section>
-              <h3 className="text-[0.74rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)] mb-2.5">
+              <h3 className="text-[1rem] font-bold text-[color:var(--color-nordan-ink)] mb-2.5">
                 Hvem underskriver?
               </h3>
               <div className="space-y-2.5">
@@ -417,10 +467,10 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
             {/* Insurers */}
             <section>
               <div className="flex items-baseline justify-between mb-1.5">
-                <h3 className="text-[0.74rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)]">
+                <h3 className="text-[1rem] font-bold text-[color:var(--color-nordan-ink)]">
                   Forsikringsselskaber I bruger i dag
                 </h3>
-                <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+                <span className="text-[0.72rem] text-[color:var(--color-nordan-muted)]">
                   Vælg flere
                 </span>
               </div>
