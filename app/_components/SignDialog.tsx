@@ -632,7 +632,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f] disabled:opacity-60 transition-colors"
+                    className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-60 transition-colors shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
                   >
                     {submitting ? "Underskriver…" : "Underskriv & send →"}
                   </button>
@@ -670,9 +670,9 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               onClick={handleSubmit}
               disabled={submitting}
               aria-disabled={!formComplete}
-              className={`h-11 px-5 rounded-[6px] text-white text-[0.9rem] font-semibold transition-colors ${
+              className={`h-11 px-5 rounded-[6px] text-white text-[0.9rem] font-semibold transition-all ${
                 formComplete && !submitting
-                  ? "bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f]"
+                  ? "bg-green-600 hover:bg-green-700 shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
                   : "bg-[color:var(--color-nordan-accent)]/55 hover:bg-[color:var(--color-nordan-accent)]/65"
               }`}
             >

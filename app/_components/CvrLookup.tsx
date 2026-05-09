@@ -914,9 +914,9 @@ function StepActions({
           type="submit"
           disabled={submitting}
           aria-disabled={!canSubmit}
-          className={`flex-1 h-[44px] inline-flex items-center justify-center gap-2 text-white text-[0.9rem] font-semibold tracking-wide rounded-[8px] transition-colors ${
+          className={`flex-1 h-[44px] inline-flex items-center justify-center gap-2 text-white text-[0.9rem] font-semibold tracking-wide rounded-[8px] transition-all ${
             canSubmit
-              ? "bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f]"
+              ? "bg-green-600 hover:bg-green-700 shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
               : "bg-[color:var(--color-nordan-accent)]/50 cursor-not-allowed"
           } disabled:opacity-60`}
         >
