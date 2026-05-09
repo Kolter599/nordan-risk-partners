@@ -636,7 +636,10 @@ function StepActions({
     (authMethod === "digital" && digitalConfirmed) ||
     (authMethod === "download" && authFile !== null);
   const policiesComplete = files.length > 0;
-  const canSubmit = authComplete && policiesComplete;
+  // Policies are optional — many users don't have their policy PDFs at hand
+  // when they fill out the form. As long as the fuldmagt is signed, we can
+  // pull policies directly from the insurer using the authorization.
+  const canSubmit = authComplete;
 
   function handleSubmitClick(e: React.FormEvent<HTMLFormElement>) {
     if (!canSubmit) {
@@ -660,7 +663,7 @@ function StepActions({
     <form onSubmit={handleSubmitClick} className="cvr-actions-enter space-y-3.5">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* PANEL 1 — FULDMAGT */}
-        <ActionPanel title="Underskriv fuldmagt">
+        <ActionPanel title="Underskriv fuldmagt" accent={!authComplete}>
           <div className="space-y-2.5">
             <AuthOption
               selected={authMethod === "digital"}
@@ -830,6 +833,12 @@ function StepActions({
               </ul>
             </div>
           ) : null}
+
+          <p className="mt-2 text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
+            Har du ikke jeres policer ved hånden? Det er helt OK — udfyld
+            blot fuldmagten og kontaktinfoen, så henter vi resten direkte
+            hos selskaberne.
+          </p>
         </ActionPanel>
 
         {/* PANEL 3 — KONTAKT */}
@@ -887,10 +896,8 @@ function StepActions({
 
       {attemptedSubmit && !canSubmit && !submitting ? (
         <div className="text-[0.85rem] text-amber-900 bg-amber-50 border border-amber-200 rounded px-3.5 py-2.5">
-          <span className="font-semibold">Mangler før du kan sende:</span>{" "}
-          {!authComplete ? "underskreven fuldmagt" : null}
-          {!authComplete && !policiesComplete ? " · " : null}
-          {!policiesComplete ? "mindst én police uploadet" : null}
+          <span className="font-semibold">Underskriv fuldmagten først</span> — det er det eneste
+          obligatoriske skridt. Policer kan eftersendes (eller vi henter dem).
         </div>
       ) : null}
 
@@ -953,16 +960,33 @@ function ActionPanel({
   title,
   subtitle,
   children,
+  accent,
 }: {
   step?: string;
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  /** When true, the panel gets a subtle accent border + a small "Start her"
+   * badge — used for the fuldmagt panel until the user actually signs. */
+  accent?: boolean;
 }) {
   return (
-    <div className="border border-[color:var(--color-nordan-line)] rounded-[8px] p-2.5 sm:p-3 bg-white">
-      <div className="font-[family-name:var(--font-inter)] font-bold text-[0.92rem] text-[color:var(--color-nordan-ink)] leading-tight">
-        {title}
+    <div
+      className={`border rounded-[8px] p-2.5 sm:p-3 bg-white transition-colors ${
+        accent
+          ? "border-[color:var(--color-nordan-accent)] shadow-[0_0_0_3px_rgba(165,136,120,0.08)]"
+          : "border-[color:var(--color-nordan-line)]"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <div className="font-[family-name:var(--font-inter)] font-bold text-[0.92rem] text-[color:var(--color-nordan-ink)] leading-tight flex-1">
+          {title}
+        </div>
+        {accent ? (
+          <span className="text-[0.6rem] uppercase tracking-[0.14em] font-bold px-1.5 py-0.5 rounded-full bg-[color:var(--color-nordan-accent)]/10 text-[color:var(--color-nordan-accent)]">
+            Start her
+          </span>
+        ) : null}
       </div>
       {subtitle ? (
         <p className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mb-2 leading-snug">{subtitle}</p>
