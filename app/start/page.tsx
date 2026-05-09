@@ -16,19 +16,12 @@ export default async function StartPage({
 
   return (
     <div className="h-full w-full flex flex-col">
-      {/* Minimal app header — just brand mark + close link back to nordanriskpartners.dk */}
-      <header className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-[color:var(--color-nordan-line)] bg-white shrink-0">
+      {/* Minimal app header — brand-green band with white wordmark, matching
+          the rest of the marketing chrome so /start doesn't feel adrift. */}
+      <header className="flex items-center justify-between px-5 sm:px-8 py-4 bg-[color:var(--color-nordan-dark)] shrink-0">
         <Link href="/" className="inline-flex items-center gap-2.5">
           <Image
-            src="/images/logo-icon-white.png"
-            alt="Nordan Risk Partners"
-            width={32}
-            height={32}
-            className="hidden"
-            priority
-          />
-          <Image
-            src="/images/logo-icon.png"
+            src="/images/logo-white.png"
             alt="Nordan Risk Partners"
             width={140}
             height={32}
@@ -38,7 +31,7 @@ export default async function StartPage({
         </Link>
         <Link
           href="/"
-          className="text-[0.78rem] sm:text-[0.85rem] font-medium text-[color:var(--color-nordan-muted)] hover:text-[color:var(--color-nordan-ink)] inline-flex items-center gap-1.5"
+          className="text-[0.78rem] sm:text-[0.85rem] font-medium text-white/70 hover:text-white inline-flex items-center gap-1.5"
         >
           <span aria-hidden>×</span>
           Luk
