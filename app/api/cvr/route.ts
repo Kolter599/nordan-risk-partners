@@ -7,9 +7,16 @@ import { NextResponse } from "next/server";
  * (QUOTA_EXCEEDED). cvrapi grants higher limits to identified callers via
  * a recognizable User-Agent header — that's what we send from here.
  *
+ * cvrapi.dk only allows European IPs — Vercel's default region (iad1, US East)
+ * gets connection-reset by them. Forcing fra1 (Frankfurt) puts us on an EU IP.
+ *
  * Client uses: GET /api/cvr?cvr=12345678
  * Returns: { ok: true, company: {...} } or { ok: false, error: "not_found" | "quota" | "network" }
  */
+
+// Edge runtime + EU regions — cvrapi.dk blocks Vercel's default US iad1 IPs.
+export const runtime = "edge";
+export const preferredRegion = ["fra1", "arn1", "cdg1"]; // Frankfurt, Stockholm, Paris
 
 const UA = "Nordan Risk Partners — info@ndrp.dk";
 
@@ -67,7 +74,11 @@ export async function GET(req: Request) {
       },
     });
   } catch (err) {
-    console.error("[/api/cvr] failed:", err);
-    return NextResponse.json({ ok: false, error: "network" }, { status: 502 });
+    const reason = err instanceof Error ? err.message : String(err);
+    console.error("[/api/cvr] fetch failed:", reason, err);
+    return NextResponse.json(
+      { ok: false, error: "network", reason },
+      { status: 502 }
+    );
   }
 }
