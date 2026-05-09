@@ -452,8 +452,19 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
             </div>
 
             {/* Sticky bottom hint (desktop only — on mobile we have a
-                proper 'Fortsæt' button instead). */}
+                proper 'Fortsæt' button instead).
+                Same progress-strip + status-text combo as mobile so the
+                two breakpoints feel like the same product. */}
             <div className="hidden lg:block absolute inset-x-0 bottom-0 px-5 sm:px-7 py-3 pointer-events-none bg-gradient-to-t from-[color:var(--color-nordan-soft)] via-[color:var(--color-nordan-soft)]/95 to-transparent">
+              <div className="h-[3px] w-full bg-[color:var(--color-nordan-line)]/60 rounded-full overflow-hidden mb-2.5">
+                <div
+                  className="h-full rounded-full transition-[width] duration-200 ease-out"
+                  style={{
+                    width: `${Math.round(scrollProgress * 100)}%`,
+                    backgroundColor: "var(--color-nordan-dark)",
+                  }}
+                />
+              </div>
               <div
                 className={`text-center text-[0.8rem] uppercase tracking-[0.16em] font-bold transition-colors duration-500 ${
                   scrolledToBottom ? "text-green-700" : "text-[color:var(--color-nordan-accent)]"
