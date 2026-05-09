@@ -714,11 +714,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               >
                 {submitting ? "Underskriver…" : "Underskriv & send →"}
               </button>
-              <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
-                {formComplete
-                  ? "✓ Klar til at underskrive"
-                  : "Udfyld felterne og bekræft — knappen lyser op når alt er klart"}
-              </p>
+              {formComplete ? (
+                <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
+                  ✓ Klar til at underskrive
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
