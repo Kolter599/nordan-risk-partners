@@ -835,9 +835,7 @@ function StepActions({
           ) : null}
 
           <p className="mt-2 text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
-            Har du ikke jeres policer ved hånden? Det er helt OK — udfyld
-            blot fuldmagten og kontaktinfoen, så henter vi resten direkte
-            hos selskaberne.
+            Har du ikke jeres policer ved hånden? Underskriv blot fuldmagten — så tager vi den derfra.
           </p>
         </ActionPanel>
 
