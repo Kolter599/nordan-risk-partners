@@ -13,7 +13,6 @@ import {
   type FunnelStep,
   type AttributionRow,
 } from "@/lib/db";
-import { UtmBuilder } from "./UtmBuilder";
 
 export const metadata: Metadata = {
   title: "Admin · Leads",
@@ -258,9 +257,6 @@ export default async function AdminDashboard() {
             </div>
           )}
         </section>
-
-        {/* UTM builder — optional power-tool */}
-        <UtmBuilder />
 
         {/* Leads table */}
         <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] overflow-hidden">
