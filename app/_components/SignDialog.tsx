@@ -228,15 +228,14 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     phone.trim().length >= 6 &&
     combinedConsent;
 
-  function getMissingFields() {
-    const missing: string[] = [];
-    if (name.trim().length < 2) missing.push("Fuldt navn");
-    if (title.trim().length === 0) missing.push("Titel");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) missing.push("Gyldig e-mail");
-    if (phone.trim().length < 6) missing.push("Telefon");
-    if (!combinedConsent) missing.push("Bekræftelse af fuldmagt");
-    return missing;
-  }
+  // Per-field validity used to highlight missing inputs after the user
+  // tries to submit. We surface these visually rather than as a list now.
+  const invalidName = name.trim().length < 2;
+  const invalidTitle = title.trim().length === 0;
+  const invalidEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const invalidPhone = phone.trim().length < 6;
+  const invalidConsent = !combinedConsent;
+  const showInvalid = attemptedSubmit && !formComplete;
 
   const filteredInsurers = useMemo(() => {
     const q = insurerSearch.trim().toLowerCase();
@@ -548,7 +547,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Fornavn Efternavn"
-                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                      className={`w-full h-10 px-3 rounded-[6px] border focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem] ${
+                        showInvalid && invalidName
+                          ? "border-red-500 bg-red-50"
+                          : "border-[color:var(--color-nordan-line)]"
+                      }`}
                     />
                   </Field>
                   <Field label="Titel">
@@ -557,7 +560,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="fx Direktør"
-                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                      className={`w-full h-10 px-3 rounded-[6px] border focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem] ${
+                        showInvalid && invalidTitle
+                          ? "border-red-500 bg-red-50"
+                          : "border-[color:var(--color-nordan-line)]"
+                      }`}
                     />
                   </Field>
                 </div>
@@ -568,7 +575,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="navn@firma.dk"
-                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                      className={`w-full h-10 px-3 rounded-[6px] border focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem] ${
+                        showInvalid && invalidEmail
+                          ? "border-red-500 bg-red-50"
+                          : "border-[color:var(--color-nordan-line)]"
+                      }`}
                     />
                   </Field>
                   <Field label="Telefon">
@@ -577,7 +588,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+45 12 34 56 78"
-                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                      className={`w-full h-10 px-3 rounded-[6px] border focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem] ${
+                        showInvalid && invalidPhone
+                          ? "border-red-500 bg-red-50"
+                          : "border-[color:var(--color-nordan-line)]"
+                      }`}
                     />
                   </Field>
                 </div>
@@ -673,7 +688,13 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
             {/* Combined consent */}
             <section className="mt-auto">
-              <label className="flex gap-3 items-start cursor-pointer p-3 rounded-[8px] hover:bg-[color:var(--color-nordan-soft)]/40 transition-colors border border-[color:var(--color-nordan-line)] has-[:checked]:border-[color:var(--color-nordan-accent)] has-[:checked]:bg-[color:var(--color-nordan-accent)]/5">
+              <label
+                className={`flex gap-3 items-start cursor-pointer p-3 rounded-[8px] hover:bg-[color:var(--color-nordan-soft)]/40 transition-colors border has-[:checked]:border-[color:var(--color-nordan-accent)] has-[:checked]:bg-[color:var(--color-nordan-accent)]/5 ${
+                  showInvalid && invalidConsent
+                    ? "border-red-500 bg-red-50"
+                    : "border-[color:var(--color-nordan-line)]"
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={combinedConsent}
@@ -684,17 +705,6 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                   Jeg har læst undersøgelsesfuldmagten og <strong>er bemyndiget til at underskrive på vegne af {defaults.companyName}</strong>. Jeg samtykker til elektronisk signering iht. eIDAS art. 25.
                 </span>
               </label>
-
-              {attemptedSubmit && !formComplete ? (
-                <div className="mt-2 text-[0.82rem] text-amber-900 bg-amber-50 border border-amber-200 rounded-[6px] px-3 py-2">
-                  <div className="font-semibold mb-0.5">Mangler før du kan underskrive:</div>
-                  <ul className="list-disc pl-5 space-y-0.5">
-                    {getMissingFields().map((m) => (
-                      <li key={m}>{m}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
 
               {error ? (
                 <div className="mt-2 text-[0.82rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
