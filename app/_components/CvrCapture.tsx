@@ -14,15 +14,18 @@ type Props = {
 };
 
 /**
- * Single-step CVR capture used everywhere except /analyse.
- * Validates 8 digits, then redirects to /analyse?cvr=XXXXXXXX where the
- * full multi-block analysis flow lives.
+ * Single-step CVR capture used everywhere on the marketing site.
+ * Validates 8 digits, then opens the focused sign-flow at /start (which
+ * runs without Nav/Footer and locks body scroll) in a new tab.
+ *
+ * Hole-in-one and other product-specific paths still get their own
+ * redirectPath via the prop and stay on the same domain.
  */
 export function CvrCapture({
   headline = "Indtast CVR — start jeres analyse",
   subline = "Vi henter automatisk virksomhedsdata og foreslår de næste skridt.",
   variant = "card",
-  redirectPath = "/analyse",
+  redirectPath = "/start",
   ctaLabel = "Start analyse",
 }: Props) {
   const router = useRouter();
@@ -48,7 +51,16 @@ export function CvrCapture({
     setSubmitting(true);
     track("cvr_submitted", { cvr: digits, redirect_path: redirectPath });
     const sep = redirectPath.includes("?") ? "&" : "?";
-    router.push(`${redirectPath}${sep}cvr=${digits}`);
+    const url = `${redirectPath}${sep}cvr=${digits}`;
+    // /start opens in a new tab (focused, no Nav/Footer). Other redirect
+    // targets (e.g. /tilbud/hole-in-one) stay in the same tab as before.
+    if (redirectPath === "/start" && typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener");
+      // Reset submitting after a beat so the user can re-submit if needed.
+      setTimeout(() => setSubmitting(false), 800);
+      return;
+    }
+    router.push(url);
   }
 
   if (variant === "inline") {

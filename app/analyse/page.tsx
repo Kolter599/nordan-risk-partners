@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { AnalyseFlow } from "./AnalyseFlow";
+import { redirect } from "next/navigation";
+import { CvrCapture } from "../_components/CvrCapture";
 import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
 
 const ANALYSE_TITLE = "Gratis forsikringsanalyse — indtast CVR og se hvor du kan spare";
@@ -45,6 +46,12 @@ export default async function AnalysePage({
   const initialCvr = (raw ?? "").replace(/\D/g, "").slice(0, 8);
   const hasInitial = initialCvr.length === 8;
 
+  // If someone lands here with ?cvr=XXX (e.g. from an old saved link or a
+  // marketing campaign), send them straight to the focused /start flow.
+  if (hasInitial) {
+    redirect(`/start?cvr=${initialCvr}`);
+  }
+
   return (
     <main className="bg-[color:var(--color-nordan-soft)] min-h-[calc(100vh-80px)]">
       <script
@@ -62,27 +69,24 @@ export default async function AnalysePage({
               "radial-gradient(900px 400px at 15% 0%, rgba(165,136,120,0.10), transparent 60%), radial-gradient(900px 500px at 85% 100%, rgba(37,63,50,0.08), transparent 60%)",
           }}
         />
-        <div className="relative mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
-          <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent)] mb-5">
-            Gratis analyse
+        <div className="relative mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10 grid lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-7">
+            <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent)] mb-5">
+              Gratis analyse
+            </div>
+            <h1 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2.1rem,4.4vw,3.4rem)] leading-[1.08] tracking-[-0.018em] mb-5 text-[color:var(--color-nordan-ink)] text-balance">
+              Smartere forsikringsanalyse — gratis og uvildig.
+            </h1>
+            <p className="text-[1.02rem] sm:text-[1.1rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.65] max-w-2xl">
+              Vi bruger AI til at læse policer og sammenligne markedet hurtigere. Det giver os mere tid til rådgivning — og jer en bedre løsning til en skarpere pris.
+            </p>
+            <p className="mt-4 text-[0.92rem] text-[color:var(--color-nordan-muted)] leading-relaxed">
+              Indtast CVR — analysen åbner i en ny fane så du har al fokus på flowet.
+            </p>
           </div>
-          <h1 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(2.1rem,4.4vw,3.4rem)] leading-[1.08] tracking-[-0.018em] mb-5 max-w-3xl text-[color:var(--color-nordan-ink)] text-balance">
-            {hasInitial
-              ? "Tak — vi gør analysen klar til jer."
-              : "Smartere forsikringsanalyse — gratis og uvildig."}
-          </h1>
-          <p className="text-[1.02rem] sm:text-[1.1rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.65] max-w-2xl">
-            {hasInitial
-              ? "Bekræft virksomheden og udfyld de tre felter. Imens scanner vi markedet og forbereder gennemgangen — så jeres forsikringsmægler kan ringe inden for én hverdag med konkrete anbefalinger."
-              : "Vi bruger AI til at læse policer og sammenligne markedet hurtigere. Det giver os mere tid til rådgivning — og jer en bedre løsning til en skarpere pris."}
-          </p>
-        </div>
-      </section>
-
-      {/* STEP INDICATOR + CARD AREA */}
-      <section className="pb-16 sm:pb-24 md:pb-28">
-        <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
-          <AnalyseFlow initialCvr={hasInitial ? initialCvr : undefined} />
+          <div className="lg:col-span-5 lg:pt-2">
+            <CvrCapture />
+          </div>
         </div>
       </section>
 

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Montserrat, Playfair_Display, Inter } from "next/font/google";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Nav } from "./_components/Nav";
-import { Footer } from "./_components/Footer";
-import { StickyMobileCta } from "./_components/StickyMobileCta";
+import {
+  ConditionalNav,
+  ConditionalFooter,
+  ConditionalStickyCta,
+} from "./_components/ConditionalChrome";
 import { CookieBanner } from "./_components/CookieBanner";
 import { GoogleAnalytics } from "./_components/GoogleAnalytics";
 import "./globals.css";
@@ -176,10 +178,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen flex flex-col">
-        <Nav />
+        <ConditionalNav />
         <main className="flex-1">{children}</main>
-        <Footer />
-        <StickyMobileCta />
+        <ConditionalFooter />
+        <ConditionalStickyCta />
         <CookieBanner />
         <GoogleAnalytics />
         <VercelAnalytics />
