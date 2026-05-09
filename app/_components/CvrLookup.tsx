@@ -168,6 +168,10 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       ? "px-4 sm:px-5 pt-3.5 sm:pt-4 pb-3"
       : "px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5";
 
+  // The sign step's content (doc + form) is tall — make sure the card
+  // never grows past the parent's bounds so /start can keep body locked.
+  const heightClass = step === "sign" ? "max-h-full flex flex-col" : "";
+
   // Map our 4 steps onto the 3 user-visible stages (cvr / confirm / sign).
   // Done collapses back into the sign stage being marked complete.
   const STAGES: Step[] = ["cvr", "confirm", "sign"];
@@ -178,11 +182,11 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     <div
       ref={cardRef}
       id="cvr-card"
-      className={`mx-auto w-full ${widthClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+      className={`mx-auto w-full ${widthClass} ${heightClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}
     >
       {/* HEADER with progress */}
       <div
-        className={`bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white ${headerPadding}`}
+        className={`shrink-0 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white ${headerPadding}`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)]">
@@ -211,7 +215,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       </div>
 
       {/* STEP BODY */}
-      <div className={bodyPadding}>
+      <div className={`${bodyPadding} ${step === "sign" ? "flex-1 min-h-0 overflow-hidden flex" : ""}`}>
         {step === "cvr" && (
           <StepCvr
             digits={digits}

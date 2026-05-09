@@ -271,8 +271,8 @@ export function SignFlow({ onSigned, defaults }: Props) {
   }
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="flex-1 overflow-hidden grid lg:grid-cols-[1fr_1.05fr] min-h-[60vh]">
+    <div className="flex flex-col w-full flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden grid lg:grid-cols-[1fr_1.05fr]">
         {/* LEFT — document, scrollable */}
         <div
           className={`relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[65vh] lg:max-h-none flex-col overflow-hidden ${
