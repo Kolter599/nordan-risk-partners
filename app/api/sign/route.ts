@@ -226,9 +226,9 @@ export async function POST(req: Request) {
         html: receiptHtml,
         attachments: [attachment],
         headers: { "Message-ID": messageIdFor("receipt", audit.auditId) },
-        // Mads' internal mail goes immediately. Customer receipt is delayed
-        // a few minutes so it feels like a human review step, not a bot.
-        scheduledAt: "in 5 minutes",
+        // Both Mads and the customer get the kvittering immediately —
+        // the new flow asks the customer to reply with policies, so the
+        // sooner that mail lands the sooner Mads can move forward.
       });
     } catch (err) {
       console.error("[sign] Sending receipts failed:", err);
