@@ -106,6 +106,9 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Mobile only: split into read → fill steps so each screen has one focus.
+  // Desktop ignores this and shows both columns side-by-side as before.
+  const [mobileStep, setMobileStep] = useState<"read" | "fill">("read");
 
   const docRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
@@ -127,6 +130,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setError(null);
     userScrolledRef.current = false;
     setScrolledToBottom(false);
+    setMobileStep("read");
   }, [open, defaults.name, defaults.email, defaults.phone]);
 
   // Track whether the user has reached the bottom of the doc — used to swap
@@ -351,8 +355,14 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
         {/* Two-column body: doc on left (scrolls), form on right (fits without scrolling) */}
         <div className="flex-1 overflow-hidden grid lg:grid-cols-[1fr_1.05fr]">
-          {/* LEFT — document, scrollable, with scroll-hint bounce */}
-          <div className="relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[55vh] lg:max-h-none flex flex-col overflow-hidden">
+          {/* LEFT — document, scrollable, with scroll-hint bounce.
+              On mobile this is step 1 of a 2-step flow; on desktop both
+              columns are always side-by-side. */}
+          <div
+            className={`relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[65vh] lg:max-h-none flex-col overflow-hidden ${
+              mobileStep === "fill" ? "hidden lg:flex" : "flex"
+            }`}
+          >
             <div
               ref={docRef}
               tabIndex={0}
@@ -435,8 +445,9 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
             </div>
             </div>
 
-            {/* Sticky bottom hint — always visible while scrolling the doc */}
-            <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 py-3 pointer-events-none bg-gradient-to-t from-[color:var(--color-nordan-soft)] via-[color:var(--color-nordan-soft)]/95 to-transparent">
+            {/* Sticky bottom hint (desktop only — on mobile we have a
+                proper 'Fortsæt' button instead). */}
+            <div className="hidden lg:block absolute inset-x-0 bottom-0 px-5 sm:px-7 py-3 pointer-events-none bg-gradient-to-t from-[color:var(--color-nordan-soft)] via-[color:var(--color-nordan-soft)]/95 to-transparent">
               <div
                 className={`text-center text-[0.8rem] uppercase tracking-[0.16em] font-bold transition-colors duration-500 ${
                   scrolledToBottom ? "text-green-700" : "text-[color:var(--color-nordan-accent)]"
@@ -447,10 +458,44 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                   : "↓ Scroll til bunden for at læse fuldmagten"}
               </div>
             </div>
+
+            {/* Mobile-only continue button — moves user to step 2 (form). */}
+            <div className="lg:hidden flex-shrink-0 px-5 py-3 border-t border-[color:var(--color-nordan-line)] bg-white">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileStep("fill");
+                  // Reset auto-bounce state if they re-open the read step
+                  userScrolledRef.current = false;
+                }}
+                className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold bg-green-600 hover:bg-green-700 transition-colors shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
+              >
+                Fortsæt — udfyld dine oplysninger →
+              </button>
+              <p className="mt-2 text-center text-[0.7rem] text-[color:var(--color-nordan-muted)] leading-snug">
+                {scrolledToBottom
+                  ? "✓ Du har læst hele teksten — næste trin er hurtig udfyldelse"
+                  : "Du kan også scrolle først for at læse fuldmagten"}
+              </p>
+            </div>
           </div>
 
-          {/* RIGHT — compact form, no internal scroll */}
-          <div className="p-5 sm:p-7 flex flex-col gap-5 overflow-y-auto lg:overflow-visible">
+          {/* RIGHT — compact form, no internal scroll on desktop;
+              becomes step 2 on mobile (hidden until they tap Fortsæt). */}
+          <div
+            className={`p-5 sm:p-7 flex-col gap-5 overflow-y-auto lg:overflow-visible ${
+              mobileStep === "read" ? "hidden lg:flex" : "flex"
+            }`}
+          >
+            {/* Mobile-only: small back-link to re-read the agreement. */}
+            <button
+              type="button"
+              onClick={() => setMobileStep("read")}
+              className="lg:hidden self-start -mt-1 mb-1 text-[0.78rem] font-medium text-[color:var(--color-nordan-muted)] hover:text-[color:var(--color-nordan-ink)] inline-flex items-center gap-1"
+            >
+              ← Læs aftalen igen
+            </button>
+
             {/* Signer */}
             <section>
               <h3 className="text-[1rem] font-bold text-[color:var(--color-nordan-ink)] mb-2.5">
