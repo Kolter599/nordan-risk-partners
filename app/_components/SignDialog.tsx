@@ -591,16 +591,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
             {/* Insurers */}
             <section>
-              <div className="flex items-baseline justify-between mb-1.5">
-                <h3 className="text-[1rem] font-bold text-[color:var(--color-nordan-ink)]">
-                  Forsikringsselskaber I bruger i dag
-                </h3>
-                <span className="text-[0.72rem] text-[color:var(--color-nordan-muted)]">
-                  Vælg flere
-                </span>
-              </div>
-              <p className="text-[0.78rem] text-[color:var(--color-nordan-ink-soft)] leading-snug mb-2">
-                Hjælper os med at gå direkte til de rigtige selskaber.
+              <h3 className="text-[1rem] font-bold text-[color:var(--color-nordan-ink)] mb-1">
+                Forsikringsselskaber
+              </h3>
+              <p className="text-[0.78rem] text-[color:var(--color-nordan-ink-soft)] leading-snug mb-2.5">
+                Vælg dem I bruger i dag — så går vi direkte til de rigtige.
               </p>
 
               {insurers.length > 0 ? (
