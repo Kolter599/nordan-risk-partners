@@ -4,6 +4,7 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { CvrCapture } from "./CvrCapture";
 import { ProductJsonLd } from "./ProductJsonLd";
 import { Reveal } from "./Reveal";
+import { ScrollToCta } from "./ScrollToCta";
 import {
   getRelated,
   type FeatureBlock,

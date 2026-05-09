@@ -509,16 +509,21 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               mobileStep === "read" ? "hidden lg:flex" : "flex"
             }`}
           >
-            <div className="flex-1 overflow-y-auto lg:overflow-visible p-5 sm:p-7 flex flex-col gap-5">
-            {/* Mobile-only: small back-link to re-read the agreement. */}
-            <button
-              type="button"
-              onClick={() => setMobileStep("read")}
-              className="lg:hidden self-start -mt-1 mb-1 text-[0.78rem] font-medium text-[color:var(--color-nordan-muted)] hover:text-[color:var(--color-nordan-ink)] inline-flex items-center gap-1"
-            >
-              ← Læs aftalen igen
-            </button>
+            {/* On mobile: muted-soft scroll backdrop with a single white
+                form card inside (mirrors step 1's TL;DR + doc cards layout
+                so step 2 keeps the same contained look).
+                On desktop: transparent — the form sits directly on the
+                dialog's white background as before. */}
+            <div className="flex-1 overflow-y-auto lg:overflow-visible bg-[color:var(--color-nordan-soft)]/40 lg:bg-transparent px-4 py-4 sm:p-7">
+              <button
+                type="button"
+                onClick={() => setMobileStep("read")}
+                className="lg:hidden mb-3 text-[0.78rem] font-medium text-[color:var(--color-nordan-muted)] hover:text-[color:var(--color-nordan-ink)] inline-flex items-center gap-1"
+              >
+                ← Læs aftalen igen
+              </button>
 
+              <div className="flex flex-col gap-5 lg:gap-5 bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] p-5 shadow-sm lg:bg-transparent lg:border-0 lg:rounded-none lg:p-0 lg:shadow-none">
             {/* Signer */}
             <section>
               <h3 className="text-[1rem] font-bold text-[color:var(--color-nordan-ink)] mb-2.5">
@@ -691,6 +696,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                 </div>
               ) : null}
             </section>
+              </div>
             </div>
             {/* Mobile-only sticky bottom — submit always present, lights up
                 when the form is fully valid (mirrors step 1's Fortsæt). */}
