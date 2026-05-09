@@ -520,9 +520,34 @@ export type AttributionStats = {
 };
 
 /**
- * Group sessions by first-touch source/medium/campaign/referrer. Lets the
- * admin dashboard see which channels actually convert into completed
- * fuldmagter (not just which ones drove sessions).
+ * Map a referrer hostname to a friendly source/medium pair. Lets us bucket
+ * sessions by channel even when the user didn't add UTMs to the link.
+ */
+function deriveFromReferrer(referrer: string | null): { source: string; medium: string } {
+  if (!referrer) return { source: "direct", medium: "direct" };
+  const h = referrer.toLowerCase();
+  if (h.includes("linkedin.")) return { source: "linkedin", medium: "social" };
+  if (h.includes("facebook.") || h === "fb.com" || h === "m.facebook.com") return { source: "facebook", medium: "social" };
+  if (h.includes("instagram.")) return { source: "instagram", medium: "social" };
+  if (h === "x.com" || h === "twitter.com" || h === "t.co") return { source: "twitter", medium: "social" };
+  if (h.includes("youtube.")) return { source: "youtube", medium: "social" };
+  if (h.includes("tiktok.")) return { source: "tiktok", medium: "social" };
+  if (h.includes("google.")) return { source: "google", medium: "organic" };
+  if (h.includes("bing.")) return { source: "bing", medium: "organic" };
+  if (h.includes("duckduckgo.")) return { source: "duckduckgo", medium: "organic" };
+  if (h.includes("mail.google.com") || h.includes("outlook.") || h.includes("mail.")) return { source: "email", medium: "email" };
+  if (h.includes("chatgpt.") || h.includes("chat.openai.com")) return { source: "chatgpt", medium: "ai" };
+  if (h.includes("perplexity.")) return { source: "perplexity", medium: "ai" };
+  return { source: h, medium: "referral" };
+}
+
+/**
+ * Group sessions by first-touch source/medium/campaign/referrer.
+ *
+ * For sessions WITHOUT manual UTMs we fall back to deriving source/medium
+ * from the referrer hostname (linkedin.com → linkedin/social, google.com →
+ * google/organic, no referrer at all → direct/direct). That way Mads gets
+ * useful breakdowns immediately without having to remember to tag every link.
  */
 export async function getAttributionStats(since: Date): Promise<AttributionStats> {
   const sql = getDb();
@@ -540,46 +565,55 @@ export async function getAttributionStats(since: Date): Promise<AttributionStats
       first_touch_medium: string | null;
       first_touch_campaign: string | null;
       first_touch_referrer: string | null;
+      first_touch_path: string | null;
       furthest_step: FunnelStep;
     };
     const rows = (await sql`
       SELECT first_touch_source, first_touch_medium, first_touch_campaign,
-             first_touch_referrer, furthest_step
+             first_touch_referrer, first_touch_path, furthest_step
       FROM sessions
       WHERE created_at >= ${since.toISOString()}
     `) as Row[];
 
-    const buckets = (key: keyof Row): Map<string, { total: number; completed: number }> => {
-      const m = new Map<string, { total: number; completed: number }>();
-      for (const r of rows) {
-        const v = (r[key] as string | null) ?? null;
-        if (!v) continue;
-        const cur = m.get(v) ?? { total: 0, completed: 0 };
-        cur.total += 1;
-        if (r.furthest_step === "completed") cur.completed += 1;
-        m.set(v, cur);
-      }
-      return m;
-    };
+    const sourceBucket = new Map<string, { total: number; completed: number }>();
+    const mediumBucket = new Map<string, { total: number; completed: number }>();
+    const campaignBucket = new Map<string, { total: number; completed: number }>();
+    const referrerBucket = new Map<string, { total: number; completed: number }>();
 
-    const toSorted = (m: Map<string, { total: number; completed: number }>): AttributionRow[] =>
+    for (const r of rows) {
+      const isCompleted = r.furthest_step === "completed";
+      const derived = deriveFromReferrer(r.first_touch_referrer);
+      // Source: explicit utm_source wins; otherwise derived from referrer
+      const sourceLabel = r.first_touch_source ?? derived.source;
+      const mediumLabel = r.first_touch_medium ?? derived.medium;
+
+      const incr = (m: Map<string, { total: number; completed: number }>, key: string) => {
+        const cur = m.get(key) ?? { total: 0, completed: 0 };
+        cur.total += 1;
+        if (isCompleted) cur.completed += 1;
+        m.set(key, cur);
+      };
+
+      incr(sourceBucket, sourceLabel);
+      incr(mediumBucket, mediumLabel);
+      if (r.first_touch_campaign) incr(campaignBucket, r.first_touch_campaign);
+      incr(referrerBucket, r.first_touch_referrer ?? "direct");
+    }
+
+    const toSorted = (
+      m: Map<string, { total: number; completed: number }>
+    ): AttributionRow[] =>
       Array.from(m.entries())
         .map(([label, v]) => ({ label, ...v }))
         .sort((a, b) => b.total - a.total)
         .slice(0, 12);
 
     return {
-      bySource: toSorted(buckets("first_touch_source")),
-      byMedium: toSorted(buckets("first_touch_medium")),
-      byCampaign: toSorted(buckets("first_touch_campaign")),
-      byReferrer: toSorted(buckets("first_touch_referrer")),
-      totalWithSignal: rows.filter(
-        (r) =>
-          r.first_touch_source ||
-          r.first_touch_medium ||
-          r.first_touch_campaign ||
-          r.first_touch_referrer
-      ).length,
+      bySource: toSorted(sourceBucket),
+      byMedium: toSorted(mediumBucket),
+      byCampaign: toSorted(campaignBucket),
+      byReferrer: toSorted(referrerBucket),
+      totalWithSignal: rows.length,
     };
   } catch (err) {
     console.error("[db] getAttributionStats failed:", err);

@@ -13,6 +13,7 @@ import {
   type FunnelStep,
   type AttributionRow,
 } from "@/lib/db";
+import { UtmBuilder } from "./UtmBuilder";
 
 export const metadata: Metadata = {
   title: "Admin · Leads",
@@ -181,39 +182,42 @@ export default async function AdminDashboard() {
 
         {/* Attribution */}
         <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] p-5 mb-8">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-semibold text-[1rem]">Attribution — sidste 30 dage</h2>
+          <div className="flex items-baseline justify-between mb-2">
+            <h2 className="font-semibold text-[1rem]">Hvor kommer leads fra — sidste 30 dage</h2>
             <span className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">
-              {attribution.totalWithSignal} sessions med kilde
+              {attribution.totalWithSignal} sessions
             </span>
           </div>
+          <p className="text-[0.78rem] text-[color:var(--color-nordan-muted)] leading-snug mb-4">
+            Vi udleder kilden fra hvor folk klikker fra (linkedin.com → linkedin/social,
+            google.com → google/organic). UTM-parametre på links giver mere detaljeret data
+            men er ikke påkrævet.
+          </p>
           {attribution.totalWithSignal === 0 ? (
             <div className="text-[0.88rem] text-[color:var(--color-nordan-muted)]">
-              Ingen kilde-data endnu. Tilføj UTM-parametre på dine
-              udgående links (LinkedIn-posts, mail-signatur, content) for at
-              få brudt trafikken op her.
+              Endnu ingen sessions — kommer her så snart folk besøger sitet.
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 gap-5">
               <AttributionTable
-                title="Først-touch kilde (utm_source)"
-                hint="Hvor fandt de os først"
+                title="Kilde"
+                hint="Hvor fandt de os først (linkedin, google, direct...)"
                 rows={attribution.bySource}
               />
               <AttributionTable
-                title="Først-touch medium (utm_medium)"
-                hint="Annonce, organisk, mail osv."
+                title="Medium"
+                hint="Social, organisk, direct, email, ai..."
                 rows={attribution.byMedium}
               />
               <AttributionTable
-                title="Først-touch kampagne (utm_campaign)"
-                hint="Specifik kampagne der drev trafikken"
-                rows={attribution.byCampaign}
+                title="Henvisende domæne"
+                hint="Konkret URL hvor de klikkede fra"
+                rows={attribution.byReferrer}
               />
               <AttributionTable
-                title="Henvisende domæne"
-                hint="Hvor klikkede de fra (uden UTM)"
-                rows={attribution.byReferrer}
+                title="Kampagne (utm_campaign)"
+                hint="Kun når UTM er tilføjet manuelt"
+                rows={attribution.byCampaign}
               />
             </div>
           )}
@@ -254,6 +258,9 @@ export default async function AdminDashboard() {
             </div>
           )}
         </section>
+
+        {/* UTM builder — optional power-tool */}
+        <UtmBuilder />
 
         {/* Leads table */}
         <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] overflow-hidden">
