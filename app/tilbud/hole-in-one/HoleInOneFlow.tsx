@@ -60,33 +60,49 @@ export function HoleInOneFlow({ initialCvr }: { initialCvr: string }) {
   const [lookupState, setLookupState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [lookupNote, setLookupNote] = useState<string | null>(null);
 
-  // Auto-fill from CVR API on mount
+  // Auto-fill from CVR API on mount — go through our /api/cvr proxy so we
+  // hit cvrapi.dk from an EU edge region with the right User-Agent
+  // (browser-direct calls hit QUOTA_EXCEEDED and get reported as "ikke
+  // fundet").
   useEffect(() => {
     if (!initialCvr || initialCvr.length !== 8) return;
     let cancelled = false;
     async function lookup() {
       setLookupState("loading");
       try {
-        const res = await fetch(`https://cvrapi.dk/api?country=dk&search=${initialCvr}`);
-        if (!res.ok) throw new Error("lookup_failed");
-        const data = await res.json();
+        const res = await fetch(`/api/cvr?cvr=${initialCvr}`);
+        const data = (await res.json()) as
+          | {
+              ok: true;
+              company: {
+                name: string;
+                vat: string;
+                address: string | null;
+                industry: string | null;
+                employees: string | null;
+              };
+            }
+          | { ok: false; error: string };
         if (cancelled) return;
-        if (data.error) {
+        if (!data.ok) {
           setLookupState("error");
-          setLookupNote("Vi kunne ikke finde virksomheden — udfyld venligst manuelt.");
+          setLookupNote(
+            data.error === "not_found"
+              ? "Virksomheden blev ikke fundet — udfyld venligst manuelt."
+              : data.error === "quota"
+              ? "CVR-opslaget er midlertidigt overbelastet — udfyld venligst manuelt."
+              : "Vi kunne ikke slå CVR op — udfyld venligst manuelt."
+          );
           return;
         }
-        const address = [data.address, data.zipcode, data.city].filter(Boolean).join(", ");
         setS((prev) => ({
           ...prev,
-          navn: prev.navn || data.name || "",
-          adresse: prev.adresse || address,
-          cvr: prev.cvr || String(data.vat ?? initialCvr),
-          telefon: prev.telefon || (data.phone ? String(data.phone) : ""),
-          email: prev.email || (data.email ? String(data.email) : ""),
+          navn: prev.navn || data.company.name || "",
+          adresse: prev.adresse || data.company.address || "",
+          cvr: prev.cvr || data.company.vat,
         }));
         setLookupState("ok");
-        setLookupNote(`Hentet fra CVR-registret · ${data.name ?? "virksomhed"}`);
+        setLookupNote(`Hentet fra CVR-registret · ${data.company.name}`);
         track("hole_in_one_prefilled", { cvr: initialCvr });
       } catch {
         if (cancelled) return;
