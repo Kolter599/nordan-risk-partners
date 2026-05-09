@@ -229,6 +229,12 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
         cvr: defaults.cvr,
         insurers_count: allInsurers.length,
         audit_id: (data as SignResult).auditId,
+        // Pass signer details so /api/track persists them on the session row.
+        // Without this, "Aktivitet pr. virksomhed" shows "ingen oplyst" even
+        // though the same details were just submitted to /api/sign.
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
       });
       onSigned(data as SignResult);
     } catch (err) {
