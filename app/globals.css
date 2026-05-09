@@ -282,13 +282,14 @@ body {
 .saas-display {
   font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 800;
-  font-size: clamp(1.7rem, 5.8vw, 4.2rem);
-  line-height: 1.05;
+  /* Min lowered from 1.7rem so the longest insurance words
+     (arbejdsskadeforsikring, transportforsikring) fit on one line
+     even on the narrowest phones — preventing the hero from
+     ballooning to 4 lines mid-rotation. */
+  font-size: clamp(1.4rem, 5.6vw, 4.2rem);
+  line-height: 1.08;
   letter-spacing: -0.035em;
   padding-bottom: 0.05em;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
   text-wrap: balance;
 }
 

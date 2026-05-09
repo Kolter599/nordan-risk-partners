@@ -7,14 +7,14 @@ const DEFAULT_WORDS = [
   "bygningsforsikring",
   "arbejdsskadeforsikring",
   "cyberforsikring",
-  "produktansvarsforsikring",
+  "produktansvar",
   "D&O-forsikring",
   "driftstabsforsikring",
   "transportforsikring",
   "entrepriseforsikring",
   "ejendomsforsikring",
   "ansvarsforsikring",
-  "kollektiv ulykkesforsikring",
+  "ulykkesforsikring",
 ];
 
 export function RotatingWord({ words = DEFAULT_WORDS, color = "var(--color-nordan-accent-soft)" }: { words?: string[]; color?: string }) {
@@ -47,8 +47,7 @@ export function RotatingWord({ words = DEFAULT_WORDS, color = "var(--color-norda
         transform: animating ? "translateY(-12px)" : "translateY(0)",
         opacity: animating ? 0 : 1,
         transition: "transform 240ms ease, opacity 240ms ease",
-        wordBreak: "break-word",
-        overflowWrap: "anywhere",
+        whiteSpace: "nowrap",
       }}
     >
       {words[i]}
