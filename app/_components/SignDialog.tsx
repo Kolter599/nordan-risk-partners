@@ -353,7 +353,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
         {/* Two-column body: doc on left (scrolls), form on right (fits without scrolling) */}
         <div className="flex-1 overflow-hidden grid lg:grid-cols-[1fr_1.05fr]">
           {/* LEFT — document, scrollable, with scroll-hint bounce */}
-          <div className="relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[40vh] lg:max-h-none flex flex-col overflow-hidden">
+          <div className="relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[55vh] lg:max-h-none flex flex-col overflow-hidden">
             <div
               ref={docRef}
               tabIndex={0}
@@ -623,12 +623,37 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                   {error}
                 </div>
               ) : null}
+
+              {/* Mobile-only: inline submit. Appears once form is complete
+                  so the user has nothing to do but tap. No Annullér button —
+                  the X in the header is the way out. */}
+              <div className="lg:hidden mt-3">
+                {formComplete ? (
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f] disabled:opacity-60 transition-colors"
+                  >
+                    {submitting ? "Underskriver…" : "Underskriv & send →"}
+                  </button>
+                ) : (
+                  <div className="rounded-[8px] border border-dashed border-[color:var(--color-nordan-line)] px-3.5 py-3 text-center text-[0.78rem] text-[color:var(--color-nordan-muted)] leading-snug">
+                    Udfyld felterne og bekræft fuldmagten — så dukker
+                    underskriv-knappen frem.
+                  </div>
+                )}
+                <p className="mt-2 text-center text-[0.7rem] text-[color:var(--color-nordan-muted)] leading-snug">
+                  Underskrift logges med tidspunkt, IP og browser.
+                </p>
+              </div>
             </section>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-5 sm:px-7 py-4 border-t border-[color:var(--color-nordan-line)] flex flex-col sm:flex-row sm:items-center gap-3 bg-[color:var(--color-nordan-soft)]/30">
+        {/* Footer — desktop only. On mobile we surface the submit inline
+            inside the form so the dialog isn't dominated by a sticky bar. */}
+        <div className="hidden lg:flex px-5 sm:px-7 py-4 border-t border-[color:var(--color-nordan-line)] flex-col sm:flex-row sm:items-center gap-3 bg-[color:var(--color-nordan-soft)]/30">
           <div className="text-[0.74rem] text-[color:var(--color-nordan-muted)] flex-1 leading-snug">
             Underskrift logges med tidspunkt, IP og browser. Du modtager en kopi pr. mail.
           </div>
