@@ -145,10 +145,8 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       track("cvr_step_actions_view");
       // Only one auth method available — auto-select digital so the SignDialog CTA shows immediately.
       if (!authMethod) setAuthMethod("digital");
-      // The card grows much taller when we land on actions — anchor the top
-      // of the card to the top of the viewport (with a small offset for the
-      // step indicator), so the user sees panels + buttons at once.
-      setTimeout(() => scrollCardIntoView("start"), 80);
+      // No auto-scroll on confirm → actions: the card is compact enough
+      // to stay in place. Moving the page broke the user's context.
     } else if (step === "done") {
       track("cvr_flow_completed", {
         company: company?.name,
@@ -360,7 +358,13 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       className={`mx-auto w-full ${widthClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}
     >
       {/* HEADER with progress */}
-      <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
+      <div
+        className={`bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white ${
+          step === "actions"
+            ? "px-4 sm:px-5 pt-3.5 sm:pt-4 pb-3"
+            : "px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5"
+        }`}
+      >
         <div className="flex items-center justify-between mb-3">
           <div className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)]">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent-soft)]" />
@@ -388,7 +392,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       </div>
 
       {/* STEP BODY */}
-      <div className="p-5 sm:p-7">
+      <div className={step === "actions" ? "p-3.5 sm:p-4" : "p-5 sm:p-7"}>
         {step === "cvr" && (
           <StepCvr
             digits={digits}
@@ -656,11 +660,7 @@ function StepActions({
     <form onSubmit={handleSubmitClick} className="cvr-actions-enter space-y-3.5">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* PANEL 1 — FULDMAGT */}
-        <ActionPanel
-          step="01"
-          title="Giv os tilladelse"
-          subtitle="Underskriv undersøgelsesfuldmagt"
-        >
+        <ActionPanel title="Underskriv fuldmagt">
           <div className="space-y-2.5">
             <AuthOption
               selected={authMethod === "digital"}
@@ -727,11 +727,7 @@ function StepActions({
         </ActionPanel>
 
         {/* PANEL 2 — UPLOAD */}
-        <ActionPanel
-          step="02"
-          title="Upload jeres policer"
-          subtitle="Træk én eller flere filer hertil — eller klik"
-        >
+        <ActionPanel title="Upload policer">
           <label
             htmlFor="policer"
             onDragOver={(e) => {
@@ -837,12 +833,8 @@ function StepActions({
         </ActionPanel>
 
         {/* PANEL 3 — KONTAKT */}
-        <ActionPanel
-          step="03"
-          title="Hvem ringer vi til?"
-          subtitle="Din forsikringsmægler vender tilbage inden for én hverdag"
-        >
-          <div className="space-y-3">
+        <ActionPanel title="Hvem ringer vi til?">
+          <div className="space-y-2">
             <InputField
               name="name"
               label="Navn"
@@ -958,27 +950,25 @@ function StepActions({
 }
 
 function ActionPanel({
-  step,
   title,
   subtitle,
   children,
 }: {
-  step: string;
+  step?: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="border border-[color:var(--color-nordan-line)] rounded-[10px] p-3 sm:p-3.5 bg-white">
-      <div className="flex items-baseline gap-2 mb-0.5">
-        <span className="text-[color:var(--color-nordan-accent)] font-[family-name:var(--font-inter)] font-bold text-[0.7rem] tracking-[0.18em]">
-          {step}
-        </span>
-        <span className="font-[family-name:var(--font-inter)] font-bold text-[0.95rem] text-[color:var(--color-nordan-ink)]">
-          {title}
-        </span>
+    <div className="border border-[color:var(--color-nordan-line)] rounded-[8px] p-2.5 sm:p-3 bg-white">
+      <div className="font-[family-name:var(--font-inter)] font-bold text-[0.92rem] text-[color:var(--color-nordan-ink)] leading-tight">
+        {title}
       </div>
-      <p className="text-[0.74rem] text-[color:var(--color-nordan-muted)] mb-2.5 leading-snug">{subtitle}</p>
+      {subtitle ? (
+        <p className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mb-2 leading-snug">{subtitle}</p>
+      ) : (
+        <div className="mb-2" />
+      )}
       {children}
     </div>
   );
@@ -1066,7 +1056,7 @@ function InputField({
 }) {
   return (
     <label className="block">
-      <div className="text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-muted)] mb-2">
+      <div className="text-[0.66rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-1">
         {label} {required ? <span className="text-[color:var(--color-nordan-accent)]">*</span> : null}
       </div>
       <input
@@ -1077,7 +1067,7 @@ function InputField({
         value={value}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         onBlur={onBlur ? (e) => onBlur(e.target.value) : undefined}
-        className="w-full h-12 px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[0.95rem] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
+        className="w-full h-9 px-3 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[6px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[0.9rem] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
       />
     </label>
   );
