@@ -143,9 +143,10 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     return () => node.removeEventListener("scroll", onScroll);
   }, [open]);
 
-  // Smooth, eased scroll using requestAnimationFrame — much softer than the
-  // browser's default smooth-scroll, so the bounce hint reads as intentional.
-  function easedScrollTo(target: number, duration = 1300) {
+  // Smooth, eased scroll using requestAnimationFrame. easeInOutQuint is
+  // softer than cubic — the bounce reads as a gentle invitation rather than
+  // a yank.
+  function easedScrollTo(target: number, duration = 1800) {
     const node = docRef.current;
     if (!node) return;
     const start = node.scrollTop;
@@ -153,11 +154,10 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     if (Math.abs(distance) < 1) return;
     const startTime = performance.now();
     const ease = (t: number) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
     function step(now: number) {
       const node = docRef.current;
       if (!node) return;
-      // If user took over, abort the programmatic scroll mid-flight.
       if (userScrolledRef.current) return;
       const progress = Math.min((now - startTime) / duration, 1);
       node.scrollTop = start + distance * ease(progress);
@@ -166,7 +166,8 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     requestAnimationFrame(step);
   }
 
-  // Auto-bounce the document every 7s until the user takes over scrolling.
+  // Auto-bounce the document at a relaxed cadence. ~14s between bounces
+  // keeps the hint visible without nagging.
   useEffect(() => {
     if (!open) return;
     const node = docRef.current;
@@ -181,15 +182,13 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
     const interval = setInterval(() => {
       if (userScrolledRef.current || !docRef.current) return;
-      // Only bounce if still parked at the top — if they've started reading,
-      // we trust them to keep going.
       if (docRef.current.scrollTop > 6) return;
-      // Down ~80px softly, hold a beat, then back up — total ~3 seconds.
-      easedScrollTo(80, 1300);
+      // Down ~56px gently, hold, then back up — total ~4 seconds.
+      easedScrollTo(56, 1800);
       setTimeout(() => {
-        if (!userScrolledRef.current) easedScrollTo(0, 1300);
-      }, 1500);
-    }, 7000);
+        if (!userScrolledRef.current) easedScrollTo(0, 1800);
+      }, 2100);
+    }, 14000);
 
     return () => {
       clearInterval(interval);
