@@ -189,7 +189,7 @@ export async function POST(req: Request) {
       });
 
       const receiptHtml = renderBrandedEmail({
-        preheader: "Kvittering for din underskrevne undersøgelsesfuldmagt",
+        preheader: "Kvittering for din underskrevne undersøgelsesfuldmagt — har I jeres policer ved hånden?",
         eyebrow: "Kvittering",
         title: "Tak for din underskrift",
         bodyHtml: `
@@ -203,6 +203,14 @@ export async function POST(req: Request) {
             ["Tidspunkt", signedHuman],
             ["Audit-ID", audit.auditId],
           ])}
+          <div style="margin:28px 0 8px;padding:18px 20px;background:${EMAIL_COLORS.soft};border-radius:8px;border:1px solid ${EMAIL_COLORS.line};">
+            <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:${EMAIL_COLORS.accent};margin-bottom:8px;">Næste skridt — frivilligt</div>
+            <div style="font-size:15px;font-weight:600;color:${EMAIL_COLORS.ink};margin-bottom:6px;">Har I jeres nuværende policer ved hånden?</div>
+            <p style="margin:0;font-size:14px;line-height:1.65;color:${EMAIL_COLORS.inkSoft};">
+              Send dem som svar på denne mail (PDF eller billeder), så kan vi gå hurtigere i gang.
+              Har I dem ikke klar, henter vi dem selv hos selskaberne via fuldmagten — det tager bare lidt længere.
+            </p>
+          </div>
           <p style="margin:24px 0 8px;font-size:14px;line-height:1.6;color:#6b6b6b;">
             Fuldmagten kan til enhver tid tilbagekaldes skriftligt. Kontakt os på
             <a href="mailto:info@ndrp.dk" style="color:${EMAIL_COLORS.accent};text-decoration:none;font-weight:600;">info@ndrp.dk</a>

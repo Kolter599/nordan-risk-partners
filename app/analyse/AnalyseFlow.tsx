@@ -10,14 +10,14 @@ type Props = {
 const STAGES = [
   { key: "cvr", label: "Indtast CVR" },
   { key: "confirm", label: "Bekræft virksomhed" },
-  { key: "actions", label: "Klargør analyse" },
+  { key: "sign", label: "Underskriv fuldmagt" },
 ] as const;
 
 export function AnalyseFlow({ initialCvr }: Props) {
   const [step, setStep] = useState<CvrLookupStep>(initialCvr ? "cvr" : "cvr");
 
   const currentIndex =
-    step === "cvr" ? 0 : step === "confirm" ? 1 : step === "actions" || step === "done" ? 2 : 0;
+    step === "cvr" ? 0 : step === "confirm" ? 1 : step === "sign" || step === "done" ? 2 : 0;
   const allDone = step === "done";
 
   return (

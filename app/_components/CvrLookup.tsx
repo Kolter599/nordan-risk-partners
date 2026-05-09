@@ -1,17 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { upload } from "@vercel/blob/client";
 import { track } from "./GoogleAnalytics";
-import { SignDialog, type SignResult } from "./SignDialog";
-import { FilePreviewDialog } from "./FilePreviewDialog";
-
-type UploadedFile = {
-  name: string;
-  url: string;
-  size: number;
-  kind: "policy" | "authorization";
-};
+import { SignFlow, type SignResult } from "./SignFlow";
 
 type Company = {
   name: string;
@@ -21,14 +12,8 @@ type Company = {
   employees?: string;
 };
 
-type Step = "cvr" | "confirm" | "actions" | "done";
+type Step = "cvr" | "confirm" | "sign" | "done";
 type LookupState = "idle" | "loading" | "error";
-
-const STEPS: { key: Step; label: string }[] = [
-  { key: "cvr", label: "Virksomhed" },
-  { key: "confirm", label: "Bekræft" },
-  { key: "actions", label: "Klargør" },
-];
 
 type CvrLookupProps = {
   headline?: string;
@@ -40,30 +25,21 @@ type CvrLookupProps = {
 
 export type CvrLookupStep = Step;
 
+const STEP_LABELS: Record<Step, string> = {
+  cvr: "Indtast CVR — start jeres analyse",
+  confirm: "Er det din virksomhed?",
+  sign: "Underskriv fuldmagt",
+  done: "Tak! Vi er i gang.",
+};
+
 export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps = {}) {
   const [step, setStep] = useState<Step>("cvr");
   const [cvr, setCvr] = useState("");
   const [company, setCompany] = useState<Company | null>(null);
   const [lookupState, setLookupState] = useState<LookupState>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [authMethod, setAuthMethod] = useState<"digital" | "download" | null>(null);
-  const [digitalConfirmed, setDigitalConfirmed] = useState(false);
-  const [digitalResult, setDigitalResult] = useState<SignResult | null>(null);
-  const [signDialogOpen, setSignDialogOpen] = useState(false);
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [authFile, setAuthFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
+  const [, setSignResult] = useState<SignResult | null>(null);
 
-  // Reset method-specific state when user switches between digital and download.
-  useEffect(() => {
-    setDigitalConfirmed(false);
-    setDigitalResult(null);
-    setAuthFile(null);
-  }, [authMethod]);
   const typedOnce = useRef(false);
   const prefillRan = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -84,8 +60,6 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     setCvr(fromProp);
     typedOnce.current = true;
     void runLookup(fromProp);
-    // Pull the card into view so users arriving from the homepage CVR
-    // submit don't have to scroll past the /analyse hero.
     const t = setTimeout(scrollCardIntoView, 80);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,24 +115,13 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     onStepChange?.(step);
     if (step === "confirm") {
       track("cvr_company_confirmed_view", { cvr: digits, company: company?.name });
-    } else if (step === "actions") {
-      track("cvr_step_actions_view");
-      // Only one auth method available — auto-select digital so the SignDialog CTA shows immediately.
-      if (!authMethod) setAuthMethod("digital");
-      // No auto-scroll on confirm → actions: the card is compact enough
-      // to stay in place. Moving the page broke the user's context.
+    } else if (step === "sign") {
+      track("cvr_step_sign_view", { cvr: digits, company: company?.name });
     } else if (step === "done") {
-      track("cvr_flow_completed", {
-        company: company?.name,
-        auth_method: authMethod ?? "skipped",
-        files_uploaded: files.length,
-      });
+      track("cvr_flow_completed", { company: company?.name });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
-
-  const activeIndex = STEPS.findIndex((s) => s.key === step);
-  const progress = step === "done" ? 100 : ((Math.max(activeIndex, 0) + 1) / STEPS.length) * 100;
 
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -175,181 +138,41 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     setStep("confirm");
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    const name = String(data.get("name") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
-    const phone = String(data.get("phone") ?? "").trim();
-
-    const authComplete =
-      (authMethod === "digital" && digitalConfirmed) ||
-      (authMethod === "download" && authFile !== null);
-    if (!authComplete) {
-      setError("Underskriv fuldmagten først — digitalt eller upload den underskrevne PDF.");
-      return;
-    }
-    if (files.length === 0) {
-      setError("Upload mindst én police før du sender.");
-      return;
-    }
-
-    const uploadsToDo: { file: File; kind: "policy" | "authorization" }[] = [
-      ...files.map((f) => ({ file: f, kind: "policy" as const })),
-      ...(authFile ? [{ file: authFile, kind: "authorization" as const }] : []),
-    ];
-    // The digital-sign flow already uploaded its PDF to Blob; we surface that URL in the payload.
-    const preUploaded: UploadedFile[] = digitalResult?.blobUrl
-      ? [
-          {
-            name: digitalResult.fileName,
-            url: digitalResult.blobUrl,
-            size: 0,
-            kind: "authorization",
-          },
-        ]
-      : [];
-
-    setSubmitting(true);
-    setError(null);
-    track("cvr_contact_submitted", {
-      has_phone: !!phone,
-      auth_method: authMethod ?? "skipped",
-      files_uploaded: files.length,
+  // After signing succeeds: capture result and move to done.
+  function handleSigned(result: SignResult) {
+    setSignResult(result);
+    track("analyse_completed", {
+      cvr: company?.vat ?? digits,
+      company: company?.name,
+      audit_id: result.auditId,
     });
-
-    const uploaded: UploadedFile[] = [...preUploaded];
-    const fellBackToInline: { file: File; kind: "policy" | "authorization" }[] = [];
-    setUploadProgress({ current: 0, total: uploadsToDo.length });
-    for (let i = 0; i < uploadsToDo.length; i++) {
-      const { file, kind } = uploadsToDo[i];
-      try {
-        const blob = await upload(`uploads/${Date.now()}-${file.name}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload-token",
-        });
-        uploaded.push({ name: file.name, url: blob.url, size: file.size, kind });
-      } catch (err) {
-        // Blob storage isn't configured (or failed) — fall back to attaching the
-        // file inline via multipart so info@ndrp.dk still receives the document.
-        console.warn("Blob upload failed, will attach inline:", file.name, err);
-        fellBackToInline.push({ file, kind });
-      }
-      setUploadProgress({ current: i + 1, total: uploadsToDo.length });
-    }
-    setUploadProgress(null);
-
-    const inlineTotalBytes = fellBackToInline.reduce((sum, f) => sum + f.file.size, 0);
-    const INLINE_LIMIT = 4 * 1024 * 1024;
-    const inlineTooLarge = inlineTotalBytes > INLINE_LIMIT;
-
-    const messageParts: string[] = [
-      `CVR: ${company?.vat ?? digits}`,
-    ];
-    if (company?.address) messageParts.push(`Adresse: ${company.address}`);
-    messageParts.push(
-      authMethod === "digital"
-        ? "Fuldmagt: digital signering (vores eget e-signatur-flow)"
-        : authMethod === "download"
-        ? `Fuldmagt: PDF downloaded og uploaded${authFile ? ` (${authFile.name})` : ""}`
-        : "Fuldmagt: ikke valgt"
-    );
-    messageParts.push(
-      `Policer uploaded: ${files.length}${files.length ? ` (${files.map((f) => f.name).join(", ")})` : ""}`
-    );
-    if (inlineTooLarge) {
-      messageParts.push(
-        `Bemærk: ${fellBackToInline.length} fil(er) på ${(inlineTotalBytes / 1024 / 1024).toFixed(1)} MB i alt kunne ikke vedhæftes (over 4 MB-grænsen). Bed kunden eftersende på info@ndrp.dk.`
-      );
-    }
-    const message = messageParts.join("\n");
-
-    // Customer-facing summary — friendly, no internal jargon.
-    const customerSummaryParts = [
-      `CVR ${company?.vat ?? digits}${company?.name ? ` · ${company.name}` : ""}`,
-      authMethod === "digital" && digitalConfirmed
-        ? "Undersøgelsesfuldmagt underskrevet"
-        : authMethod === "download" && authFile
-        ? "Undersøgelsesfuldmagt vedhæftet"
-        : "",
-      files.length
-        ? `${files.length} ${files.length === 1 ? "police" : "policer"} indsendt til gennemgang`
-        : "",
-    ].filter(Boolean);
-    const customerMessage = customerSummaryParts.join("\n");
-
-    try {
-      let res: Response;
-      const signedFuldmagt = digitalResult
-        ? {
-            auditId: digitalResult.auditId,
-            blobUrl: digitalResult.blobUrl,
-            signedAt: digitalResult.signedAt,
-            internalMessageId: digitalResult.internalMessageId,
-            receiptMessageId: digitalResult.receiptMessageId,
-            internalSubject: digitalResult.internalSubject,
-            receiptSubject: digitalResult.receiptSubject,
-            insurers: digitalResult.insurers,
-          }
-        : undefined;
-
-      if (fellBackToInline.length === 0 || inlineTooLarge) {
-        res = await fetch("/api/contact", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            phone: phone || undefined,
-            company: company?.name ?? "Ukendt",
-            topic: "Forsikringsanalyse · CVR-flow",
-            message,
-            customerMessage,
-            files: uploaded,
-            signedFuldmagt,
-          }),
-        });
-      } else {
-        const fd = new FormData();
-        fd.append("name", name);
-        fd.append("email", email);
-        if (phone) fd.append("phone", phone);
-        fd.append("company", company?.name ?? "Ukendt");
-        fd.append("topic", "Forsikringsanalyse · CVR-flow");
-        fd.append("message", message);
-        fd.append("customerMessage", customerMessage);
-        if (signedFuldmagt) fd.append("signedFuldmagt", JSON.stringify(signedFuldmagt));
-        for (const { file } of fellBackToInline) {
-          fd.append("files", file, file.name);
-        }
-        res = await fetch("/api/contact", { method: "POST", body: fd });
-      }
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Noget gik galt. Prøv igen eller ring.");
-      }
-      track("analyse_completed", {
-        files_count: uploadsToDo.length,
-        signed: !!digitalResult,
-        cvr: company?.vat ?? digits,
-        company: company?.name,
-      });
-      setStep("done");
-    } catch (err) {
-      track("cvr_contact_error");
-      setError(err instanceof Error ? err.message : "Noget gik galt");
-    } finally {
-      setSubmitting(false);
-    }
+    setStep("done");
+    setTimeout(() => scrollCardIntoView("center"), 80);
   }
 
+  // Card grows wider on the sign step so the doc + form layout fits.
   const widthClass =
-    step === "actions"
-      ? "max-w-[1100px]"
+    step === "sign"
+      ? "max-w-[1040px]"
       : step === "done"
       ? "max-w-[520px]"
       : "max-w-[480px]";
+
+  // Step body padding — sign step uses zero padding so SignFlow can run
+  // edge-to-edge inside the card.
+  const bodyPadding = step === "sign" ? "p-0" : "p-5 sm:p-7";
+
+  // Slim header on the sign step to make room for the doc preview.
+  const headerPadding =
+    step === "sign"
+      ? "px-4 sm:px-5 pt-3.5 sm:pt-4 pb-3"
+      : "px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5";
+
+  // Map our 4 steps onto the 3 user-visible stages (cvr / confirm / sign).
+  // Done collapses back into the sign stage being marked complete.
+  const STAGES: Step[] = ["cvr", "confirm", "sign"];
+  const stageIndex = step === "done" ? 2 : STAGES.indexOf(step);
+  const progress = step === "done" ? 100 : ((stageIndex + 1) / STAGES.length) * 100;
 
   return (
     <div
@@ -359,11 +182,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     >
       {/* HEADER with progress */}
       <div
-        className={`bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white ${
-          step === "actions"
-            ? "px-4 sm:px-5 pt-3.5 sm:pt-4 pb-3"
-            : "px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5"
-        }`}
+        className={`bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white ${headerPadding}`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)]">
@@ -372,15 +191,15 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
           </div>
           {step !== "done" ? (
             <span className="text-[0.7rem] text-white/60 font-mono">
-              {Math.min(activeIndex + 1, STEPS.length)}/{STEPS.length}
+              {Math.min(stageIndex + 1, STAGES.length)}/{STAGES.length}
             </span>
           ) : null}
         </div>
         <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] sm:text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
-          {step === "cvr" && (headline ?? "Indtast CVR — se hvad du kan spare")}
-          {step === "confirm" && "Er det din virksomhed?"}
-          {step === "actions" && "Klargør jeres analyse"}
-          {step === "done" && "Tak! Vi er i gang."}
+          {step === "cvr" && (headline ?? STEP_LABELS.cvr)}
+          {step === "confirm" && STEP_LABELS.confirm}
+          {step === "sign" && STEP_LABELS.sign}
+          {step === "done" && STEP_LABELS.done}
         </div>
         {/* Progress bar */}
         <div className="mt-4 h-[3px] bg-white/15 rounded-full overflow-hidden">
@@ -392,7 +211,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       </div>
 
       {/* STEP BODY */}
-      <div className={step === "actions" ? "p-3.5 sm:p-4" : "p-5 sm:p-7"}>
+      <div className={bodyPadding}>
         {step === "cvr" && (
           <StepCvr
             digits={digits}
@@ -408,48 +227,16 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
           <StepConfirm
             company={company}
             onBack={() => setStep("cvr")}
-            onNext={() => setStep("actions")}
+            onNext={() => setStep("sign")}
           />
         )}
-        {step === "actions" && (
-          <StepActions
-            authMethod={authMethod}
-            setAuthMethod={setAuthMethod}
-            digitalConfirmed={digitalConfirmed}
-            setDigitalConfirmed={setDigitalConfirmed}
-            digitalResult={digitalResult}
-            authFile={authFile}
-            setAuthFile={setAuthFile}
-            files={files}
-            setFiles={setFiles}
-            contactName={contactName}
-            setContactName={setContactName}
-            contactEmail={contactEmail}
-            setContactEmail={setContactEmail}
-            contactPhone={contactPhone}
-            setContactPhone={setContactPhone}
-            signDialogOpen={signDialogOpen}
-            setSignDialogOpen={setSignDialogOpen}
-            onSignedDigitally={(r) => {
-              setDigitalResult(r);
-              setDigitalConfirmed(true);
-              setSignDialogOpen(false);
-              // Auto-fill Step 3 contact card with the data the user just
-              // signed with — avoids them having to retype the same details.
-              if (r.signerName && !contactName) setContactName(r.signerName);
-              if (r.signerEmail && !contactEmail) setContactEmail(r.signerEmail);
-              if (r.signerPhone && !contactPhone) setContactPhone(r.signerPhone);
-              // Pull the card back into view — without this, closing the
-              // modal can leave the user looking at the footer.
-              setTimeout(scrollCardIntoView, 80);
+        {step === "sign" && company && (
+          <SignFlow
+            defaults={{
+              companyName: company.name,
+              cvr: company.vat,
             }}
-            companyName={company?.name ?? "Din virksomhed"}
-            cvr={company?.vat ?? digits}
-            onBack={() => setStep("confirm")}
-            onSubmit={handleSubmit}
-            submitting={submitting}
-            uploadProgress={uploadProgress}
-            error={error}
+            onSigned={handleSigned}
           />
         )}
         {step === "done" && <StepDone company={company} />}
@@ -573,538 +360,24 @@ function StepConfirm({
   );
 }
 
-/* -------------------- STEP 3: ACTIONS (parallel: fuldmagt + upload + kontakt) -------------------- */
-function StepActions({
-  authMethod,
-  setAuthMethod,
-  digitalConfirmed,
-  setDigitalConfirmed,
-  digitalResult,
-  authFile,
-  setAuthFile,
-  files,
-  setFiles,
-  contactName,
-  setContactName,
-  contactEmail,
-  setContactEmail,
-  contactPhone,
-  setContactPhone,
-  signDialogOpen,
-  setSignDialogOpen,
-  onSignedDigitally,
-  companyName,
-  cvr,
-  onBack,
-  onSubmit,
-  submitting,
-  uploadProgress,
-  error,
-}: {
-  authMethod: "digital" | "download" | null;
-  setAuthMethod: (v: "digital" | "download" | null) => void;
-  digitalConfirmed: boolean;
-  setDigitalConfirmed: (v: boolean) => void;
-  digitalResult: SignResult | null;
-  authFile: File | null;
-  setAuthFile: (f: File | null) => void;
-  files: File[];
-  setFiles: (f: File[]) => void;
-  contactName: string;
-  setContactName: (v: string) => void;
-  contactEmail: string;
-  setContactEmail: (v: string) => void;
-  contactPhone: string;
-  setContactPhone: (v: string) => void;
-  signDialogOpen: boolean;
-  setSignDialogOpen: (v: boolean) => void;
-  onSignedDigitally: (r: SignResult) => void;
-  companyName: string;
-  cvr: string;
-  onBack: () => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  submitting: boolean;
-  uploadProgress: { current: number; total: number } | null;
-  error: string | null;
-}) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [isAuthDragging, setIsAuthDragging] = useState(false);
-  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const [previewFile, setPreviewFile] = useState<File | null>(null);
-
-  const authComplete =
-    (authMethod === "digital" && digitalConfirmed) ||
-    (authMethod === "download" && authFile !== null);
-  const policiesComplete = files.length > 0;
-  // Policies are optional — many users don't have their policy PDFs at hand
-  // when they fill out the form. As long as the fuldmagt is signed, we can
-  // pull policies directly from the insurer using the authorization.
-  const canSubmit = authComplete;
-
-  function handleSubmitClick(e: React.FormEvent<HTMLFormElement>) {
-    if (!canSubmit) {
-      e.preventDefault();
-      setAttemptedSubmit(true);
-      return;
-    }
-    onSubmit(e);
-  }
-
-  function addFiles(incoming: FileList | File[] | null) {
-    if (!incoming) return;
-    const next = Array.from(incoming).filter(
-      (f) => f.type === "application/pdf" || f.type.startsWith("image/")
-    );
-    if (!next.length) return;
-    setFiles([...files, ...next]);
-  }
-
-  return (
-    <form onSubmit={handleSubmitClick} className="cvr-actions-enter space-y-3.5">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* PANEL 1 — FULDMAGT */}
-        <ActionPanel title="Underskriv fuldmagt" accent={!authComplete}>
-          <div className="space-y-2.5">
-            <AuthOption
-              selected={authMethod === "digital"}
-              onSelect={() => setAuthMethod("digital")}
-              icon={<IconSignature />}
-              title="Underskriv digitalt"
-              body="Læs fuldmagten, udfyld dine oplysninger, og bekræft elektronisk."
-              badge="Sikker e-signatur"
-            />
-          </div>
-
-          {/* Expanded: digital signing flow */}
-          {authMethod === "digital" ? (
-            <div className="mt-3 p-3.5 rounded-[8px] bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)]">
-              {!digitalConfirmed ? (
-                <>
-                  <div className="text-[0.82rem] text-[color:var(--color-nordan-ink-soft)] mb-3 leading-relaxed">
-                    Læs fuldmagten, udfyld dine oplysninger og tegn din underskrift. Du får kvittering pr. mail.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSignDialogOpen(true)}
-                    className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[6px] bg-[color:var(--color-nordan-dark)] text-white text-[0.85rem] font-semibold hover:bg-[color:var(--color-nordan-dark-deep)] transition-colors"
-                  >
-                    Underskriv elektronisk →
-                  </button>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[0.85rem]">
-                    <span className="w-5 h-5 rounded-full bg-green-600 text-white grid place-items-center text-xs">✓</span>
-                    <span className="font-medium text-[color:var(--color-nordan-ink)]">
-                      Underskrevet
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSignDialogOpen(true)}
-                      className="ml-auto text-[0.78rem] text-[color:var(--color-nordan-muted)] underline"
-                    >
-                      Underskriv igen
-                    </button>
-                  </div>
-                  {digitalResult?.blobUrl ? (
-                    <a
-                      href={digitalResult.blobUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[0.78rem] text-[color:var(--color-nordan-accent)] hover:underline"
-                    >
-                      Hent kopi af din underskrift ↓
-                    </a>
-                  ) : null}
-                  {digitalResult?.auditId ? (
-                    <div className="text-[0.7rem] font-mono text-[color:var(--color-nordan-muted)]">
-                      Audit-ID: {digitalResult.auditId}
-                    </div>
-                  ) : null}
-                </div>
-              )}
-            </div>
-          ) : null}
-
-          {/* Expanded: download-then-upload flow */}
-        </ActionPanel>
-
-        {/* PANEL 2 — UPLOAD */}
-        <ActionPanel title="Upload policer">
-          <label
-            htmlFor="policer"
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (!isDragging) setIsDragging(true);
-            }}
-            onDragEnter={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-              setIsDragging(false);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-              addFiles(e.dataTransfer.files);
-            }}
-            className={`group relative block border-2 border-dashed rounded-[8px] py-4 px-3 text-center cursor-pointer transition-all ${
-              isDragging
-                ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/10 scale-[1.01]"
-                : "border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-soft)]/50"
-            }`}
-          >
-            <input
-              id="policer"
-              type="file"
-              multiple
-              accept="application/pdf,image/*"
-              onChange={(e) => {
-                addFiles(e.target.files);
-                e.target.value = "";
-              }}
-              className="sr-only"
-            />
-            <div className="inline-flex flex-col items-center gap-1.5">
-              <span className="relative w-9 h-9 grid place-items-center">
-                <span className="relative w-9 h-9 rounded-md bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)] shadow-sm">
-                  <IconUpload />
-                </span>
-              </span>
-              <div>
-                <div className="font-semibold text-[0.85rem] text-[color:var(--color-nordan-ink)]">
-                  {isDragging ? "Slip filerne her" : "Træk policer hertil"}
-                </div>
-                <div className="text-[0.7rem] text-[color:var(--color-nordan-muted)] mt-0.5">
-                  PDF · JPG · PNG · max 4 MB
-                </div>
-              </div>
-              <div className="text-[0.74rem] text-[color:var(--color-nordan-accent)] font-semibold underline-offset-2 group-hover:underline">
-                eller vælg fra computer
-              </div>
-            </div>
-          </label>
-
-          {files.length > 0 ? (
-            <div className="mt-2.5">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="text-[0.7rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)]">
-                  {files.length} {files.length === 1 ? "fil tilføjet" : "filer tilføjet"}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setFiles([])}
-                  className="text-[0.72rem] text-[color:var(--color-nordan-muted)] hover:text-red-600"
-                >
-                  Ryd alle
-                </button>
-              </div>
-              <ul className="space-y-1 max-h-28 overflow-y-auto pr-1">
-                {files.map((f, i) => (
-                  <li
-                    key={`${f.name}-${f.size}-${i}`}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-[color:var(--color-nordan-soft)] rounded border border-[color:var(--color-nordan-line)] text-[0.82rem]"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setPreviewFile(f)}
-                      className="flex items-center gap-2 flex-1 min-w-0 text-left hover:text-[color:var(--color-nordan-accent)] transition-colors"
-                      title="Klik for at se filen"
-                    >
-                      <IconFile />
-                      <span className="flex-1 truncate underline-offset-2 hover:underline">{f.name}</span>
-                    </button>
-                    <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
-                      {Math.round(f.size / 1024)} KB
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
-                      className="text-[color:var(--color-nordan-muted)] hover:text-red-600 text-base leading-none"
-                      aria-label="Fjern"
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          <p className="mt-2 text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
-            Har du ikke jeres policer ved hånden? Underskriv blot fuldmagten — så tager vi den derfra.
-          </p>
-        </ActionPanel>
-
-        {/* PANEL 3 — KONTAKT */}
-        <ActionPanel title="Hvem ringer vi til?">
-          <div className="space-y-2">
-            <InputField
-              name="name"
-              label="Navn"
-              placeholder="Fornavn Efternavn"
-              required
-              value={contactName}
-              onChange={setContactName}
-              onBlur={(v) => {
-                if (v.trim().length >= 2) {
-                  track("cvr_contact_name_captured", { name: v.trim(), cvr });
-                }
-              }}
-            />
-            <InputField
-              name="email"
-              label="E-mail"
-              type="email"
-              placeholder="navn@firma.dk"
-              required
-              value={contactEmail}
-              onChange={setContactEmail}
-              onBlur={(v) => {
-                if (/.+@.+\..+/.test(v.trim())) {
-                  track("cvr_contact_email_captured", { email: v.trim(), cvr });
-                }
-              }}
-            />
-            <InputField
-              name="phone"
-              label="Telefon"
-              type="tel"
-              placeholder="+45 12 34 56 78"
-              required
-              value={contactPhone}
-              onChange={setContactPhone}
-              onBlur={(v) => {
-                const digits = v.replace(/\D/g, "");
-                if (digits.length >= 8) {
-                  track("cvr_contact_phone_captured", { phone: v.trim(), cvr });
-                }
-              }}
-            />
-          </div>
-        </ActionPanel>
-      </div>
-
-      {error ? (
-        <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>
-      ) : null}
-
-      {attemptedSubmit && !canSubmit && !submitting ? (
-        <div className="text-[0.85rem] text-amber-900 bg-amber-50 border border-amber-200 rounded px-3.5 py-2.5">
-          <span className="font-semibold">Underskriv fuldmagten først</span> — det er det eneste
-          obligatoriske skridt. Policer kan eftersendes (eller vi henter dem).
-        </div>
-      ) : null}
-
-      <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2.5">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={submitting}
-          className="h-[44px] px-5 rounded-[8px] border border-[color:var(--color-nordan-line)] text-[0.85rem] font-medium text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-ink-soft)] disabled:opacity-60"
-        >
-          Tilbage
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          aria-disabled={!canSubmit}
-          className={`flex-1 h-[44px] inline-flex items-center justify-center gap-2 text-white text-[0.9rem] font-semibold tracking-wide rounded-[8px] transition-all ${
-            canSubmit
-              ? "bg-green-600 hover:bg-green-700 shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
-              : "bg-[color:var(--color-nordan-accent)]/50 cursor-not-allowed"
-          } disabled:opacity-60`}
-        >
-          {submitting ? (
-            <>
-              <Spinner />
-              <span>
-                {uploadProgress
-                  ? `Uploader ${uploadProgress.current}/${uploadProgress.total}…`
-                  : "Sender…"}
-              </span>
-            </>
-          ) : (
-            <>
-              <span>Send &amp; start analyse</span>
-              <span aria-hidden>→</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      <SignDialog
-        open={signDialogOpen}
-        onClose={() => setSignDialogOpen(false)}
-        onSigned={onSignedDigitally}
-        defaults={{
-          name: contactName,
-          email: contactEmail,
-          phone: contactPhone,
-          companyName,
-          cvr,
-        }}
-      />
-
-      <FilePreviewDialog file={previewFile} onClose={() => setPreviewFile(null)} />
-    </form>
-  );
-}
-
-function ActionPanel({
-  title,
-  subtitle,
-  children,
-  accent,
-}: {
-  step?: string;
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-  /** When true, the panel gets a subtle accent border + a small "Start her"
-   * badge — used for the fuldmagt panel until the user actually signs. */
-  accent?: boolean;
-}) {
-  return (
-    <div
-      className={`border rounded-[8px] p-2.5 sm:p-3 bg-white transition-colors ${
-        accent
-          ? "border-[color:var(--color-nordan-accent)] shadow-[0_0_0_3px_rgba(165,136,120,0.08)]"
-          : "border-[color:var(--color-nordan-line)]"
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <div className="font-[family-name:var(--font-inter)] font-bold text-[0.92rem] text-[color:var(--color-nordan-ink)] leading-tight flex-1">
-          {title}
-        </div>
-        {accent ? (
-          <span className="text-[0.6rem] uppercase tracking-[0.14em] font-bold px-1.5 py-0.5 rounded-full bg-[color:var(--color-nordan-accent)]/10 text-[color:var(--color-nordan-accent)]">
-            Start her
-          </span>
-        ) : null}
-      </div>
-      {subtitle ? (
-        <p className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mb-2 leading-snug">{subtitle}</p>
-      ) : (
-        <div className="mb-2" />
-      )}
-      {children}
-    </div>
-  );
-}
-
-function AuthOption({
-  selected,
-  onSelect,
-  icon,
-  title,
-  body,
-  badge,
-  action,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-  badge?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`w-full text-left p-4 rounded-[8px] border-2 transition-all ${
-        selected
-          ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/5"
-          : "border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent-soft)]"
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          className={`shrink-0 w-10 h-10 rounded-full grid place-items-center ${
-            selected
-              ? "bg-[color:var(--color-nordan-accent)] text-white"
-              : "bg-[color:var(--color-nordan-soft)] text-[color:var(--color-nordan-dark)]"
-          }`}
-        >
-          {icon}
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="font-semibold text-[0.95rem]">{title}</span>
-            {badge ? (
-              <span className="text-[0.65rem] uppercase tracking-[0.15em] font-semibold bg-[color:var(--color-nordan-accent)] text-white px-2 py-0.5 rounded">
-                {badge}
-              </span>
-            ) : null}
-          </div>
-          <div className="text-[0.82rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">{body}</div>
-          {action ? <div className="mt-2">{action}</div> : null}
-        </div>
-        <span
-          className={`shrink-0 w-5 h-5 rounded-full border-2 mt-1 grid place-items-center ${
-            selected ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]" : "border-[color:var(--color-nordan-line)]"
-          }`}
-        >
-          {selected ? <span className="w-2 h-2 rounded-full bg-white" /> : null}
-        </span>
-      </div>
-    </button>
-  );
-}
-
-function InputField({
-  name,
-  label,
-  type = "text",
-  placeholder,
-  required,
-  value,
-  onChange,
-  onBlur,
-}: {
-  name: string;
-  label: string;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-  value?: string;
-  onChange?: (v: string) => void;
-  onBlur?: (v: string) => void;
-}) {
-  return (
-    <label className="block">
-      <div className="text-[0.66rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-1">
-        {label} {required ? <span className="text-[color:var(--color-nordan-accent)]">*</span> : null}
-      </div>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        onBlur={onBlur ? (e) => onBlur(e.target.value) : undefined}
-        className="w-full h-9 px-3 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[6px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[0.9rem] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
-      />
-    </label>
-  );
-}
-
-/* -------------------- STEP 6: DONE -------------------- */
+/* -------------------- STEP 4: DONE -------------------- */
 function StepDone({ company }: { company: Company | null }) {
   return (
     <div className="py-4 text-center">
       <div className="inline-flex w-14 h-14 rounded-full bg-[color:var(--color-nordan-accent)] text-white items-center justify-center mb-4">
         <IconCheck />
       </div>
-      <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] mb-2">Tak — vi er i gang</div>
+      <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] mb-2">
+        Tak — vi er i gang
+      </div>
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed max-w-sm mx-auto">
-        Vi går straks i gang med at analysere forsikringerne for {company?.name ?? "din virksomhed"} og vender tilbage typisk inden for én hverdag.
+        Vi har fået jeres underskrevne fuldmagt for{" "}
+        <strong>{company?.name ?? "din virksomhed"}</strong> og går i gang med analysen.
+        Vi vender typisk tilbage inden for én hverdag.
+      </p>
+      <p className="mt-4 text-[0.85rem] text-[color:var(--color-nordan-muted)] leading-relaxed max-w-sm mx-auto">
+        Tjek din indbakke for kvitteringen — har I jeres policer ved hånden, så send dem
+        gerne som svar på den mail. Det hjælper os med at gå hurtigere i gang.
       </p>
     </div>
   );
@@ -1194,42 +467,6 @@ function Spinner() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" className="animate-spin" aria-hidden>
       <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="40 60" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconSignature() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M3 18c4-8 8-2 12-10" />
-      <path d="M13 15l3 3M3 21h18" />
-    </svg>
-  );
-}
-
-function IconDownload() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 3v12m0 0l-5-5m5 5l5-5" />
-      <path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
-    </svg>
-  );
-}
-
-function IconUpload() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 21V9m0 0l-5 5m5-5l5 5" />
-      <path d="M4 5h16" />
-    </svg>
-  );
-}
-
-function IconFile() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z" />
-      <path d="M14 3v6h6" />
     </svg>
   );
 }

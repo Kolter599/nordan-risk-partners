@@ -40,8 +40,8 @@ const STEP_LABELS: Record<FunnelStep, string> = {
   started: "Startet",
   cvr_submitted: "CVR indtastet",
   confirm: "Bekræftet virksomhed",
-  actions: "Nået til upload",
-  completed: "Færdig & sendt",
+  actions: "Nået til underskrift",
+  completed: "Underskrevet fuldmagt",
 };
 
 const STEP_COLORS: Record<FunnelStep, string> = {
