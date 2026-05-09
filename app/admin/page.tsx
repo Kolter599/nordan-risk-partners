@@ -6,10 +6,12 @@ import {
   getStatsBetween,
   getFunnelStats,
   listSessionsByCvr,
+  getAttributionStats,
   isDbConfigured,
   FUNNEL_STEPS,
   type Lead,
   type FunnelStep,
+  type AttributionRow,
 } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -75,13 +77,15 @@ export default async function AdminDashboard() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const [leads, monthStats, allTimeStats, funnel, sessionsByCvr] = await Promise.all([
-    listLeads({ limit: 100 }),
-    getStatsBetween(monthStart, now),
-    getStatsBetween(new Date(2020, 0, 1), now),
-    getFunnelStats(last30),
-    listSessionsByCvr(last30, 80),
-  ]);
+  const [leads, monthStats, allTimeStats, funnel, sessionsByCvr, attribution] =
+    await Promise.all([
+      listLeads({ limit: 100 }),
+      getStatsBetween(monthStart, now),
+      getStatsBetween(new Date(2020, 0, 1), now),
+      getFunnelStats(last30),
+      listSessionsByCvr(last30, 80),
+      getAttributionStats(last30),
+    ]);
 
   return (
     <main className="min-h-screen bg-[color:var(--color-nordan-soft)] py-10 px-5">
@@ -175,6 +179,46 @@ export default async function AdminDashboard() {
           )}
         </section>
 
+        {/* Attribution */}
+        <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] p-5 mb-8">
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="font-semibold text-[1rem]">Attribution — sidste 30 dage</h2>
+            <span className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">
+              {attribution.totalWithSignal} sessions med kilde
+            </span>
+          </div>
+          {attribution.totalWithSignal === 0 ? (
+            <div className="text-[0.88rem] text-[color:var(--color-nordan-muted)]">
+              Ingen kilde-data endnu. Tilføj UTM-parametre på dine
+              udgående links (LinkedIn-posts, mail-signatur, content) for at
+              få brudt trafikken op her.
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-5">
+              <AttributionTable
+                title="Først-touch kilde (utm_source)"
+                hint="Hvor fandt de os først"
+                rows={attribution.bySource}
+              />
+              <AttributionTable
+                title="Først-touch medium (utm_medium)"
+                hint="Annonce, organisk, mail osv."
+                rows={attribution.byMedium}
+              />
+              <AttributionTable
+                title="Først-touch kampagne (utm_campaign)"
+                hint="Specifik kampagne der drev trafikken"
+                rows={attribution.byCampaign}
+              />
+              <AttributionTable
+                title="Henvisende domæne"
+                hint="Hvor klikkede de fra (uden UTM)"
+                rows={attribution.byReferrer}
+              />
+            </div>
+          )}
+        </section>
+
         {/* Per-CVR sessions */}
         <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] mb-8 overflow-hidden">
           <div className="px-5 py-4 border-b border-[color:var(--color-nordan-line)]">
@@ -244,6 +288,57 @@ export default async function AdminDashboard() {
         </section>
       </div>
     </main>
+  );
+}
+
+function AttributionTable({
+  title,
+  hint,
+  rows,
+}: {
+  title: string;
+  hint: string;
+  rows: AttributionRow[];
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-2">
+        <div>
+          <div className="text-[0.78rem] font-semibold text-[color:var(--color-nordan-ink)]">
+            {title}
+          </div>
+          <div className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">{hint}</div>
+        </div>
+      </div>
+      {rows.length === 0 ? (
+        <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] py-2">— ingen data</div>
+      ) : (
+        <ul className="divide-y divide-[color:var(--color-nordan-line)]">
+          {rows.map((r) => {
+            const cvr = r.total > 0 ? Math.round((r.completed / r.total) * 100) : 0;
+            return (
+              <li key={r.label} className="flex items-center justify-between py-2 text-[0.85rem]">
+                <span className="font-mono text-[0.78rem] truncate flex-1 mr-3" title={r.label}>
+                  {r.label}
+                </span>
+                <span className="text-[color:var(--color-nordan-muted)] mr-3">{r.total}</span>
+                <span
+                  className={`text-[0.72rem] font-semibold tabular-nums w-12 text-right ${
+                    cvr > 20
+                      ? "text-green-700"
+                      : cvr > 0
+                      ? "text-[color:var(--color-nordan-ink)]"
+                      : "text-[color:var(--color-nordan-muted)]"
+                  }`}
+                >
+                  {r.completed}/{r.total}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 

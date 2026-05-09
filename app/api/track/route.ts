@@ -15,11 +15,26 @@ import {
  *  - Treats DB outages as silent: the user's actual flow keeps working.
  */
 
+type AttributionPayload = {
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+  content: string | null;
+  term: string | null;
+  referrer: string | null;
+  landingPath: string | null;
+  capturedAt: string;
+};
+
 type TrackBody = {
   clientId: string;
   event: string;
   params?: Record<string, unknown>;
   path?: string;
+  attribution?: {
+    first: AttributionPayload | null;
+    last: AttributionPayload | null;
+  };
 };
 
 const STEP_FOR_EVENT: Record<string, FunnelStep> = {
@@ -73,6 +88,9 @@ export async function POST(req: Request) {
   const contactName = pickString(params.name);
   const contactPhone = pickString(params.phone);
 
+  const last = body.attribution?.last ?? null;
+  const first = body.attribution?.first ?? null;
+
   const sessionId = await upsertSession({
     clientId,
     step: stepFromEvent,
@@ -84,6 +102,20 @@ export async function POST(req: Request) {
     sourcePath: pickString(body.path),
     userAgent,
     referrer,
+    // Last-touch
+    landingPath: pickString(last?.landingPath) ?? pickString(first?.landingPath),
+    utmSource: pickString(last?.source),
+    utmMedium: pickString(last?.medium),
+    utmCampaign: pickString(last?.campaign),
+    utmContent: pickString(last?.content),
+    utmTerm: pickString(last?.term),
+    // First-touch (sticky — only set once)
+    firstTouchSource: pickString(first?.source),
+    firstTouchMedium: pickString(first?.medium),
+    firstTouchCampaign: pickString(first?.campaign),
+    firstTouchReferrer: pickString(first?.referrer),
+    firstTouchPath: pickString(first?.landingPath),
+    firstTouchAt: pickString(first?.capturedAt),
   });
 
   await recordSessionEvent(sessionId, event, params);

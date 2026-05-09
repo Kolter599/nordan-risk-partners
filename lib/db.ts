@@ -305,6 +305,34 @@ export type Session = {
   user_agent: string | null;
   referrer: string | null;
   metadata: Record<string, unknown>;
+  // Attribution
+  landing_path: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_content: string | null;
+  utm_term: string | null;
+  first_touch_source: string | null;
+  first_touch_medium: string | null;
+  first_touch_campaign: string | null;
+  first_touch_referrer: string | null;
+  first_touch_path: string | null;
+  first_touch_at: string | null;
+};
+
+export type AttributionInput = {
+  landingPath?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
+  firstTouchSource?: string | null;
+  firstTouchMedium?: string | null;
+  firstTouchCampaign?: string | null;
+  firstTouchReferrer?: string | null;
+  firstTouchPath?: string | null;
+  firstTouchAt?: string | null;
 };
 
 type UpsertSessionInput = {
@@ -318,7 +346,7 @@ type UpsertSessionInput = {
   sourcePath?: string | null;
   userAgent?: string | null;
   referrer?: string | null;
-};
+} & AttributionInput;
 
 /**
  * Upsert a session by client_id and only advance furthest_step forward —
@@ -339,6 +367,8 @@ export async function upsertSession(input: UpsertSessionInput): Promise<string |
       const newStep = incomingRank > currentRank && input.step
         ? input.step
         : existing[0].furthest_step;
+      // Last-touch UTMs overwrite. First-touch values use COALESCE so the
+      // original capture is sticky and never overwritten on later visits.
       await sql`
         UPDATE sessions SET
           furthest_step = ${newStep},
@@ -349,7 +379,19 @@ export async function upsertSession(input: UpsertSessionInput): Promise<string |
           contact_phone = COALESCE(${input.contactPhone ?? null}, contact_phone),
           source_path = COALESCE(source_path, ${input.sourcePath ?? null}),
           user_agent = COALESCE(user_agent, ${input.userAgent ?? null}),
-          referrer = COALESCE(referrer, ${input.referrer ?? null})
+          referrer = COALESCE(referrer, ${input.referrer ?? null}),
+          landing_path = COALESCE(landing_path, ${input.landingPath ?? null}),
+          utm_source = COALESCE(${input.utmSource ?? null}, utm_source),
+          utm_medium = COALESCE(${input.utmMedium ?? null}, utm_medium),
+          utm_campaign = COALESCE(${input.utmCampaign ?? null}, utm_campaign),
+          utm_content = COALESCE(${input.utmContent ?? null}, utm_content),
+          utm_term = COALESCE(${input.utmTerm ?? null}, utm_term),
+          first_touch_source = COALESCE(first_touch_source, ${input.firstTouchSource ?? null}),
+          first_touch_medium = COALESCE(first_touch_medium, ${input.firstTouchMedium ?? null}),
+          first_touch_campaign = COALESCE(first_touch_campaign, ${input.firstTouchCampaign ?? null}),
+          first_touch_referrer = COALESCE(first_touch_referrer, ${input.firstTouchReferrer ?? null}),
+          first_touch_path = COALESCE(first_touch_path, ${input.firstTouchPath ?? null}),
+          first_touch_at = COALESCE(first_touch_at, ${input.firstTouchAt ?? null})
         WHERE id = ${existing[0].id}
       `;
       return existing[0].id;
@@ -359,7 +401,10 @@ export async function upsertSession(input: UpsertSessionInput): Promise<string |
       INSERT INTO sessions (
         client_id, furthest_step, cvr, company,
         contact_name, contact_email, contact_phone,
-        source_path, user_agent, referrer
+        source_path, user_agent, referrer, landing_path,
+        utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+        first_touch_source, first_touch_medium, first_touch_campaign,
+        first_touch_referrer, first_touch_path, first_touch_at
       ) VALUES (
         ${input.clientId},
         ${input.step ?? "started"},
@@ -370,7 +415,19 @@ export async function upsertSession(input: UpsertSessionInput): Promise<string |
         ${input.contactPhone ?? null},
         ${input.sourcePath ?? null},
         ${input.userAgent ?? null},
-        ${input.referrer ?? null}
+        ${input.referrer ?? null},
+        ${input.landingPath ?? null},
+        ${input.utmSource ?? null},
+        ${input.utmMedium ?? null},
+        ${input.utmCampaign ?? null},
+        ${input.utmContent ?? null},
+        ${input.utmTerm ?? null},
+        ${input.firstTouchSource ?? null},
+        ${input.firstTouchMedium ?? null},
+        ${input.firstTouchCampaign ?? null},
+        ${input.firstTouchReferrer ?? null},
+        ${input.firstTouchPath ?? null},
+        ${input.firstTouchAt ?? null}
       )
       RETURNING id
     `) as Array<{ id: string }>;
@@ -444,6 +501,88 @@ export async function getFunnelStats(since: Date): Promise<FunnelStats> {
     return stats;
   } catch (err) {
     console.error("[db] getFunnelStats failed:", err);
+    return empty;
+  }
+}
+
+export type AttributionRow = {
+  label: string;
+  total: number;
+  completed: number;
+};
+
+export type AttributionStats = {
+  bySource: AttributionRow[];
+  byMedium: AttributionRow[];
+  byCampaign: AttributionRow[];
+  byReferrer: AttributionRow[];
+  totalWithSignal: number;
+};
+
+/**
+ * Group sessions by first-touch source/medium/campaign/referrer. Lets the
+ * admin dashboard see which channels actually convert into completed
+ * fuldmagter (not just which ones drove sessions).
+ */
+export async function getAttributionStats(since: Date): Promise<AttributionStats> {
+  const sql = getDb();
+  const empty: AttributionStats = {
+    bySource: [],
+    byMedium: [],
+    byCampaign: [],
+    byReferrer: [],
+    totalWithSignal: 0,
+  };
+  if (!sql) return empty;
+  try {
+    type Row = {
+      first_touch_source: string | null;
+      first_touch_medium: string | null;
+      first_touch_campaign: string | null;
+      first_touch_referrer: string | null;
+      furthest_step: FunnelStep;
+    };
+    const rows = (await sql`
+      SELECT first_touch_source, first_touch_medium, first_touch_campaign,
+             first_touch_referrer, furthest_step
+      FROM sessions
+      WHERE created_at >= ${since.toISOString()}
+    `) as Row[];
+
+    const buckets = (key: keyof Row): Map<string, { total: number; completed: number }> => {
+      const m = new Map<string, { total: number; completed: number }>();
+      for (const r of rows) {
+        const v = (r[key] as string | null) ?? null;
+        if (!v) continue;
+        const cur = m.get(v) ?? { total: 0, completed: 0 };
+        cur.total += 1;
+        if (r.furthest_step === "completed") cur.completed += 1;
+        m.set(v, cur);
+      }
+      return m;
+    };
+
+    const toSorted = (m: Map<string, { total: number; completed: number }>): AttributionRow[] =>
+      Array.from(m.entries())
+        .map(([label, v]) => ({ label, ...v }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 12);
+
+    return {
+      bySource: toSorted(buckets("first_touch_source")),
+      byMedium: toSorted(buckets("first_touch_medium")),
+      byCampaign: toSorted(buckets("first_touch_campaign")),
+      byReferrer: toSorted(buckets("first_touch_referrer")),
+      totalWithSignal: rows.filter(
+        (r) =>
+          r.first_touch_source ||
+          r.first_touch_medium ||
+          r.first_touch_campaign ||
+          r.first_touch_referrer
+      ).length,
+    };
+  } catch (err) {
+    console.error("[db] getAttributionStats failed:", err);
     return empty;
   }
 }

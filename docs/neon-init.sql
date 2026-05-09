@@ -111,6 +111,33 @@ alter table events
 
 create index if not exists events_session_id_idx on events (session_id);
 
+-- ----------------------------------------------------------------------------
+-- Lead attribution. First-touch fields are set once and never overwritten —
+-- they record where the user originally found us. Last-touch fields capture
+-- the most recent UTM/referrer state (overwritten on every visit).
+-- ----------------------------------------------------------------------------
+
+alter table sessions add column if not exists landing_path text;
+
+-- Last-touch (current visit)
+alter table sessions add column if not exists utm_source text;
+alter table sessions add column if not exists utm_medium text;
+alter table sessions add column if not exists utm_campaign text;
+alter table sessions add column if not exists utm_content text;
+alter table sessions add column if not exists utm_term text;
+
+-- First-touch (sticky — never overwritten once set)
+alter table sessions add column if not exists first_touch_source text;
+alter table sessions add column if not exists first_touch_medium text;
+alter table sessions add column if not exists first_touch_campaign text;
+alter table sessions add column if not exists first_touch_referrer text;
+alter table sessions add column if not exists first_touch_path text;
+alter table sessions add column if not exists first_touch_at timestamptz;
+
+create index if not exists sessions_first_source_idx on sessions (first_touch_source);
+create index if not exists sessions_first_medium_idx on sessions (first_touch_medium);
+create index if not exists sessions_referrer_idx on sessions (first_touch_referrer);
+
 -- Auto-bump updated_at when leads row changes.
 create or replace function touch_updated_at() returns trigger as $$
 begin

@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
+import { captureAttribution, getAttribution } from "@/lib/attribution";
 
 const GA_ID = "G-98Y5SSSM7H";
 const CONSENT_KEY = "nrp.cookies.consent";
@@ -21,6 +22,13 @@ declare global {
  */
 export function GoogleAnalytics() {
   const [consented, setConsented] = useState(false);
+
+  // Capture UTMs + referrer on every page load — first-touch is sticky,
+  // last-touch overwrites. Runs even before consent so we don't lose
+  // attribution for users who haven't yet decided on cookies.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
 
   useEffect(() => {
     const check = () => {
@@ -114,7 +122,10 @@ export function track(event: string, params: Record<string, unknown> = {}) {
   try {
     const clientId = getClientId();
     const path = window.location.pathname;
-    const body = JSON.stringify({ clientId, event, params, path });
+    // Pull attribution on every event so the server can stamp it onto
+    // the session — first-touch is set once, last-touch updates always.
+    const attribution = getAttribution();
+    const body = JSON.stringify({ clientId, event, params, path, attribution });
     // navigator.sendBeacon is reliable across page-unload (e.g. submit + navigate).
     if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
       const blob = new Blob([body], { type: "application/json" });
