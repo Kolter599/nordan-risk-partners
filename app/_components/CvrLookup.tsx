@@ -811,9 +811,48 @@ function StepActions({
           subtitle="Din forsikringsmægler vender tilbage inden for én hverdag"
         >
           <div className="space-y-3">
-            <InputField name="name" label="Navn" placeholder="Fornavn Efternavn" required value={contactName} onChange={setContactName} />
-            <InputField name="email" label="E-mail" type="email" placeholder="navn@firma.dk" required value={contactEmail} onChange={setContactEmail} />
-            <InputField name="phone" label="Telefon" type="tel" placeholder="+45 12 34 56 78" required value={contactPhone} onChange={setContactPhone} />
+            <InputField
+              name="name"
+              label="Navn"
+              placeholder="Fornavn Efternavn"
+              required
+              value={contactName}
+              onChange={setContactName}
+              onBlur={(v) => {
+                if (v.trim().length >= 2) {
+                  track("cvr_contact_name_captured", { name: v.trim(), cvr });
+                }
+              }}
+            />
+            <InputField
+              name="email"
+              label="E-mail"
+              type="email"
+              placeholder="navn@firma.dk"
+              required
+              value={contactEmail}
+              onChange={setContactEmail}
+              onBlur={(v) => {
+                if (/.+@.+\..+/.test(v.trim())) {
+                  track("cvr_contact_email_captured", { email: v.trim(), cvr });
+                }
+              }}
+            />
+            <InputField
+              name="phone"
+              label="Telefon"
+              type="tel"
+              placeholder="+45 12 34 56 78"
+              required
+              value={contactPhone}
+              onChange={setContactPhone}
+              onBlur={(v) => {
+                const digits = v.replace(/\D/g, "");
+                if (digits.length >= 8) {
+                  track("cvr_contact_phone_captured", { phone: v.trim(), cvr });
+                }
+              }}
+            />
           </div>
         </ActionPanel>
       </div>
@@ -982,6 +1021,7 @@ function InputField({
   required,
   value,
   onChange,
+  onBlur,
 }: {
   name: string;
   label: string;
@@ -990,6 +1030,7 @@ function InputField({
   required?: boolean;
   value?: string;
   onChange?: (v: string) => void;
+  onBlur?: (v: string) => void;
 }) {
   return (
     <label className="block">
@@ -1003,6 +1044,7 @@ function InputField({
         placeholder={placeholder}
         value={value}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        onBlur={onBlur ? (e) => onBlur(e.target.value) : undefined}
         className="w-full h-12 px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[0.95rem] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
       />
     </label>

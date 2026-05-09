@@ -270,6 +270,257 @@ export type MonthlyStats = {
   wonCount: number;
 };
 
+/* -------------------- Funnel sessions -------------------- */
+
+export type FunnelStep = "started" | "cvr_submitted" | "confirm" | "actions" | "completed";
+
+export const FUNNEL_STEPS: readonly FunnelStep[] = [
+  "started",
+  "cvr_submitted",
+  "confirm",
+  "actions",
+  "completed",
+];
+
+const STEP_RANK: Record<FunnelStep, number> = {
+  started: 0,
+  cvr_submitted: 1,
+  confirm: 2,
+  actions: 3,
+  completed: 4,
+};
+
+export type Session = {
+  id: string;
+  client_id: string;
+  created_at: string;
+  last_seen_at: string;
+  source_path: string | null;
+  cvr: string | null;
+  company: string | null;
+  furthest_step: FunnelStep;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  user_agent: string | null;
+  referrer: string | null;
+  metadata: Record<string, unknown>;
+};
+
+type UpsertSessionInput = {
+  clientId: string;
+  step?: FunnelStep;
+  cvr?: string | null;
+  company?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  sourcePath?: string | null;
+  userAgent?: string | null;
+  referrer?: string | null;
+};
+
+/**
+ * Upsert a session by client_id and only advance furthest_step forward —
+ * never back. Returns the session id (a UUID), not the client_id.
+ */
+export async function upsertSession(input: UpsertSessionInput): Promise<string | null> {
+  const sql = getDb();
+  if (!sql) return null;
+  try {
+    const existing = (await sql`
+      SELECT id, furthest_step FROM sessions WHERE client_id = ${input.clientId} LIMIT 1
+    `) as Array<{ id: string; furthest_step: FunnelStep }>;
+
+    const incomingRank = input.step ? STEP_RANK[input.step] ?? 0 : 0;
+
+    if (existing[0]) {
+      const currentRank = STEP_RANK[existing[0].furthest_step] ?? 0;
+      const newStep = incomingRank > currentRank && input.step
+        ? input.step
+        : existing[0].furthest_step;
+      await sql`
+        UPDATE sessions SET
+          furthest_step = ${newStep},
+          cvr = COALESCE(${input.cvr ?? null}, cvr),
+          company = COALESCE(${input.company ?? null}, company),
+          contact_name = COALESCE(${input.contactName ?? null}, contact_name),
+          contact_email = COALESCE(${input.contactEmail ?? null}, contact_email),
+          contact_phone = COALESCE(${input.contactPhone ?? null}, contact_phone),
+          source_path = COALESCE(source_path, ${input.sourcePath ?? null}),
+          user_agent = COALESCE(user_agent, ${input.userAgent ?? null}),
+          referrer = COALESCE(referrer, ${input.referrer ?? null})
+        WHERE id = ${existing[0].id}
+      `;
+      return existing[0].id;
+    }
+
+    const inserted = (await sql`
+      INSERT INTO sessions (
+        client_id, furthest_step, cvr, company,
+        contact_name, contact_email, contact_phone,
+        source_path, user_agent, referrer
+      ) VALUES (
+        ${input.clientId},
+        ${input.step ?? "started"},
+        ${input.cvr ?? null},
+        ${input.company ?? null},
+        ${input.contactName ?? null},
+        ${input.contactEmail ?? null},
+        ${input.contactPhone ?? null},
+        ${input.sourcePath ?? null},
+        ${input.userAgent ?? null},
+        ${input.referrer ?? null}
+      )
+      RETURNING id
+    `) as Array<{ id: string }>;
+    return inserted[0]?.id ?? null;
+  } catch (err) {
+    console.error("[db] upsertSession failed:", err);
+    return null;
+  }
+}
+
+export async function recordSessionEvent(
+  sessionId: string | null,
+  type: string,
+  metadata: Record<string, unknown> = {}
+): Promise<void> {
+  const sql = getDb();
+  if (!sql) return;
+  try {
+    await sql`
+      INSERT INTO events (session_id, type, metadata)
+      VALUES (${sessionId}, ${type}, ${JSON.stringify(metadata)}::jsonb)
+    `;
+  } catch (err) {
+    console.error("[db] recordSessionEvent failed:", err);
+  }
+}
+
+export type FunnelStats = {
+  total: number;
+  byStep: Record<FunnelStep, number>;
+  /** Furthest-step counts converted to "reached at least N" cumulative numbers. */
+  reachedAtLeast: Record<FunnelStep, number>;
+  bySource: Record<string, Record<FunnelStep, number>>;
+};
+
+export async function getFunnelStats(since: Date): Promise<FunnelStats> {
+  const sql = getDb();
+  const empty: FunnelStats = {
+    total: 0,
+    byStep: { started: 0, cvr_submitted: 0, confirm: 0, actions: 0, completed: 0 },
+    reachedAtLeast: { started: 0, cvr_submitted: 0, confirm: 0, actions: 0, completed: 0 },
+    bySource: {},
+  };
+  if (!sql) return empty;
+  try {
+    const rows = (await sql`
+      SELECT furthest_step, source_path FROM sessions
+      WHERE created_at >= ${since.toISOString()}
+    `) as Array<{ furthest_step: FunnelStep; source_path: string | null }>;
+    const stats: FunnelStats = {
+      total: rows.length,
+      byStep: { started: 0, cvr_submitted: 0, confirm: 0, actions: 0, completed: 0 },
+      reachedAtLeast: { started: 0, cvr_submitted: 0, confirm: 0, actions: 0, completed: 0 },
+      bySource: {},
+    };
+    for (const r of rows) {
+      stats.byStep[r.furthest_step] = (stats.byStep[r.furthest_step] ?? 0) + 1;
+      const path = r.source_path ?? "ukendt";
+      if (!stats.bySource[path]) {
+        stats.bySource[path] = { started: 0, cvr_submitted: 0, confirm: 0, actions: 0, completed: 0 };
+      }
+      stats.bySource[path][r.furthest_step] = (stats.bySource[path][r.furthest_step] ?? 0) + 1;
+    }
+    // Build cumulative ("reached at least") counts: every higher step also counts as having reached lower.
+    let running = 0;
+    const orderedHighFirst: FunnelStep[] = ["completed", "actions", "confirm", "cvr_submitted", "started"];
+    for (const step of orderedHighFirst) {
+      running += stats.byStep[step];
+      stats.reachedAtLeast[step] = running;
+    }
+    return stats;
+  } catch (err) {
+    console.error("[db] getFunnelStats failed:", err);
+    return empty;
+  }
+}
+
+export type SessionsByCvrGroup = {
+  cvr: string;
+  company: string | null;
+  sessions: Session[];
+  furthestStep: FunnelStep;
+  totalSessions: number;
+  lastSeen: string;
+};
+
+/**
+ * Group recent sessions (default last 30 days) by CVR. Sessions without a CVR
+ * are filtered out — they didn't get past step 1 so there's nothing to bind.
+ */
+export async function listSessionsByCvr(since: Date, limit = 100): Promise<SessionsByCvrGroup[]> {
+  const sql = getDb();
+  if (!sql) return [];
+  try {
+    const rows = (await sql`
+      SELECT * FROM sessions
+      WHERE created_at >= ${since.toISOString()} AND cvr IS NOT NULL
+      ORDER BY last_seen_at DESC
+      LIMIT ${limit * 5}
+    `) as Session[];
+    const grouped = new Map<string, SessionsByCvrGroup>();
+    for (const s of rows) {
+      if (!s.cvr) continue;
+      const existing = grouped.get(s.cvr);
+      if (existing) {
+        existing.sessions.push(s);
+        existing.totalSessions += 1;
+        if ((STEP_RANK[s.furthest_step] ?? 0) > (STEP_RANK[existing.furthestStep] ?? 0)) {
+          existing.furthestStep = s.furthest_step;
+        }
+        if (new Date(s.last_seen_at) > new Date(existing.lastSeen)) {
+          existing.lastSeen = s.last_seen_at;
+        }
+        if (!existing.company && s.company) existing.company = s.company;
+      } else {
+        grouped.set(s.cvr, {
+          cvr: s.cvr,
+          company: s.company,
+          sessions: [s],
+          furthestStep: s.furthest_step,
+          totalSessions: 1,
+          lastSeen: s.last_seen_at,
+        });
+      }
+    }
+    return Array.from(grouped.values())
+      .sort((a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime())
+      .slice(0, limit);
+  } catch (err) {
+    console.error("[db] listSessionsByCvr failed:", err);
+    return [];
+  }
+}
+
+export async function listRecentSessions(since: Date, limit = 50): Promise<Session[]> {
+  const sql = getDb();
+  if (!sql) return [];
+  try {
+    return (await sql`
+      SELECT * FROM sessions
+      WHERE created_at >= ${since.toISOString()}
+      ORDER BY last_seen_at DESC
+      LIMIT ${limit}
+    `) as Session[];
+  } catch (err) {
+    console.error("[db] listRecentSessions failed:", err);
+    return [];
+  }
+}
+
 export async function getStatsBetween(
   from: Date,
   to: Date
