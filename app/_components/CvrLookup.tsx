@@ -412,6 +412,11 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
               setDigitalResult(r);
               setDigitalConfirmed(true);
               setSignDialogOpen(false);
+              // Auto-fill Step 3 contact card with the data the user just
+              // signed with — avoids them having to retype the same details.
+              if (r.signerName && !contactName) setContactName(r.signerName);
+              if (r.signerEmail && !contactEmail) setContactEmail(r.signerEmail);
+              if (r.signerPhone && !contactPhone) setContactPhone(r.signerPhone);
             }}
             companyName={company?.name ?? "Din virksomhed"}
             cvr={company?.vat ?? digits}

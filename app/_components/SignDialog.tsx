@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "./GoogleAnalytics";
 
@@ -97,15 +97,16 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const [phone, setPhone] = useState(defaults.phone ?? "");
   const [insurers, setInsurers] = useState<string[]>([]);
   const [otherInsurers, setOtherInsurers] = useState("");
-  const [readOk, setReadOk] = useState(false);
-  const [authOk, setAuthOk] = useState(false);
-  const [eidasOk, setEidasOk] = useState(false);
+  const [showOtherField, setShowOtherField] = useState(false);
+  const [insurerSearch, setInsurerSearch] = useState("");
+  const [insurerOpen, setInsurerOpen] = useState(false);
+  const [combinedConsent, setCombinedConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const docRef = useRef<HTMLDivElement>(null);
-  const [scrolledToBottom, setScrolledToBottom] = useState(false);
+  const userScrolledRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -115,13 +116,48 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setPhone(defaults.phone ?? "");
     setInsurers([]);
     setOtherInsurers("");
+    setShowOtherField(false);
+    setInsurerSearch("");
+    setInsurerOpen(false);
+    setCombinedConsent(false);
     setTitle("");
-    setReadOk(false);
-    setAuthOk(false);
-    setEidasOk(false);
     setError(null);
-    setScrolledToBottom(false);
+    userScrolledRef.current = false;
   }, [open, defaults.name, defaults.email, defaults.phone]);
+
+  // Auto-bounce the document every 7s to hint that it's scrollable —
+  // stops as soon as the user makes any real scroll gesture themselves.
+  useEffect(() => {
+    if (!open) return;
+    const node = docRef.current;
+    if (!node) return;
+
+    const markUserScrolled = () => {
+      userScrolledRef.current = true;
+    };
+    node.addEventListener("wheel", markUserScrolled, { passive: true });
+    node.addEventListener("touchmove", markUserScrolled, { passive: true });
+    node.addEventListener("keydown", markUserScrolled);
+
+    const interval = setInterval(() => {
+      if (userScrolledRef.current || !docRef.current) return;
+      // Only bounce if we're at the top — once they're elsewhere they got it.
+      if (docRef.current.scrollTop > 4) return;
+      docRef.current.scrollTo({ top: 32, behavior: "smooth" });
+      setTimeout(() => {
+        if (docRef.current && !userScrolledRef.current) {
+          docRef.current.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }, 900);
+    }, 7000);
+
+    return () => {
+      clearInterval(interval);
+      node.removeEventListener("wheel", markUserScrolled);
+      node.removeEventListener("touchmove", markUserScrolled);
+      node.removeEventListener("keydown", markUserScrolled);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -136,26 +172,28 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     };
   }, [open, onClose]);
 
-  function handleDocScroll(e: React.UIEvent<HTMLDivElement>) {
-    const el = e.currentTarget;
-    const reachedBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
-    if (reachedBottom && !scrolledToBottom) setScrolledToBottom(true);
-  }
-
   const formComplete =
     name.trim().length > 1 &&
     title.trim().length > 0 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
     phone.trim().length >= 6 &&
-    readOk &&
-    authOk &&
-    eidasOk &&
-    scrolledToBottom;
+    combinedConsent;
 
-  function toggleInsurer(name: string) {
-    setInsurers((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
-    );
+  const filteredInsurers = useMemo(() => {
+    const q = insurerSearch.trim().toLowerCase();
+    if (!q) return INSURER_OPTIONS.filter((opt) => !insurers.includes(opt)).slice(0, 12);
+    return INSURER_OPTIONS.filter(
+      (opt) => opt.toLowerCase().includes(q) && !insurers.includes(opt)
+    ).slice(0, 12);
+  }, [insurerSearch, insurers]);
+
+  function addInsurer(name: string) {
+    setInsurers((prev) => (prev.includes(name) ? prev : [...prev, name]));
+    setInsurerSearch("");
+  }
+
+  function removeInsurer(name: string) {
+    setInsurers((prev) => prev.filter((n) => n !== name));
   }
 
   async function handleSubmit() {
@@ -179,7 +217,9 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
           companyName: defaults.companyName,
           cvr: defaults.cvr,
           insurers: allInsurers,
-          consent: { read: readOk, authorized: authOk, eidas: eidasOk },
+          // Combined consent covers all three legal points; we still send all
+          // three flags to /api/sign so the audit trail records each one.
+          consent: { read: combinedConsent, authorized: combinedConsent, eidas: combinedConsent },
         }),
       });
       const data = await res.json();
@@ -203,7 +243,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
 
   const dialog = (
     <div className="fixed inset-0 z-[80] flex items-center justify-center px-3 py-6 sm:p-6 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-[820px] xl:max-w-[1000px] 2xl:max-w-[1100px] max-h-[92vh] bg-white rounded-[12px] shadow-[0_30px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col">
+      <div className="w-full max-w-[1040px] max-h-[92vh] bg-white rounded-[12px] shadow-[0_30px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-5 sm:px-7 py-4 border-b border-[color:var(--color-nordan-line)] flex items-center justify-between">
           <div>
@@ -217,293 +257,271 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full grid place-items-center hover:bg-[color:var(--color-nordan-soft)] text-[color:var(--color-nordan-muted)]"
+            className="w-9 h-9 rounded-full grid place-items-center hover:bg-[color:var(--color-nordan-soft)] text-[color:var(--color-nordan-muted)] text-[1.4rem]"
             aria-label="Luk"
           >
             ×
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden grid lg:grid-cols-[1.2fr_1fr]">
-          {/* Document preview */}
+        {/* Two-column body: doc on left (scrolls), form on right (fits without scrolling) */}
+        <div className="flex-1 overflow-hidden grid lg:grid-cols-[1fr_1.05fr]">
+          {/* LEFT — document, scrollable, with scroll-hint bounce */}
           <div
             ref={docRef}
-            onScroll={handleDocScroll}
-            className="overflow-y-auto px-5 sm:px-7 py-6 border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[40vh] lg:max-h-none"
+            tabIndex={0}
+            className="overflow-y-auto px-5 sm:px-7 py-6 border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[40vh] lg:max-h-none scroll-smooth"
           >
-            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] p-6 sm:p-8 text-[0.92rem] leading-[1.6] text-[color:var(--color-nordan-ink)] shadow-sm">
-              <div className="text-center mb-6">
-                <div className="font-bold text-[1.4rem] text-[color:var(--color-nordan-dark)]">
+            {/* TL;DR card */}
+            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[10px] p-5 mb-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent)]" />
+                <h3 className="text-[0.74rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
+                  Hvad du underskriver
+                </h3>
+              </div>
+              <ul className="space-y-1.5 text-[0.9rem] text-[color:var(--color-nordan-ink)] leading-relaxed">
+                <li className="flex gap-2">
+                  <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
+                  <span>Tilladelse til at <strong>indhente policer og skadehistorik</strong>.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
+                  <span><strong>Ingen forsikringer ændres eller opsiges</strong> — kun analyse.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-[color:var(--color-nordan-accent)] shrink-0">✓</span>
+                  <span><strong>Kan tilbagekaldes når som helst</strong>; ophører automatisk efter 1 år.</span>
+                </li>
+              </ul>
+              <div className="mt-3 text-[0.74rem] text-[color:var(--color-nordan-muted)] italic">
+                ↓ Scroll for at læse fuldmagten
+              </div>
+            </div>
+
+            {/* Full document */}
+            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] p-5 sm:p-6 text-[0.9rem] leading-[1.6] text-[color:var(--color-nordan-ink)] shadow-sm">
+              <div className="text-center mb-5">
+                <div className="font-bold text-[1.2rem] text-[color:var(--color-nordan-dark)]">
                   Undersøgelsesfuldmagt
                 </div>
-                <div className="text-[0.85rem] text-[color:var(--color-nordan-muted)] mt-1">
+                <div className="text-[0.8rem] text-[color:var(--color-nordan-muted)] mt-1">
                   til forsikringsmægler
                 </div>
               </div>
-
               <p className="mb-3">
                 <strong>Virksomhedsnavn:</strong> {defaults.companyName}
                 <br />
                 <strong>CVR-nr.:</strong> {defaults.cvr}
                 <br />
-                <span className="text-[color:var(--color-nordan-muted)] text-[0.85rem]">
+                <span className="text-[color:var(--color-nordan-muted)] text-[0.82rem]">
                   (I det følgende kaldet &ldquo;Fuldmagtsgiver&rdquo;)
                 </span>
               </p>
-
-              <p className="mb-4">
+              <p className="mb-3">
                 <strong>Nordan Risk Partners ApS</strong>
                 <br />
                 CVR-nr.: 4595 3769
                 <br />
                 Toftevej 15B, 3450 Allerød
-                <br />
-                <span className="text-[color:var(--color-nordan-muted)] text-[0.85rem]">
-                  (I det følgende kaldet &ldquo;Nordan Risk Partners&rdquo;)
-                </span>
               </p>
-
               <p className="mb-3">
-                Det bekræftes herved, at Fuldmagtsgiver har truffet aftale med Nordan Risk
-                Partners om, at Nordan Risk Partners fra dags dato er udpeget som vores
-                forsikringsmægler til undersøgelse af forsikringsmarkedet. Fuldmagten er
-                ikke eksklusiv og erstatter ikke tidligere udstedte
-                forsikringsmæglerfuldmagter.
+                Det bekræftes herved, at Fuldmagtsgiver har truffet aftale med Nordan Risk Partners om, at Nordan Risk Partners fra dags dato er udpeget som forsikringsmægler til undersøgelse af forsikringsmarkedet. Fuldmagten er ikke eksklusiv og erstatter ikke tidligere udstedte forsikringsmæglerfuldmagter.
               </p>
-              <p className="mb-2">
-                Denne undersøgelsesfuldmagt bemyndiger, og giver forsikringsmægleren ret til,
-                på Fuldmagtsgivers vegne:
-              </p>
-              <ul className="list-disc pl-6 mb-3 space-y-1.5">
-                <li>
-                  at indhente oplysninger om samtlige bestående forsikringer hos enhver
-                  forsikringsdistributør, herunder forsikringspolicer, vilkår, præmier,
-                  selvbehold, samt øvrige relevante oplysninger for vurdering af eksisterende
-                  forsikringsforhold
-                </li>
-                <li>
-                  at indhente oplysninger om skadehistorik for alle bestående og tidligere
-                  forsikringer, herunder skadestatistikker, skadereserver, samt
-                  risikovurderinger og andre relevante data, i relation til anmeldte skader
-                </li>
-                <li>
-                  at afgive risikooplysninger til enhver forsikringsdistributør og indhente
-                  tilbud på forsikringer inden for alle brancher på skadesforsikringsområdet.
-                </li>
+              <p className="mb-2">Denne undersøgelsesfuldmagt bemyndiger forsikringsmægleren til på Fuldmagtsgivers vegne:</p>
+              <ul className="list-disc pl-5 mb-3 space-y-1">
+                <li>at indhente oplysninger om samtlige bestående forsikringer hos enhver forsikringsdistributør, herunder policer, vilkår, præmier og selvbehold,</li>
+                <li>at indhente oplysninger om skadehistorik, skadestatistikker, skadereserver og risikovurderinger,</li>
+                <li>at afgive risikooplysninger og indhente tilbud på forsikringer inden for skadesforsikringsområdet.</li>
               </ul>
               <p className="mb-3">
-                Annullering af eksisterende forsikringer eller etablering af nye forsikringer
-                kræver, at der gives eksklusiv forsikringsmæglerfuldmagt til Nordan Risk
-                Partners.
+                Annullering af eksisterende forsikringer eller etablering af nye forsikringer kræver, at der gives eksklusiv forsikringsmæglerfuldmagt til Nordan Risk Partners.
               </p>
               <p className="mb-3">
-                Fuldmagtsgiver er gjort opmærksomme på, at oplysninger, som
-                forsikringsmægleren videregiver til forsikringsdistributører, i relation til
-                de omhandlede forsikringer, sidestilles med oplysninger afgivet af
-                Fuldmagtsgiver.
+                Fuldmagtsgiver er gjort opmærksomme på, at oplysninger, som forsikringsmægleren videregiver til forsikringsdistributører, sidestilles med oplysninger afgivet af Fuldmagtsgiver.
               </p>
               <p className="mb-3">
-                Fuldmagtsgiver er gjort opmærksomme på, at undersøgelsesfuldmagten til enhver
-                tid kan tilbagekaldes af Fuldmagtsgiver på samme måde, som den er indgået og
-                at den forbliver i kraft, indtil den skriftligt tilbagekaldes, eller der
-                indgås mæglerfuldmagt med Nordan Risk Partners. Fuldmagten ophører dog
-                automatisk 1 år efter underskriftsdatoen, såfremt den ikke er tilbagekaldt
-                forinden.
+                Fuldmagten kan til enhver tid tilbagekaldes skriftligt og ophører automatisk 1 år efter underskriftsdatoen, såfremt den ikke er tilbagekaldt forinden.
               </p>
               <p className="mb-3">
-                Fuldmagtsgiver påpeger, at Fuldmagtsgiver ønsker at Fuldmagtsgivers nuværende
-                forsikringsmægler ikke involveres eller orienteres om nærværende
-                undersøgelsesfuldmagt.
+                Fuldmagtsgiver påpeger, at nuværende forsikringsmægler ikke involveres eller orienteres om nærværende undersøgelsesfuldmagt.
               </p>
-              <p className="mb-2">
-                Underskriver indestår for at være berettiget til at underskrive denne
-                undersøgelsesfuldmagt og dermed berettiget til at forpligte Fuldmagtsgiver.
+              <p>
+                Underskriver indestår for at være berettiget til at underskrive denne undersøgelsesfuldmagt og dermed berettiget til at forpligte Fuldmagtsgiver.
               </p>
-
-              <div
-                className={`mt-6 text-center text-[0.78rem] uppercase tracking-[0.18em] font-semibold ${
-                  scrolledToBottom
-                    ? "text-green-700"
-                    : "text-[color:var(--color-nordan-accent)]"
-                }`}
-              >
-                {scrolledToBottom ? "✓ Læst igennem" : "↓ Scroll til bunden for at fortsætte"}
-              </div>
             </div>
           </div>
 
-          {/* Form */}
-          <div className="overflow-y-auto p-5 sm:p-7 space-y-4">
-            <div>
-              <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em] mb-1.5">
-                Fuldt navn
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Fornavn Efternavn"
-                className="w-full h-11 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.95rem]"
-              />
-            </div>
-            <div>
-              <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em] mb-1.5">
-                Titel
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="fx Direktør, CEO, Bestyrelsesformand"
-                className="w-full h-11 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.95rem]"
-              />
-            </div>
-            <div>
-              <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em] mb-1.5">
-                E-mail
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="navn@firma.dk"
-                className="w-full h-11 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.95rem]"
-              />
-              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-1">
-                Du modtager en kvittering med den underskrevne PDF
+          {/* RIGHT — compact form, no internal scroll */}
+          <div className="p-5 sm:p-7 flex flex-col gap-5 overflow-y-auto lg:overflow-visible">
+            {/* Signer */}
+            <section>
+              <h3 className="text-[0.74rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)] mb-2.5">
+                Hvem underskriver?
+              </h3>
+              <div className="space-y-2.5">
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  <Field label="Fuldt navn">
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Fornavn Efternavn"
+                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                    />
+                  </Field>
+                  <Field label="Titel">
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="fx Direktør"
+                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                    />
+                  </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  <Field label="E-mail">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="navn@firma.dk"
+                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                    />
+                  </Field>
+                  <Field label="Telefon">
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+45 12 34 56 78"
+                      className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                    />
+                  </Field>
+                </div>
+                <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">
+                  På vegne af{" "}
+                  <strong className="text-[color:var(--color-nordan-ink)]">{defaults.companyName}</strong>{" "}
+                  · CVR {defaults.cvr}
+                </div>
               </div>
-            </div>
-            <div>
-              <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em] mb-1.5">
-                Telefonnummer
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+45 12 34 56 78"
-                className="w-full h-11 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.95rem]"
-              />
-              <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] mt-1">
-                Vi ringer kun hvis vi har spørgsmål
-              </div>
-            </div>
-            <div className="px-3 py-2.5 bg-[color:var(--color-nordan-soft)] rounded-[6px] text-[0.82rem] text-[color:var(--color-nordan-ink-soft)]">
-              <div>
-                <span className="text-[color:var(--color-nordan-muted)]">Firma:</span>{" "}
-                <strong>{defaults.companyName}</strong>
-              </div>
-              <div>
-                <span className="text-[color:var(--color-nordan-muted)]">CVR:</span>{" "}
-                <strong>{defaults.cvr}</strong>
-              </div>
-            </div>
+            </section>
 
-            <div>
-              <div className="flex items-baseline justify-between mb-1">
-                <label className="block text-[0.78rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.18em]">
-                  Forsikringsselskaber I er hos
-                </label>
-                {insurers.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setInsurers([])}
-                    className="text-[0.7rem] text-[color:var(--color-nordan-muted)] underline hover:text-[color:var(--color-nordan-ink-soft)]"
-                  >
-                    Ryd ({insurers.length})
-                  </button>
+            {/* Insurers */}
+            <section>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <h3 className="text-[0.74rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)]">
+                  Forsikringsselskaber I bruger i dag
+                </h3>
+                <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+                  Vælg flere
+                </span>
+              </div>
+              <p className="text-[0.78rem] text-[color:var(--color-nordan-ink-soft)] leading-snug mb-2">
+                Hjælper os med at gå direkte til de rigtige selskaber.
+              </p>
+
+              {insurers.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {insurers.map((opt) => (
+                    <span
+                      key={opt}
+                      className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 rounded-full bg-[color:var(--color-nordan-accent)] text-white text-[0.78rem] font-medium"
+                    >
+                      {opt}
+                      <button
+                        type="button"
+                        onClick={() => removeInsurer(opt)}
+                        className="w-4 h-4 rounded-full grid place-items-center hover:bg-white/20 text-[0.92rem] leading-none"
+                        aria-label={`Fjern ${opt}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="relative">
+                <input
+                  type="text"
+                  value={insurerSearch}
+                  onChange={(e) => {
+                    setInsurerSearch(e.target.value);
+                    setInsurerOpen(true);
+                  }}
+                  onFocus={() => setInsurerOpen(true)}
+                  onBlur={() => setTimeout(() => setInsurerOpen(false), 150)}
+                  placeholder={insurers.length > 0 ? "Tilføj endnu et selskab…" : "Søg eller vælg fra listen…"}
+                  className="w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem]"
+                />
+                {insurerOpen && filteredInsurers.length > 0 ? (
+                  <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] shadow-lg max-h-[220px] overflow-y-auto">
+                    {filteredInsurers.map((opt) => (
+                      <li key={opt}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            addInsurer(opt);
+                          }}
+                          className="w-full text-left px-3 py-2 text-[0.9rem] hover:bg-[color:var(--color-nordan-soft)]"
+                        >
+                          {opt}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 ) : null}
               </div>
-              <p className="text-[0.78rem] text-[color:var(--color-nordan-ink-soft)] leading-snug mb-3">
-                Hjælper os med at gå direkte til de rigtige selskaber for jer. Vælg gerne flere — eller spring over hvis I ikke har nogle endnu.
-              </p>
-              <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1 -mr-1 rounded-[6px]">
-                {INSURER_GROUPS.map((group) => (
-                  <div key={group.label}>
-                    <div className="text-[0.65rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-1.5">
-                      {group.label}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {group.items.map((opt) => {
-                        const selected = insurers.includes(opt);
-                        return (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => toggleInsurer(opt)}
-                            className={`px-2.5 py-1.5 rounded-full text-[0.8rem] border transition-colors ${
-                              selected
-                                ? "bg-[color:var(--color-nordan-accent)] border-[color:var(--color-nordan-accent)] text-white"
-                                : "bg-white border-[color:var(--color-nordan-line)] text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-accent-soft)]"
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <input
-                type="text"
-                value={otherInsurers}
-                onChange={(e) => setOtherInsurers(e.target.value)}
-                placeholder="Andet selskab? Skriv her, adskil med komma"
-                className="mt-3 w-full h-10 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.88rem]"
-              />
-            </div>
 
-            <div className="space-y-2.5 pt-2 border-t border-[color:var(--color-nordan-line)]">
-              <label className="flex gap-2.5 items-start cursor-pointer">
+              {!showOtherField ? (
+                <button
+                  type="button"
+                  onClick={() => setShowOtherField(true)}
+                  className="mt-1.5 text-[0.78rem] text-[color:var(--color-nordan-accent)] font-medium hover:underline"
+                >
+                  + Selskab ikke på listen?
+                </button>
+              ) : (
                 <input
-                  type="checkbox"
-                  checked={readOk}
-                  onChange={(e) => setReadOk(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[color:var(--color-nordan-accent)]"
+                  type="text"
+                  value={otherInsurers}
+                  onChange={(e) => setOtherInsurers(e.target.value)}
+                  placeholder="Skriv selskaber adskilt med komma"
+                  className="mt-1.5 w-full h-9 px-3 rounded-[6px] border border-[color:var(--color-nordan-line)] focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.85rem]"
                 />
-                <span className="text-[0.85rem] leading-snug text-[color:var(--color-nordan-ink)]">
-                  Jeg har læst og forstået dokumentet
-                </span>
-              </label>
-              <label className="flex gap-2.5 items-start cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={authOk}
-                  onChange={(e) => setAuthOk(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[color:var(--color-nordan-accent)]"
-                />
-                <span className="text-[0.85rem] leading-snug text-[color:var(--color-nordan-ink)]">
-                  Jeg er bemyndiget til at underskrive på vegne af{" "}
-                  <strong>{defaults.companyName}</strong>
-                </span>
-              </label>
-              <label className="flex gap-2.5 items-start cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={eidasOk}
-                  onChange={(e) => setEidasOk(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[color:var(--color-nordan-accent)]"
-                />
-                <span className="text-[0.85rem] leading-snug text-[color:var(--color-nordan-ink)]">
-                  Jeg samtykker til elektronisk signering iht. eIDAS-forordningen art. 25
-                </span>
-              </label>
-            </div>
+              )}
+            </section>
 
-            {error ? (
-              <div className="text-[0.85rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-                {error}
-              </div>
-            ) : null}
+            {/* Combined consent */}
+            <section className="mt-auto">
+              <label className="flex gap-3 items-start cursor-pointer p-3 rounded-[8px] hover:bg-[color:var(--color-nordan-soft)]/40 transition-colors border border-[color:var(--color-nordan-line)] has-[:checked]:border-[color:var(--color-nordan-accent)] has-[:checked]:bg-[color:var(--color-nordan-accent)]/5">
+                <input
+                  type="checkbox"
+                  checked={combinedConsent}
+                  onChange={(e) => setCombinedConsent(e.target.checked)}
+                  className="mt-0.5 w-5 h-5 accent-[color:var(--color-nordan-accent)] shrink-0"
+                />
+                <span className="text-[0.85rem] leading-snug text-[color:var(--color-nordan-ink)]">
+                  Jeg har læst undersøgelsesfuldmagten og <strong>er bemyndiget til at underskrive på vegne af {defaults.companyName}</strong>. Jeg samtykker til elektronisk signering iht. eIDAS art. 25.
+                </span>
+              </label>
+
+              {error ? (
+                <div className="mt-2 text-[0.82rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+                  {error}
+                </div>
+              ) : null}
+            </section>
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-5 sm:px-7 py-4 border-t border-[color:var(--color-nordan-line)] flex flex-col sm:flex-row sm:items-center gap-3 bg-[color:var(--color-nordan-soft)]/30">
-          <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] flex-1 leading-snug">
-            Underskrift sker elektronisk med audit-log (tidspunkt, IP, browser).
-            Du modtager en kopi pr. mail.
+          <div className="text-[0.74rem] text-[color:var(--color-nordan-muted)] flex-1 leading-snug">
+            Underskrift logges med tidspunkt, IP og browser. Du modtager en kopi pr. mail.
           </div>
           <div className="flex gap-2">
             <button
@@ -518,7 +536,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               type="button"
               onClick={handleSubmit}
               disabled={submitting || !formComplete}
-              className={`h-11 px-5 rounded-[6px] text-white text-[0.88rem] font-semibold transition-colors ${
+              className={`h-11 px-5 rounded-[6px] text-white text-[0.9rem] font-semibold transition-colors ${
                 formComplete && !submitting
                   ? "bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f]"
                   : "bg-[color:var(--color-nordan-accent)]/50 cursor-not-allowed"
@@ -533,4 +551,15 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   );
 
   return createPortal(dialog, document.body);
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[0.74rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.16em] mb-1.5">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
 }
