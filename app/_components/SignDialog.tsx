@@ -501,13 +501,15 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
             </div>
           </div>
 
-          {/* RIGHT — compact form, no internal scroll on desktop;
-              becomes step 2 on mobile (hidden until they tap Fortsæt). */}
+          {/* RIGHT — desktop: compact column, both visible.
+              Mobile: hidden until step 2; structured as scroll-area + sticky
+              bottom (mirrors step 1's read panel) so it keeps the card feel. */}
           <div
-            className={`p-5 sm:p-7 flex-col gap-5 overflow-y-auto lg:overflow-visible ${
+            className={`flex-col overflow-hidden lg:overflow-visible ${
               mobileStep === "read" ? "hidden lg:flex" : "flex"
             }`}
           >
+            <div className="flex-1 overflow-y-auto lg:overflow-visible p-5 sm:p-7 flex flex-col gap-5">
             {/* Mobile-only: small back-link to re-read the agreement. */}
             <button
               type="button"
@@ -688,31 +690,30 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                   {error}
                 </div>
               ) : null}
-
-              {/* Mobile-only: inline submit. Appears once form is complete
-                  so the user has nothing to do but tap. No Annullér button —
-                  the X in the header is the way out. */}
-              <div className="lg:hidden mt-3">
-                {formComplete ? (
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-60 transition-colors shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
-                  >
-                    {submitting ? "Underskriver…" : "Underskriv & send →"}
-                  </button>
-                ) : (
-                  <div className="rounded-[8px] border border-dashed border-[color:var(--color-nordan-line)] px-3.5 py-3 text-center text-[0.78rem] text-[color:var(--color-nordan-muted)] leading-snug">
-                    Udfyld felterne og bekræft fuldmagten — så dukker
-                    underskriv-knappen frem.
-                  </div>
-                )}
-                <p className="mt-2 text-center text-[0.7rem] text-[color:var(--color-nordan-muted)] leading-snug">
-                  Underskrift logges med tidspunkt, IP og browser.
-                </p>
-              </div>
             </section>
+            </div>
+            {/* Mobile-only sticky bottom — submit always present, lights up
+                when the form is fully valid (mirrors step 1's Fortsæt). */}
+            <div className="lg:hidden flex-shrink-0 px-5 pt-3 pb-3 border-t border-[color:var(--color-nordan-line)] bg-white">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                aria-disabled={!formComplete}
+                className={`w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold transition-all bg-[color:var(--color-nordan-dark)] hover:bg-[color:var(--color-nordan-dark-deep)] ${
+                  formComplete && !submitting
+                    ? "brightness-[1.12] shadow-[0_6px_22px_rgba(36,65,52,0.32)]"
+                    : "shadow-[0_2px_10px_rgba(36,65,52,0.18)]"
+                } disabled:opacity-60`}
+              >
+                {submitting ? "Underskriver…" : "Underskriv & send →"}
+              </button>
+              <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
+                {formComplete
+                  ? "✓ Klar til at underskrive"
+                  : "Udfyld felterne og bekræft — knappen lyser op når alt er klart"}
+              </p>
+            </div>
           </div>
         </div>
 
