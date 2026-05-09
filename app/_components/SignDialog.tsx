@@ -103,6 +103,8 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const [combinedConsent, setCombinedConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const docRef = useRef<HTMLDivElement>(null);
@@ -217,6 +219,16 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     phone.trim().length >= 6 &&
     combinedConsent;
 
+  function getMissingFields() {
+    const missing: string[] = [];
+    if (name.trim().length < 2) missing.push("Fuldt navn");
+    if (title.trim().length === 0) missing.push("Titel");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) missing.push("Gyldig e-mail");
+    if (phone.trim().length < 6) missing.push("Telefon");
+    if (!combinedConsent) missing.push("Bekræftelse af fuldmagt");
+    return missing;
+  }
+
   const filteredInsurers = useMemo(() => {
     const q = insurerSearch.trim().toLowerCase();
     if (!q) return INSURER_OPTIONS.filter((opt) => !insurers.includes(opt)).slice(0, 12);
@@ -235,8 +247,13 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   }
 
   async function handleSubmit() {
-    if (!formComplete || submitting) return;
+    if (submitting) return;
+    if (!formComplete) {
+      setAttemptedSubmit(true);
+      return;
+    }
     setSubmitting(true);
+    setAttemptedSubmit(false);
     setError(null);
     try {
       const otherList = otherInsurers
@@ -274,16 +291,41 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
         email: email.trim(),
         phone: phone.trim(),
       });
-      onSigned(data as SignResult);
+      // Show the success animation for ~1.6s before handing off to the
+      // parent (which closes the dialog). Gives the user a clear visual
+      // beat so they trust the signature actually went through.
+      setConfirming(true);
+      setSubmitting(false);
+      setTimeout(() => onSigned(data as SignResult), 1600);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noget gik galt");
-    } finally {
       setSubmitting(false);
     }
   }
 
   if (!open) return null;
   if (typeof document === "undefined") return null;
+
+  if (confirming) {
+    const confirmDialog = (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center px-3 py-6 sm:p-6 bg-black/60 backdrop-blur-sm">
+        <div className="w-full max-w-[420px] bg-white rounded-[14px] shadow-[0_30px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col items-center text-center px-7 py-10">
+          <SuccessCircle />
+          <div className="mt-6 font-bold text-[1.25rem] text-[color:var(--color-nordan-ink)]">
+            Underskrevet
+          </div>
+          <div className="mt-2 text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
+            Din underskrift er logget med tidspunkt og audit-ID. Kvittering med PDF er på vej til <strong>{email.trim()}</strong>.
+          </div>
+          <div className="mt-5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#e6effd] text-[#0060e6] text-[0.72rem] font-bold uppercase tracking-[0.1em]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0060e6]" />
+            Verificeret · eIDAS art. 25
+          </div>
+        </div>
+      </div>
+    );
+    return createPortal(confirmDialog, document.body);
+  }
 
   const dialog = (
     <div className="fixed inset-0 z-[80] flex items-center justify-center px-3 py-6 sm:p-6 bg-black/60 backdrop-blur-sm">
@@ -565,6 +607,17 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
                 </span>
               </label>
 
+              {attemptedSubmit && !formComplete ? (
+                <div className="mt-2 text-[0.82rem] text-amber-900 bg-amber-50 border border-amber-200 rounded-[6px] px-3 py-2">
+                  <div className="font-semibold mb-0.5">Mangler før du kan underskrive:</div>
+                  <ul className="list-disc pl-5 space-y-0.5">
+                    {getMissingFields().map((m) => (
+                      <li key={m}>{m}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
               {error ? (
                 <div className="mt-2 text-[0.82rem] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
                   {error}
@@ -591,11 +644,12 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting || !formComplete}
+              disabled={submitting}
+              aria-disabled={!formComplete}
               className={`h-11 px-5 rounded-[6px] text-white text-[0.9rem] font-semibold transition-colors ${
                 formComplete && !submitting
                   ? "bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f]"
-                  : "bg-[color:var(--color-nordan-accent)]/50 cursor-not-allowed"
+                  : "bg-[color:var(--color-nordan-accent)]/55 hover:bg-[color:var(--color-nordan-accent)]/65"
               }`}
             >
               {submitting ? "Underskriver…" : "Underskriv & send →"}
@@ -616,6 +670,59 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+/**
+ * Animated success circle — green ring expanding then white check drawing in.
+ * Pure CSS keyframes; no JS state needed since it auto-plays on mount.
+ */
+function SuccessCircle() {
+  return (
+    <div
+      className="relative w-[112px] h-[112px]"
+      role="status"
+      aria-live="polite"
+      aria-label="Underskrevet"
+    >
+      <style>{`
+        @keyframes nrp-success-ring {
+          0%   { transform: scale(0.4); opacity: 0; }
+          50%  { transform: scale(1.05); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes nrp-success-pulse {
+          0%   { transform: scale(1); opacity: 0.55; }
+          100% { transform: scale(1.55); opacity: 0; }
+        }
+        @keyframes nrp-success-check {
+          to { stroke-dashoffset: 0; }
+        }
+        .nrp-ring { animation: nrp-success-ring 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .nrp-pulse { animation: nrp-success-pulse 1200ms ease-out 320ms infinite; }
+        .nrp-check { stroke-dasharray: 36; stroke-dashoffset: 36; animation: nrp-success-check 380ms ease-out 380ms forwards; }
+      `}</style>
+      <span
+        className="nrp-pulse absolute inset-0 rounded-full"
+        style={{ backgroundColor: "var(--color-nordan-accent, #a58878)", opacity: 0.4 }}
+      />
+      <svg
+        viewBox="0 0 56 56"
+        className="nrp-ring absolute inset-0 w-full h-full"
+        aria-hidden
+      >
+        <circle cx="28" cy="28" r="26" fill="var(--color-nordan-accent, #a58878)" />
+        <path
+          className="nrp-check"
+          d="M16 29 L25 38 L41 20"
+          fill="none"
+          stroke="white"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>
   );
 }
