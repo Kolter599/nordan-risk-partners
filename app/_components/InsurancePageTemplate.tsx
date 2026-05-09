@@ -71,12 +71,20 @@ export function InsurancePageTemplate({ product }: Props) {
                 {product.intro}
               </p>
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
-                <Link
-                  href="/analyse"
-                  className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
-                >
-                  Få gratis analyse
-                </Link>
+                {productOverride ? (
+                  <ScrollToCta
+                    targetId="hio-form"
+                    label={productOverride.ctaLabel}
+                    className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                  />
+                ) : (
+                  <Link
+                    href="/analyse"
+                    className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                  >
+                    Få gratis analyse
+                  </Link>
+                )}
                 <a
                   href="tel:+4553520006"
                   className="inline-flex items-center justify-center h-12 px-6 sm:px-7 rounded-[6px] border border-white/50 text-white text-[0.88rem] font-semibold tracking-wide hover:bg-white/10 transition-colors"
@@ -86,7 +94,7 @@ export function InsurancePageTemplate({ product }: Props) {
               </div>
             </div>
 
-            <div className="mt-10 lg:mt-0 lg:col-span-5 lg:pt-4">
+            <div id="hio-form" className="mt-10 lg:mt-0 lg:col-span-5 lg:pt-4 scroll-mt-24">
               <CvrCapture headline={productOverride?.headline ?? product.cvrLabel} redirectPath={productOverride?.path} ctaLabel={productOverride?.ctaLabel} />
             </div>
           </div>
