@@ -86,21 +86,33 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     setLookupState("loading");
     setError(null);
     try {
-      const res = await fetch(`https://cvrapi.dk/api?country=dk&search=${forDigits}`);
-      if (!res.ok) throw new Error("Kunne ikke slå CVR op lige nu");
-      const data = await res.json();
-      if (data.error) throw new Error("Virksomheden blev ikke fundet");
+      const res = await fetch(`/api/cvr?cvr=${forDigits}`);
+      const data = (await res.json()) as
+        | { ok: true; company: { name: string; vat: string; address: string | null; industry: string | null; employees: string | null } }
+        | { ok: false; error: string };
+      if (!data.ok) {
+        const msg =
+          data.error === "not_found"
+            ? "Virksomheden blev ikke fundet — tjek nummeret eller spring over."
+            : data.error === "quota"
+            ? "CVR-opslaget er midlertidigt overbelastet. Prøv igen om et minut, eller spring over."
+            : "Vi kunne ikke nå CVR-registret lige nu. Prøv igen — eller spring over og udfyld manuelt.";
+        track("cvr_lookup_error", { cvr: forDigits, reason: data.error });
+        throw new Error(msg);
+      }
       setCompany({
-        name: data.name ?? "Virksomhed",
-        vat: String(data.vat ?? forDigits),
-        address: [data.address, data.zipcode, data.city].filter(Boolean).join(", "),
-        industry: data.industrydesc ?? undefined,
-        employees: data.employees ?? undefined,
+        name: data.company.name,
+        vat: data.company.vat,
+        address: data.company.address ?? undefined,
+        industry: data.company.industry ?? undefined,
+        employees: data.company.employees ?? undefined,
       });
       setLookupState("idle");
       setStep("confirm");
     } catch (err) {
-      track("cvr_lookup_error", { cvr: forDigits });
+      if (!(err instanceof Error && err.message.includes("CVR"))) {
+        track("cvr_lookup_error", { cvr: forDigits, reason: "exception" });
+      }
       setLookupState("error");
       setError(err instanceof Error ? err.message : "Noget gik galt");
     }
@@ -1100,6 +1112,7 @@ function StepNav({
 }
 
 function DevSkip({ onClick, label }: { onClick: () => void; label: string }) {
+  if (process.env.NODE_ENV === "production") return null;
   return (
     <button
       type="button"
