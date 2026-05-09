@@ -493,11 +493,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               >
                 Fortsæt →
               </button>
-              <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
-                {scrolledToBottom
-                  ? "✓ Du har læst hele fuldmagten"
-                  : "Tag dig tid til at læse — knappen lyser op når du når bunden"}
-              </p>
+              {scrolledToBottom ? (
+                <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
+                  ✓ Du har læst hele fuldmagten
+                </p>
+              ) : null}
             </div>
           </div>
 
