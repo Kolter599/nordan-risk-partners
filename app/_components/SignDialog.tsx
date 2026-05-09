@@ -754,11 +754,11 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               onClick={handleSubmit}
               disabled={submitting}
               aria-disabled={!formComplete}
-              className={`h-11 px-5 rounded-[6px] text-white text-[0.9rem] font-semibold transition-all ${
+              className={`h-11 px-5 rounded-[6px] text-white text-[0.9rem] font-semibold transition-all bg-[color:var(--color-nordan-dark)] hover:bg-[color:var(--color-nordan-dark-deep)] ${
                 formComplete && !submitting
-                  ? "bg-green-600 hover:bg-green-700 shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
-                  : "bg-[color:var(--color-nordan-accent)]/55 hover:bg-[color:var(--color-nordan-accent)]/65"
-              }`}
+                  ? "brightness-[1.12] shadow-[0_6px_22px_rgba(36,65,52,0.32)]"
+                  : "shadow-[0_2px_10px_rgba(36,65,52,0.18)]"
+              } disabled:opacity-60`}
             >
               {submitting ? "Underskriver…" : "Underskriv & send →"}
             </button>
