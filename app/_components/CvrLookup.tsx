@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { track } from "./GoogleAnalytics";
 import { SignFlow, type SignResult } from "./SignFlow";
+import { setRecentSigned } from "@/lib/recent-signed";
 
 type Company = {
   name: string;
@@ -33,6 +35,7 @@ const STEP_LABELS: Record<Step, string> = {
 };
 
 export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps = {}) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("cvr");
   const [cvr, setCvr] = useState("");
   const [company, setCompany] = useState<Company | null>(null);
@@ -138,7 +141,10 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     setStep("confirm");
   }
 
-  // After signing succeeds: capture result and move to done.
+  // After signing succeeds: capture result, persist a recent-signed marker
+  // so the homepage can show a personalized "we're working on it"-state,
+  // then auto-redirect home after a beat. Done step is shown briefly as a
+  // visual confirmation.
   function handleSigned(result: SignResult) {
     setSignResult(result);
     track("analyse_completed", {
@@ -146,8 +152,18 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       company: company?.name,
       audit_id: result.auditId,
     });
+    if (company) {
+      setRecentSigned({
+        signedAt: new Date().toISOString(),
+        companyName: company.name,
+        cvr: company.vat,
+      });
+    }
     setStep("done");
     setTimeout(() => scrollCardIntoView("center"), 80);
+    // Land back on the homepage where the CVR card will recognize them.
+    // 8 seconds gives them time to read the kvitterings-besked.
+    setTimeout(() => router.push("/"), 8000);
   }
 
   // Card grows wider on the sign step so the doc + form layout fits.
@@ -375,13 +391,8 @@ function StepDone({ company }: { company: Company | null }) {
         Tak — vi er i gang
       </div>
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed max-w-sm mx-auto">
-        Vi har fået jeres underskrevne fuldmagt for{" "}
-        <strong>{company?.name ?? "din virksomhed"}</strong> og går i gang med analysen.
-        Vi vender typisk tilbage inden for én hverdag.
-      </p>
-      <p className="mt-4 text-[0.85rem] text-[color:var(--color-nordan-muted)] leading-relaxed max-w-sm mx-auto">
-        Tjek din indbakke for kvitteringen — har I jeres policer ved hånden, så send dem
-        gerne som svar på den mail. Det hjælper os med at gå hurtigere i gang.
+        Fuldmagten er modtaget for <strong>{company?.name ?? "din virksomhed"}</strong>.
+        Tjek din indbakke for kvitteringen.
       </p>
     </div>
   );

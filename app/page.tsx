@@ -109,7 +109,7 @@ export default function Home() {
             </div>
 
             <div className="mt-10 lg:mt-0 lg:col-span-4 xl:col-span-4 self-end">
-              <CvrCapture />
+              <CvrCapture showRecentSigned />
             </div>
           </div>
         </div>

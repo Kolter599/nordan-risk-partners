@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { track } from "./GoogleAnalytics";
+import { getRecentSigned, clearRecentSigned, type RecentSigned } from "@/lib/recent-signed";
 
 type Props = {
   headline?: string;
@@ -11,6 +12,9 @@ type Props = {
   /** Where to send the visitor after a valid CVR. Defaults to the standard analyse flow. */
   redirectPath?: string;
   ctaLabel?: string;
+  /** When true, swap the CVR card for a personalized "we're working on it"
+   *  state if the user just finished a sign flow. */
+  showRecentSigned?: boolean;
 };
 
 /**
@@ -27,14 +31,21 @@ export function CvrCapture({
   variant = "card",
   redirectPath = "/start",
   ctaLabel = "Start analyse",
+  showRecentSigned = false,
 }: Props) {
   const router = useRouter();
   const [cvr, setCvr] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [recentSigned, setRecentSigned] = useState<RecentSigned | null>(null);
   const typedOnce = useRef(false);
 
   const digits = cvr.replace(/\D/g, "").slice(0, 8);
   const isComplete = digits.length === 8;
+
+  useEffect(() => {
+    if (!showRecentSigned) return;
+    setRecentSigned(getRecentSigned());
+  }, [showRecentSigned]);
 
   useEffect(() => {
     if (!typedOnce.current && digits.length > 0) {
@@ -78,6 +89,55 @@ export function CvrCapture({
           <span aria-hidden>→</span>
         </button>
       </form>
+    );
+  }
+
+  // Personalized post-sign state — only shown on the homepage where the
+  // hero CvrCapture passed showRecentSigned. Replaces the input + CTA with
+  // a "Tak <Firma>, vi er i gang"-card that auto-clears after the TTL.
+  if (recentSigned) {
+    return (
+      <div className="bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)]">
+        <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
+          <div className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-3">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-accent-soft)]" />
+            Modtaget
+          </div>
+          <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] sm:text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
+            Tak {recentSigned.companyName}
+          </div>
+        </div>
+        <div className="p-5 sm:p-7 space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 inline-flex w-9 h-9 rounded-full bg-[color:var(--color-nordan-accent)]/15 text-[color:var(--color-nordan-accent)] items-center justify-center mt-0.5">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <div>
+              <div className="font-semibold text-[1rem] text-[color:var(--color-nordan-ink)] mb-0.5">
+                Vi er i gang med at indhente jeres oplysninger
+              </div>
+              <p className="text-[0.88rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
+                Tjek din indbakke for kvitteringen — har I jeres policer ved hånden, så send dem som svar på den mail. Det hjælper os med at gå hurtigere i gang.
+              </p>
+            </div>
+          </div>
+          <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] flex items-center justify-between pt-2 border-t border-[color:var(--color-nordan-line)]">
+            <span>CVR {recentSigned.cvr}</span>
+            <button
+              type="button"
+              onClick={() => {
+                clearRecentSigned();
+                setRecentSigned(null);
+              }}
+              className="underline hover:text-[color:var(--color-nordan-ink)]"
+            >
+              Start ny analyse
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
