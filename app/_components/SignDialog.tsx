@@ -113,6 +113,7 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
   const docRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -130,18 +131,23 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
     setError(null);
     userScrolledRef.current = false;
     setScrolledToBottom(false);
+    setScrollProgress(0);
     setMobileStep("read");
   }, [open, defaults.name, defaults.email, defaults.phone]);
 
-  // Track whether the user has reached the bottom of the doc — used to swap
-  // the sticky bottom hint between "scroll to read" and "you've read it all".
+  // Track scroll progress (0–1) and bottom flag — drives the mobile
+  // progress strip and the "Du har læst hele teksten" status copy.
   useEffect(() => {
     if (!open) return;
     const node = docRef.current;
     if (!node) return;
     const onScroll = () => {
-      const reachedBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 24;
-      if (reachedBottom) setScrolledToBottom(true);
+      const max = node.scrollHeight - node.clientHeight;
+      const progress = max > 24 ? Math.min(1, node.scrollTop / max) : 1;
+      setScrollProgress(progress);
+      if (node.scrollTop + node.clientHeight >= node.scrollHeight - 24) {
+        setScrolledToBottom(true);
+      }
     };
     node.addEventListener("scroll", onScroll, { passive: true });
     return () => node.removeEventListener("scroll", onScroll);
@@ -459,23 +465,38 @@ export function SignDialog({ open, onClose, onSigned, defaults }: Props) {
               </div>
             </div>
 
-            {/* Mobile-only continue button — moves user to step 2 (form). */}
-            <div className="lg:hidden flex-shrink-0 px-5 py-3 border-t border-[color:var(--color-nordan-line)] bg-white">
+            {/* Mobile-only continue button + reading progress strip.
+                Brand-green always; subtle brightness boost when reaching
+                bottom so users feel rewarded for reading without it
+                feeling like a hard gate. */}
+            <div className="lg:hidden flex-shrink-0 px-5 pt-3 pb-3 border-t border-[color:var(--color-nordan-line)] bg-white">
+              <div className="h-[3px] w-full bg-[color:var(--color-nordan-line)]/60 rounded-full overflow-hidden mb-2.5">
+                <div
+                  className="h-full rounded-full transition-[width] duration-200 ease-out"
+                  style={{
+                    width: `${Math.round(scrollProgress * 100)}%`,
+                    backgroundColor: "var(--color-nordan-dark)",
+                  }}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => {
                   setMobileStep("fill");
-                  // Reset auto-bounce state if they re-open the read step
                   userScrolledRef.current = false;
                 }}
-                className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold bg-green-600 hover:bg-green-700 transition-colors shadow-[0_4px_14px_rgba(22,163,74,0.25)]"
+                className={`w-full h-12 inline-flex items-center justify-center gap-2 rounded-[8px] text-white text-[0.95rem] font-semibold transition-all bg-[color:var(--color-nordan-dark)] hover:bg-[color:var(--color-nordan-dark-deep)] ${
+                  scrolledToBottom
+                    ? "brightness-[1.12] shadow-[0_6px_22px_rgba(36,65,52,0.32)]"
+                    : "shadow-[0_2px_10px_rgba(36,65,52,0.18)]"
+                }`}
               >
-                Fortsæt — udfyld dine oplysninger →
+                Fortsæt →
               </button>
-              <p className="mt-2 text-center text-[0.7rem] text-[color:var(--color-nordan-muted)] leading-snug">
+              <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
                 {scrolledToBottom
-                  ? "✓ Du har læst hele teksten — næste trin er hurtig udfyldelse"
-                  : "Du kan også scrolle først for at læse fuldmagten"}
+                  ? "✓ Du har læst hele fuldmagten"
+                  : "Tag dig tid til at læse — knappen lyser op når du når bunden"}
               </p>
             </div>
           </div>
