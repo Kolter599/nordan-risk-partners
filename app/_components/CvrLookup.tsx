@@ -66,9 +66,15 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   }, [authMethod]);
   const typedOnce = useRef(false);
   const prefillRan = useRef(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const digits = cvr.replace(/\D/g, "").slice(0, 8);
   const isComplete = digits.length === 8;
+
+  function scrollCardIntoView() {
+    if (typeof window === "undefined") return;
+    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   useEffect(() => {
     if (prefillRan.current) return;
@@ -78,6 +84,10 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     setCvr(fromProp);
     typedOnce.current = true;
     void runLookup(fromProp);
+    // Pull the card into view so users arriving from the homepage CVR
+    // submit don't have to scroll past the /analyse hero.
+    const t = setTimeout(scrollCardIntoView, 80);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCvr]);
 
@@ -340,7 +350,11 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       : "max-w-[480px]";
 
   return (
-    <div className={`mx-auto w-full ${widthClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}>
+    <div
+      ref={cardRef}
+      id="cvr-card"
+      className={`mx-auto w-full ${widthClass} bg-white rounded-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.35)] overflow-hidden text-[color:var(--color-nordan-ink)] transition-[max-width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+    >
       {/* HEADER with progress */}
       <div className="px-5 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5 bg-gradient-to-br from-[color:var(--color-nordan-dark)] to-[color:var(--color-nordan-dark-deep)] text-white">
         <div className="flex items-center justify-between mb-3">
@@ -417,6 +431,9 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
               if (r.signerName && !contactName) setContactName(r.signerName);
               if (r.signerEmail && !contactEmail) setContactEmail(r.signerEmail);
               if (r.signerPhone && !contactPhone) setContactPhone(r.signerPhone);
+              // Pull the card back into view — without this, closing the
+              // modal can leave the user looking at the footer.
+              setTimeout(scrollCardIntoView, 80);
             }}
             companyName={company?.name ?? "Din virksomhed"}
             cvr={company?.vat ?? digits}
