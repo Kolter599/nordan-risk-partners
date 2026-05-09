@@ -80,9 +80,6 @@ export default async function AnalysePage({
             <p className="text-[1.02rem] sm:text-[1.1rem] text-[color:var(--color-nordan-ink-soft)] leading-[1.65] max-w-2xl">
               Vi bruger AI til at læse policer og sammenligne markedet hurtigere. Det giver os mere tid til rådgivning — og jer en bedre løsning til en skarpere pris.
             </p>
-            <p className="mt-4 text-[0.92rem] text-[color:var(--color-nordan-muted)] leading-relaxed">
-              Indtast CVR — analysen åbner i en ny fane så du har al fokus på flowet.
-            </p>
           </div>
           <div className="lg:col-span-5 lg:pt-2">
             <CvrCapture />

@@ -51,16 +51,7 @@ export function CvrCapture({
     setSubmitting(true);
     track("cvr_submitted", { cvr: digits, redirect_path: redirectPath });
     const sep = redirectPath.includes("?") ? "&" : "?";
-    const url = `${redirectPath}${sep}cvr=${digits}`;
-    // /start opens in a new tab (focused, no Nav/Footer). Other redirect
-    // targets (e.g. /tilbud/hole-in-one) stay in the same tab as before.
-    if (redirectPath === "/start" && typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener");
-      // Reset submitting after a beat so the user can re-submit if needed.
-      setTimeout(() => setSubmitting(false), 800);
-      return;
-    }
-    router.push(url);
+    router.push(`${redirectPath}${sep}cvr=${digits}`);
   }
 
   if (variant === "inline") {
