@@ -71,9 +71,9 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   const digits = cvr.replace(/\D/g, "").slice(0, 8);
   const isComplete = digits.length === 8;
 
-  function scrollCardIntoView() {
+  function scrollCardIntoView(block: ScrollLogicalPosition = "center") {
     if (typeof window === "undefined") return;
-    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    cardRef.current?.scrollIntoView({ behavior: "smooth", block });
   }
 
   useEffect(() => {
@@ -145,6 +145,10 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
       track("cvr_step_actions_view");
       // Only one auth method available — auto-select digital so the SignDialog CTA shows immediately.
       if (!authMethod) setAuthMethod("digital");
+      // The card grows much taller when we land on actions — anchor the top
+      // of the card to the top of the viewport (with a small offset for the
+      // step indicator), so the user sees panels + buttons at once.
+      setTimeout(() => scrollCardIntoView("start"), 80);
     } else if (step === "done") {
       track("cvr_flow_completed", {
         company: company?.name,
@@ -649,12 +653,8 @@ function StepActions({
   }
 
   return (
-    <form onSubmit={handleSubmitClick} className="cvr-actions-enter space-y-6">
-      <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
-        Udfyld de tre felter nedenfor i den rækkefølge du har lyst — alt sendes samlet, når du er klar.
-      </p>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
+    <form onSubmit={handleSubmitClick} className="cvr-actions-enter space-y-3.5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* PANEL 1 — FULDMAGT */}
         <ActionPanel
           step="01"
@@ -752,7 +752,7 @@ function StepActions({
               setIsDragging(false);
               addFiles(e.dataTransfer.files);
             }}
-            className={`group relative block border-2 border-dashed rounded-[10px] py-8 px-5 text-center cursor-pointer transition-all ${
+            className={`group relative block border-2 border-dashed rounded-[8px] py-4 px-3 text-center cursor-pointer transition-all ${
               isDragging
                 ? "border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-accent)]/10 scale-[1.01]"
                 : "border-[color:var(--color-nordan-line)] hover:border-[color:var(--color-nordan-accent)] bg-[color:var(--color-nordan-soft)]/50"
@@ -769,43 +769,41 @@ function StepActions({
               }}
               className="sr-only"
             />
-            <div className="inline-flex flex-col items-center gap-3">
-              <span className="relative w-14 h-12 grid place-items-center">
-                <span className="absolute left-0 top-1 w-10 h-12 rounded-md bg-white border border-[color:var(--color-nordan-line)] -rotate-6 origin-bottom-left" />
-                <span className="absolute right-0 top-0 w-10 h-12 rounded-md bg-white border border-[color:var(--color-nordan-line)] rotate-6 origin-bottom-right" />
-                <span className="relative w-10 h-12 rounded-md bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)] shadow-sm">
+            <div className="inline-flex flex-col items-center gap-1.5">
+              <span className="relative w-9 h-9 grid place-items-center">
+                <span className="relative w-9 h-9 rounded-md bg-white border border-[color:var(--color-nordan-line)] grid place-items-center text-[color:var(--color-nordan-dark)] shadow-sm">
                   <IconUpload />
                 </span>
               </span>
               <div>
-                <div className="font-semibold text-[0.95rem] text-[color:var(--color-nordan-ink)]">
-                  {isDragging ? "Slip filerne her" : "Træk policer hertil — én eller flere"}
+                <div className="font-semibold text-[0.85rem] text-[color:var(--color-nordan-ink)]">
+                  {isDragging ? "Slip filerne her" : "Træk policer hertil"}
                 </div>
-                <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mt-1">
-                  PDF · JPG · PNG · max 4 MB i alt
+                <div className="text-[0.7rem] text-[color:var(--color-nordan-muted)] mt-0.5">
+                  PDF · JPG · PNG · max 4 MB
                 </div>
               </div>
-              <div className="text-[0.78rem] text-[color:var(--color-nordan-accent)] font-semibold underline-offset-2 group-hover:underline">
+              <div className="text-[0.74rem] text-[color:var(--color-nordan-accent)] font-semibold underline-offset-2 group-hover:underline">
                 eller vælg fra computer
               </div>
             </div>
           </label>
 
           {files.length > 0 ? (
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[0.78rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
+            <div className="mt-2.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="text-[0.7rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)]">
                   {files.length} {files.length === 1 ? "fil tilføjet" : "filer tilføjet"}
                 </div>
                 <button
                   type="button"
                   onClick={() => setFiles([])}
-                  className="text-[0.78rem] text-[color:var(--color-nordan-muted)] hover:text-red-600"
+                  className="text-[0.72rem] text-[color:var(--color-nordan-muted)] hover:text-red-600"
                 >
                   Ryd alle
                 </button>
               </div>
-              <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              <ul className="space-y-1 max-h-28 overflow-y-auto pr-1">
                 {files.map((f, i) => (
                   <li
                     key={`${f.name}-${f.size}-${i}`}
@@ -904,12 +902,12 @@ function StepActions({
         </div>
       ) : null}
 
-      <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2.5">
         <button
           type="button"
           onClick={onBack}
           disabled={submitting}
-          className="h-[50px] px-5 rounded-[8px] border border-[color:var(--color-nordan-line)] text-[0.88rem] font-medium text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-ink-soft)] disabled:opacity-60"
+          className="h-[44px] px-5 rounded-[8px] border border-[color:var(--color-nordan-line)] text-[0.85rem] font-medium text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-ink-soft)] disabled:opacity-60"
         >
           Tilbage
         </button>
@@ -917,7 +915,7 @@ function StepActions({
           type="submit"
           disabled={submitting}
           aria-disabled={!canSubmit}
-          className={`flex-1 h-[50px] inline-flex items-center justify-center gap-2 text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] transition-colors ${
+          className={`flex-1 h-[44px] inline-flex items-center justify-center gap-2 text-white text-[0.9rem] font-semibold tracking-wide rounded-[8px] transition-colors ${
             canSubmit
               ? "bg-[color:var(--color-nordan-accent)] hover:bg-[#8f715f]"
               : "bg-[color:var(--color-nordan-accent)]/50 cursor-not-allowed"
@@ -971,16 +969,16 @@ function ActionPanel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border border-[color:var(--color-nordan-line)] rounded-[10px] p-4 sm:p-5 bg-white">
-      <div className="flex items-baseline gap-2 mb-1">
-        <span className="text-[color:var(--color-nordan-accent)] font-[family-name:var(--font-inter)] font-bold text-[0.72rem] tracking-[0.18em]">
+    <div className="border border-[color:var(--color-nordan-line)] rounded-[10px] p-3 sm:p-3.5 bg-white">
+      <div className="flex items-baseline gap-2 mb-0.5">
+        <span className="text-[color:var(--color-nordan-accent)] font-[family-name:var(--font-inter)] font-bold text-[0.7rem] tracking-[0.18em]">
           {step}
         </span>
-        <span className="font-[family-name:var(--font-inter)] font-bold text-[1rem] text-[color:var(--color-nordan-ink)]">
+        <span className="font-[family-name:var(--font-inter)] font-bold text-[0.95rem] text-[color:var(--color-nordan-ink)]">
           {title}
         </span>
       </div>
-      <p className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mb-4 leading-relaxed">{subtitle}</p>
+      <p className="text-[0.74rem] text-[color:var(--color-nordan-muted)] mb-2.5 leading-snug">{subtitle}</p>
       {children}
     </div>
   );
