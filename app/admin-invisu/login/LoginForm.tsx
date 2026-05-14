@@ -23,7 +23,7 @@ export function LoginForm() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error ?? "Login mislykkedes");
       }
-      router.push("/admin");
+      router.push("/admin-invisu");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noget gik galt");

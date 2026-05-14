@@ -488,7 +488,7 @@ function LeadRow({ lead }: { lead: Lead }) {
         {formatted}
       </td>
       <td className="px-4 py-3">
-        <Link href={`/admin/leads/${lead.id}`} className="font-semibold hover:text-[color:var(--color-nordan-accent)]">
+        <Link href={`/admin-invisu/leads/${lead.id}`} className="font-semibold hover:text-[color:var(--color-nordan-accent)]">
           {lead.name ?? "—"}
         </Link>
       </td>

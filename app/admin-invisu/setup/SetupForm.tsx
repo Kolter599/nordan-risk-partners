@@ -25,7 +25,7 @@ export function SetupForm() {
       setResult(data);
       if (data.ok) {
         setTimeout(() => {
-          router.push("/admin");
+          router.push("/admin-invisu");
           router.refresh();
         }, 1200);
       }
