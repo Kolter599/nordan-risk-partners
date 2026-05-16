@@ -32,7 +32,7 @@ export type CvrLookupStep = Step;
 const STEP_LABELS: Record<Step, string> = {
   cvr: "Indtast CVR — start jeres analyse",
   confirm: "Er det din virksomhed?",
-  contact: "Hvem skal vi tale med?",
+  contact: "Hvem undersøger vi på vegne af?",
   sign: "Underskriv fuldmagt",
   done: "Tak! Vi er i gang.",
 };
@@ -442,7 +442,7 @@ function StepContact({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
-        Vi skal lige vide hvem du er — så vi kan vende tilbage med analysen direkte til dig.
+        Bare så vi ved, hvem analysen laves for — og hvem vi vender tilbage til.
       </p>
 
       <div className="space-y-3">
@@ -527,10 +527,12 @@ function StepContact({
         <button
           type="submit"
           disabled={!canContinue}
-          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:bg-[color:var(--color-nordan-accent-soft)] disabled:cursor-not-allowed transition-colors"
+          className="group flex-1 h-[58px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.95rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:bg-[color:var(--color-nordan-accent-soft)] disabled:cursor-not-allowed transition-colors"
         >
-          <span>Videre til fuldmagt</span>
-          <span aria-hidden>→</span>
+          <span>Fortsæt</span>
+          <span className="transition-transform group-hover:translate-x-1" aria-hidden>
+            →
+          </span>
         </button>
       </div>
     </form>
