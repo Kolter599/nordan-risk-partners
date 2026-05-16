@@ -416,21 +416,9 @@ function StepContact({
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [revealBridge, setRevealBridge] = useState(false);
-
   const nameValid = contact.name.trim().length >= 2;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim());
   const canContinue = nameValid && emailValid;
-
-  // Reveal the fuldmagt bridge copy as soon as both core fields look valid,
-  // so the box "grows" into the next stage before the user clicks. Feels
-  // like one continuous flow rather than a hard step jump.
-  useEffect(() => {
-    if (canContinue && !revealBridge) {
-      const t = setTimeout(() => setRevealBridge(true), 120);
-      return () => clearTimeout(t);
-    }
-  }, [canContinue, revealBridge]);
 
   // Persist what they've typed even if they bail before clicking Fortsæt.
   // Debounced so we don't hammer the endpoint on every keystroke.
@@ -525,23 +513,6 @@ function StepContact({
             className="w-full h-[52px] px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[1rem] font-[family-name:var(--font-inter)] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
           />
         </label>
-      </div>
-
-      {/* Bridge copy that expands in once contact info looks valid — sets up
-          the fuldmagt step as a natural continuation rather than a surprise. */}
-      <div
-        aria-hidden={!revealBridge}
-        className={`grid transition-[grid-template-rows,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-150 ${
-          revealBridge ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="rounded-[8px] border border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)] px-4 py-3 text-[0.85rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
-            For at vi kan komme i gang hurtigst muligt og undersøge på dine vegne, har vi brug for en
-            kort <strong className="text-[color:var(--color-nordan-ink)]">undersøgelsesfuldmagt</strong>. Du
-            underskriver i næste skridt — det tager under et minut.
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center gap-3 pt-1">
