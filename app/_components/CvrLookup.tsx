@@ -14,7 +14,9 @@ type Company = {
   employees?: string;
 };
 
-type Step = "cvr" | "confirm" | "sign" | "done";
+type Step = "cvr" | "confirm" | "contact" | "sign" | "done";
+
+type ContactInfo = { name: string; email: string; phone: string };
 type LookupState = "idle" | "loading" | "error";
 
 type CvrLookupProps = {
@@ -30,6 +32,7 @@ export type CvrLookupStep = Step;
 const STEP_LABELS: Record<Step, string> = {
   cvr: "Indtast CVR — start jeres analyse",
   confirm: "Er det din virksomhed?",
+  contact: "Hvem skal vi tale med?",
   sign: "Underskriv fuldmagt",
   done: "Tak! Vi er i gang.",
 };
@@ -42,6 +45,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   const [lookupState, setLookupState] = useState<LookupState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [, setSignResult] = useState<SignResult | null>(null);
+  const [contact, setContact] = useState<ContactInfo>({ name: "", email: "", phone: "" });
 
   const typedOnce = useRef(false);
   const prefillRan = useRef(false);
@@ -118,6 +122,8 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
     onStepChange?.(step);
     if (step === "confirm") {
       track("cvr_company_confirmed_view", { cvr: digits, company: company?.name });
+    } else if (step === "contact") {
+      track("cvr_step_contact_view", { cvr: digits, company: company?.name });
     } else if (step === "sign") {
       track("cvr_step_sign_view", { cvr: digits, company: company?.name });
     } else if (step === "done") {
@@ -188,10 +194,10 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
   // never grows past the parent's bounds so /start can keep body locked.
   const heightClass = step === "sign" ? "max-h-full flex flex-col" : "";
 
-  // Map our 4 steps onto the 3 user-visible stages (cvr / confirm / sign).
+  // Map our 5 steps onto 4 user-visible stages (cvr / confirm / contact / sign).
   // Done collapses back into the sign stage being marked complete.
-  const STAGES: Step[] = ["cvr", "confirm", "sign"];
-  const stageIndex = step === "done" ? 2 : STAGES.indexOf(step);
+  const STAGES: Step[] = ["cvr", "confirm", "contact", "sign"];
+  const stageIndex = step === "done" ? STAGES.length - 1 : STAGES.indexOf(step);
   const progress = step === "done" ? 100 : ((stageIndex + 1) / STAGES.length) * 100;
 
   return (
@@ -218,6 +224,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
         <div className="font-[family-name:var(--font-inter)] font-bold text-[1.2rem] sm:text-[1.4rem] leading-[1.15] tracking-[-0.02em]">
           {step === "cvr" && (headline ?? STEP_LABELS.cvr)}
           {step === "confirm" && STEP_LABELS.confirm}
+          {step === "contact" && STEP_LABELS.contact}
           {step === "sign" && STEP_LABELS.sign}
           {step === "done" && STEP_LABELS.done}
         </div>
@@ -247,7 +254,21 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
           <StepConfirm
             company={company}
             onBack={() => setStep("cvr")}
-            onNext={() => setStep("sign")}
+            onNext={() => {
+              setStep("contact");
+              setTimeout(scrollCardIntoView, 80);
+            }}
+          />
+        )}
+        {step === "contact" && company && (
+          <StepContact
+            contact={contact}
+            setContact={setContact}
+            onBack={() => setStep("confirm")}
+            onNext={() => {
+              setStep("sign");
+              setTimeout(() => scrollCardIntoView("start"), 80);
+            }}
           />
         )}
         {step === "sign" && company && (
@@ -255,6 +276,9 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             defaults={{
               companyName: company.name,
               cvr: company.vat,
+              name: contact.name,
+              email: contact.email,
+              phone: contact.phone,
             }}
             onSigned={handleSigned}
           />
@@ -377,6 +401,139 @@ function StepConfirm({
 
       <StepNav onBack={onBack} onNext={onNext} nextLabel="Ja, fortsæt" backLabel="Skift CVR" />
     </div>
+  );
+}
+
+/* -------------------- STEP 3: CONTACT INFO -------------------- */
+function StepContact({
+  contact,
+  setContact,
+  onBack,
+  onNext,
+}: {
+  contact: ContactInfo;
+  setContact: (c: ContactInfo) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const [revealBridge, setRevealBridge] = useState(false);
+
+  const nameValid = contact.name.trim().length >= 2;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim());
+  const canContinue = nameValid && emailValid;
+
+  // Reveal the fuldmagt bridge copy as soon as both core fields look valid,
+  // so the box "grows" into the next stage before the user clicks. Feels
+  // like one continuous flow rather than a hard step jump.
+  useEffect(() => {
+    if (canContinue && !revealBridge) {
+      const t = setTimeout(() => setRevealBridge(true), 120);
+      return () => clearTimeout(t);
+    }
+  }, [canContinue, revealBridge]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canContinue) return;
+    track("cvr_contact_submitted", { has_phone: contact.phone.trim().length > 0 });
+    onNext();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
+        Vi skal lige vide hvem du er — så vi kan vende tilbage med analysen direkte til dig.
+      </p>
+
+      <div className="space-y-3">
+        <label htmlFor="contact-name" className="block">
+          <div className="text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-muted)] mb-2">
+            Dit navn
+          </div>
+          <input
+            id="contact-name"
+            type="text"
+            autoComplete="name"
+            value={contact.name}
+            onChange={(e) => setContact({ ...contact, name: e.target.value })}
+            placeholder="Fornavn Efternavn"
+            required
+            className="w-full h-[52px] px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[1rem] font-[family-name:var(--font-inter)] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
+          />
+        </label>
+
+        <label htmlFor="contact-email" className="block">
+          <div className="text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-muted)] mb-2">
+            E-mail
+          </div>
+          <input
+            id="contact-email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            value={contact.email}
+            onChange={(e) => setContact({ ...contact, email: e.target.value })}
+            placeholder="navn@virksomhed.dk"
+            required
+            className="w-full h-[52px] px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[1rem] font-[family-name:var(--font-inter)] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
+          />
+        </label>
+
+        <label htmlFor="contact-phone" className="block">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-[0.72rem] uppercase tracking-[0.2em] font-semibold text-[color:var(--color-nordan-muted)]">
+              Telefon
+            </span>
+            <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]/70">Valgfrit</span>
+          </div>
+          <input
+            id="contact-phone"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            value={contact.phone}
+            onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+            placeholder="+45 …"
+            className="w-full h-[52px] px-4 bg-[color:var(--color-nordan-soft)] border-2 border-transparent rounded-[8px] focus:outline-none focus:border-[color:var(--color-nordan-accent)] focus:bg-white text-[1rem] font-[family-name:var(--font-inter)] text-[color:var(--color-nordan-ink)] placeholder:text-[color:var(--color-nordan-muted)]/60 transition-colors"
+          />
+        </label>
+      </div>
+
+      {/* Bridge copy that expands in once contact info looks valid — sets up
+          the fuldmagt step as a natural continuation rather than a surprise. */}
+      <div
+        aria-hidden={!revealBridge}
+        className={`grid transition-[grid-template-rows,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-150 ${
+          revealBridge ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="rounded-[8px] border border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)] px-4 py-3 text-[0.85rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed">
+            For at vi kan komme i gang hurtigst muligt og undersøge på dine vegne, har vi brug for en
+            kort <strong className="text-[color:var(--color-nordan-ink)]">undersøgelsesfuldmagt</strong>. Du
+            underskriver i næste skridt — det tager under et minut.
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 pt-1">
+        <button
+          type="button"
+          onClick={onBack}
+          className="h-[50px] px-5 rounded-[8px] border border-[color:var(--color-nordan-line)] text-[0.88rem] font-medium text-[color:var(--color-nordan-ink-soft)] hover:border-[color:var(--color-nordan-ink-soft)]"
+        >
+          Tilbage
+        </button>
+        <button
+          type="submit"
+          disabled={!canContinue}
+          className="flex-1 h-[50px] inline-flex items-center justify-center gap-2 bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide rounded-[8px] hover:bg-[#8f715f] disabled:bg-[color:var(--color-nordan-accent-soft)] disabled:cursor-not-allowed transition-colors"
+        >
+          <span>Videre til fuldmagt</span>
+          <span aria-hidden>→</span>
+        </button>
+      </div>
+    </form>
   );
 }
 
