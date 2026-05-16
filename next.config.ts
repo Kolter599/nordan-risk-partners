@@ -60,6 +60,19 @@ const nextConfig: NextConfig = {
       { source: "/fredede-ejendomme-forsikring", destination: "/erhvervsforsikringer/fredede-ejendomme-forsikring", permanent: true },
       { source: "/hole-in-one-forsikring", destination: "/erhvervsforsikringer/hole-in-one-forsikring", permanent: true },
       { source: "/forsikring-andelsboligforening-ejerforening", destination: "/erhvervsforsikringer/forsikring-andelsboligforening-ejerforening", permanent: true },
+      // Old Squarespace long-slug URLs that still hold ranking — funnel them
+      // onto the new product pages. The "forsikringsmgler" (no æ) variant is
+      // intentional: that was the literal Squarespace slug.
+      {
+        source: "/fredede-ejendomme-forsikring-nordan-risk-partners-forsikringsmgler",
+        destination: "/erhvervsforsikringer/fredede-ejendomme-forsikring",
+        permanent: true,
+      },
+      {
+        source: "/fredede-ejendomme-forsikring-nordan-risk-partners-forsikringsmaegler",
+        destination: "/erhvervsforsikringer/fredede-ejendomme-forsikring",
+        permanent: true,
+      },
     ];
   },
 };
