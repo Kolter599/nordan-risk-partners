@@ -33,7 +33,7 @@ const STEP_LABELS: Record<Step, string> = {
   cvr: "Indtast CVR — start jeres analyse",
   confirm: "Er det din virksomhed?",
   contact: "Hvem undersøger vi på vegne af?",
-  sign: "Underskriv fuldmagt",
+  sign: "Sidste skridt — kort undersøgelsesfuldmagt",
   done: "Tak! Vi er i gang.",
 };
 

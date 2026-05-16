@@ -284,6 +284,26 @@ export function SignFlow({ onSigned, defaults }: Props) {
             tabIndex={0}
             className="flex-1 overflow-y-auto px-5 sm:px-7 py-6 pb-16"
           >
+            {/* Why-this-step framing — sets the fuldmagt up as standard
+                industry practice so it doesn't feel like an unusual ask. */}
+            <div className="bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)] rounded-[10px] p-5 mb-4">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-dark)]" />
+                <h3 className="text-[0.74rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-dark)]">
+                  Hvorfor en fuldmagt?
+                </h3>
+              </div>
+              <p className="text-[0.9rem] leading-relaxed text-[color:var(--color-nordan-ink)]">
+                Forsikringsselskaberne udleverer kun policer og skadehistorik til en{" "}
+                <strong>autoriseret forsikringsmægler</strong> — så vi har brug for en kort
+                undersøgelsesfuldmagt for at kunne lave analysen.{" "}
+                <span className="text-[color:var(--color-nordan-ink-soft)]">
+                  Det er standard branchepraksis; alle mæglere arbejder sådan her. Du forpligter
+                  dig til intet, og fuldmagten kan trækkes tilbage når som helst.
+                </span>
+              </p>
+            </div>
+
             {/* TL;DR card */}
             <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[10px] p-5 mb-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
