@@ -10,3 +10,6 @@ dist/
 .DS_Store
 *.log
 tsconfig.tsbuildinfo
+
+# Local agent state (claude-flow)
+.claude-flow/
