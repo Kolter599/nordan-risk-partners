@@ -47,6 +47,8 @@ const STEP_FOR_EVENT: Record<string, FunnelStep> = {
   sign_flow_view: "actions",
   // Kept for back-compat with any cached client builds firing the old name.
   cvr_step_actions_view: "actions",
+  cvr_step_contact_view: "actions",
+  cvr_contact_draft: "actions",
   cvr_contact_submitted: "actions",
   // Completed = signed fuldmagt; the lead is created server-side at this point.
   sign_completed: "completed",

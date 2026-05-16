@@ -432,10 +432,38 @@ function StepContact({
     }
   }, [canContinue, revealBridge]);
 
+  // Persist what they've typed even if they bail before clicking Fortsæt.
+  // Debounced so we don't hammer the endpoint on every keystroke.
+  // The track endpoint upserts the session by clientId, so name/email/phone
+  // land in the admin view regardless of whether they sign the fuldmagt.
+  useEffect(() => {
+    const name = contact.name.trim();
+    const email = contact.email.trim();
+    const phone = contact.phone.trim();
+    if (!name && !email && !phone) return;
+    const t = setTimeout(() => {
+      track("cvr_contact_draft", {
+        name: name || undefined,
+        email: email || undefined,
+        phone: phone || undefined,
+        name_valid: nameValid,
+        email_valid: emailValid,
+      });
+    }, 700);
+    return () => clearTimeout(t);
+  }, [contact.name, contact.email, contact.phone, nameValid, emailValid]);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canContinue) return;
-    track("cvr_contact_submitted", { has_phone: contact.phone.trim().length > 0 });
+    // Send the actual contact values so the session is upserted with name/
+    // email/phone server-side (the track endpoint reads these from params).
+    track("cvr_contact_submitted", {
+      name: contact.name.trim(),
+      email: contact.email.trim(),
+      phone: contact.phone.trim() || undefined,
+      has_phone: contact.phone.trim().length > 0,
+    });
     onNext();
   }
 

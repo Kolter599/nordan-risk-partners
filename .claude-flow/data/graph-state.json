@@ -1,0 +1,1271 @@
+{
+  "version": 1,
+  "updatedAt": 1778919360126,
+  "nodeCount": 102,
+  "nodes": {
+    "mem-MEMORY-operating-system": {
+      "id": "mem-MEMORY-operating-system",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-MEMORY-active-projects": {
+      "id": "mem-MEMORY-active-projects",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-MEMORY-feedback": {
+      "id": "mem-MEMORY-feedback",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360109
+    },
+    "mem-MEMORY-key-facts": {
+      "id": "mem-MEMORY-key-facts",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-MEMORY-currentdate": {
+      "id": "mem-MEMORY-currentdate",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-clickup-operating-center----": {
+      "id": "mem-clickup-operating-center----",
+      "category": "clickup-operating-center",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-clickup-operating-center-clickup-ids": {
+      "id": "mem-clickup-operating-center-clickup-ids",
+      "category": "clickup-operating-center",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-clickup-operating-center-drive-folder-roots": {
+      "id": "mem-clickup-operating-center-drive-folder-roots",
+      "category": "clickup-operating-center",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-clickup-operating-center-naming-convention": {
+      "id": "mem-clickup-operating-center-naming-convention",
+      "category": "clickup-operating-center",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-clickup-operating-center-reminder-behavior--rules-summa": {
+      "id": "mem-clickup-operating-center-reminder-behavior--rules-summa",
+      "category": "clickup-operating-center",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-clickup-operating-center-folder-rename-log--2026-05-07-": {
+      "id": "mem-clickup-operating-center-folder-rename-log--2026-05-07-",
+      "category": "clickup-operating-center",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360094
+    },
+    "mem-del-dit-onske-ux-sitemap--implemented-routes-ma": {
+      "id": "mem-del-dit-onske-ux-sitemap--implemented-routes-ma",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-ux-core-flows": {
+      "id": "mem-del-dit-onske-ux-core-flows",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-ux-viral-loop": {
+      "id": "mem-del-dit-onske-ux-viral-loop",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-ux-key-ux-decisions": {
+      "id": "mem-del-dit-onske-ux-key-ux-decisions",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-ux-blog-strategy": {
+      "id": "mem-del-dit-onske-ux-blog-strategy",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-ux-phase-2--later-": {
+      "id": "mem-del-dit-onske-ux-phase-2--later-",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-ux-phase-3--later-": {
+      "id": "mem-del-dit-onske-ux-phase-3--later-",
+      "category": "del-dit-onske-ux",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360095
+    },
+    "mem-del-dit-onske-location": {
+      "id": "mem-del-dit-onske-location",
+      "category": "del-dit-onske",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-del-dit-onske-documentation-system": {
+      "id": "mem-del-dit-onske-documentation-system",
+      "category": "del-dit-onske",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-del-dit-onske-current-state--2026-03-07-": {
+      "id": "mem-del-dit-onske-current-state--2026-03-07-",
+      "category": "del-dit-onske",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-del-dit-onske-key-architecture-decisions": {
+      "id": "mem-del-dit-onske-key-architecture-decisions",
+      "category": "del-dit-onske",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-del-dit-onske-stack": {
+      "id": "mem-del-dit-onske-stack",
+      "category": "del-dit-onske",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-del-dit-onske-key-constraints": {
+      "id": "mem-del-dit-onske-key-constraints",
+      "category": "del-dit-onske",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic----": {
+      "id": "mem-epilogue-organic----",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-epilogue---organic-content-com": {
+      "id": "mem-epilogue-organic-epilogue---organic-content-com",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-five-pillars--confirmed-2026-0": {
+      "id": "mem-epilogue-organic-five-pillars--confirmed-2026-0",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-dual-track-compliance-pipeline": {
+      "id": "mem-epilogue-organic-dual-track-compliance-pipeline",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-weekly-rhythm": {
+      "id": "mem-epilogue-organic-weekly-rhythm",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-hard-rules": {
+      "id": "mem-epilogue-organic-hard-rules",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-scrape-sources--thomas-": {
+      "id": "mem-epilogue-organic-scrape-sources--thomas-",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-thomas-architecture--important": {
+      "id": "mem-epilogue-organic-thomas-architecture--important",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-rss-feeds--lift-into-news-sour": {
+      "id": "mem-epilogue-organic-rss-feeds--lift-into-news-sour",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-compliance-handoff---simplifie": {
+      "id": "mem-epilogue-organic-compliance-handoff---simplifie",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-epilogue-organic-open-tactical-decisions": {
+      "id": "mem-epilogue-organic-open-tactical-decisions",
+      "category": "epilogue-organic",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360096
+    },
+    "mem-feedback_ai_image_realism----": {
+      "id": "mem-feedback_ai_image_realism----",
+      "category": "feedback_ai_image_realism",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360097
+    },
+    "mem-feedback_simplicity_first----": {
+      "id": "mem-feedback_simplicity_first----",
+      "category": "feedback_simplicity_first",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360098
+    },
+    "mem-feedback_working_directory----": {
+      "id": "mem-feedback_working_directory----",
+      "category": "feedback_working_directory",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360098
+    },
+    "mem-holstrup-ts----": {
+      "id": "mem-holstrup-ts----",
+      "category": "holstrup-ts",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360099
+    },
+    "mem-ledig----": {
+      "id": "mem-ledig----",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-ledig-ledig---european-charter-marke": {
+      "id": "mem-ledig-ledig---european-charter-marke",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-ledig-critical-product-decisions": {
+      "id": "mem-ledig-critical-product-decisions",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-ledig-key-paths": {
+      "id": "mem-ledig-key-paths",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-ledig-env-vars-needed": {
+      "id": "mem-ledig-env-vars-needed",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-ledig-commands": {
+      "id": "mem-ledig-commands",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-ledig-strategic-positioning": {
+      "id": "mem-ledig-strategic-positioning",
+      "category": "ledig",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-profil-markiser----": {
+      "id": "mem-profil-markiser----",
+      "category": "profil-markiser",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360100
+    },
+    "mem-sebastian-personal-brand----": {
+      "id": "mem-sebastian-personal-brand----",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-sebastian-personal-brand-sebastian-kolter---personal-br": {
+      "id": "mem-sebastian-personal-brand-sebastian-kolter---personal-br",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-sebastian-personal-brand-honest-framing--use-these-exac": {
+      "id": "mem-sebastian-personal-brand-honest-framing--use-these-exac",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-sebastian-personal-brand-voice---locked": {
+      "id": "mem-sebastian-personal-brand-voice---locked",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-sebastian-personal-brand-things-to-never-say-in-his-voi": {
+      "id": "mem-sebastian-personal-brand-things-to-never-say-in-his-voi",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-sebastian-personal-brand-files-in---users-kolter-projec": {
+      "id": "mem-sebastian-personal-brand-files-in---users-kolter-projec",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-sebastian-personal-brand-how-to-behave": {
+      "id": "mem-sebastian-personal-brand-how-to-behave",
+      "category": "sebastian-personal-brand",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-MEMORY-user": {
+      "id": "mem-MEMORY-user",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360112
+    },
+    "mem-MEMORY-project": {
+      "id": "mem-MEMORY-project",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360112
+    },
+    "mem-MEMORY-reference": {
+      "id": "mem-MEMORY-reference",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360112
+    },
+    "mem-MEMORY-feedback--continued-": {
+      "id": "mem-MEMORY-feedback--continued-",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-MEMORY-project--continued-": {
+      "id": "mem-MEMORY-project--continued-",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-feedback_ai_philosophy----": {
+      "id": "mem-feedback_ai_philosophy----",
+      "category": "feedback_ai_philosophy",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360101
+    },
+    "mem-feedback_dont_overengineer_automation----": {
+      "id": "mem-feedback_dont_overengineer_automation----",
+      "category": "feedback_dont_overengineer_automation",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360102
+    },
+    "mem-feedback_dont_use_flyweel_for_profil----": {
+      "id": "mem-feedback_dont_use_flyweel_for_profil----",
+      "category": "feedback_dont_use_flyweel_for_profil",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-feedback_vercel_hobby_cron----": {
+      "id": "mem-feedback_vercel_hobby_cron----",
+      "category": "feedback_vercel_hobby_cron",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session----": {
+      "id": "mem-project_epilog_dashboard_next_session----",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-0--creative-library--": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-0--creative-library--",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-0b--true-multi-touch-": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-0b--true-multi-touch-",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-1--ad-copy-fields-on-": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-1--ad-copy-fields-on-",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-2--thomas---ai-cmo-ag": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-2--thomas---ai-cmo-ag",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-3--cross-platform-ad-": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-3--cross-platform-ad-",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-4--performance-dashbo": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-4--performance-dashbo",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-5--investors-page---m": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-5--investors-page---m",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dashboard_next_session-priority-6--additional-fixes": {
+      "id": "mem-project_epilog_dashboard_next_session-priority-6--additional-fixes",
+      "category": "project_epilog_dashboard_next_session",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360103
+    },
+    "mem-project_epilog_dataroom----": {
+      "id": "mem-project_epilog_dataroom----",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_dataroom-architecture-decision--2026-04": {
+      "id": "mem-project_epilog_dataroom-architecture-decision--2026-04",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_dataroom-access-tiers": {
+      "id": "mem-project_epilog_dataroom-access-tiers",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_dataroom-stakeholders-needing-access": {
+      "id": "mem-project_epilog_dataroom-stakeholders-needing-access",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_dataroom-key-features-built": {
+      "id": "mem-project_epilog_dataroom-key-features-built",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_dataroom-9-pre-seeded-folders": {
+      "id": "mem-project_epilog_dataroom-9-pre-seeded-folders",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_dataroom-migration-status": {
+      "id": "mem-project_epilog_dataroom-migration-status",
+      "category": "project_epilog_dataroom",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_invisu_reference----": {
+      "id": "mem-project_epilog_invisu_reference----",
+      "category": "project_epilog_invisu_reference",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_invisu_reference-reference--invisu-dashboard--r": {
+      "id": "mem-project_epilog_invisu_reference-reference--invisu-dashboard--r",
+      "category": "project_epilog_invisu_reference",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360104
+    },
+    "mem-project_epilog_session_handoff_apr13----": {
+      "id": "mem-project_epilog_session_handoff_apr13----",
+      "category": "project_epilog_session_handoff_apr13",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360105
+    },
+    "mem-project_epilog_session_handoff_apr13-session-handoff---epilog-dashb": {
+      "id": "mem-project_epilog_session_handoff_apr13-session-handoff---epilog-dashb",
+      "category": "project_epilog_session_handoff_apr13",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360105
+    },
+    "mem-project_epilog_ugc_blueprint----": {
+      "id": "mem-project_epilog_ugc_blueprint----",
+      "category": "project_epilog_ugc_blueprint",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360105
+    },
+    "mem-project_invisu_dashboard----": {
+      "id": "mem-project_invisu_dashboard----",
+      "category": "project_invisu_dashboard",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360105
+    },
+    "mem-project_invisu_revenue_baseline----": {
+      "id": "mem-project_invisu_revenue_baseline----",
+      "category": "project_invisu_revenue_baseline",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360106
+    },
+    "mem-project_maegleren_folder_system----": {
+      "id": "mem-project_maegleren_folder_system----",
+      "category": "project_maegleren_folder_system",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360106
+    },
+    "mem-project_profil_gads_conversion_cleanup----": {
+      "id": "mem-project_profil_gads_conversion_cleanup----",
+      "category": "project_profil_gads_conversion_cleanup",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360106
+    },
+    "mem-project_profil_markiser_data_access----": {
+      "id": "mem-project_profil_markiser_data_access----",
+      "category": "project_profil_markiser_data_access",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360107
+    },
+    "mem-project_workspace_cleanup----": {
+      "id": "mem-project_workspace_cleanup----",
+      "category": "project_workspace_cleanup",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360107
+    },
+    "mem-user_profile----": {
+      "id": "mem-user_profile----",
+      "category": "user_profile",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360111
+    },
+    "mem-user_workstyle----": {
+      "id": "mem-user_workstyle----",
+      "category": "user_workstyle",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360107
+    },
+    "mem-feedback_visual_direction----": {
+      "id": "mem-feedback_visual_direction----",
+      "category": "feedback_visual_direction",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360109
+    },
+    "mem-project_epilog_ads_engine----": {
+      "id": "mem-project_epilog_ads_engine----",
+      "category": "project_epilog_ads_engine",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360110
+    },
+    "mem-project_epilog_tm----": {
+      "id": "mem-project_epilog_tm----",
+      "category": "project_epilog_tm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360110
+    },
+    "mem-project_workspace_map----": {
+      "id": "mem-project_workspace_map----",
+      "category": "project_workspace_map",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360110
+    },
+    "mem-reference_mcp_image_gen----": {
+      "id": "mem-reference_mcp_image_gen----",
+      "category": "reference_mcp_image_gen",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360110
+    },
+    "mem-project_comparison_flow----": {
+      "id": "mem-project_comparison_flow----",
+      "category": "project_comparison_flow",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360112
+    },
+    "mem-project_comparison_model----": {
+      "id": "mem-project_comparison_model----",
+      "category": "project_comparison_model",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360112
+    },
+    "mem-reference_economic_setup----": {
+      "id": "mem-reference_economic_setup----",
+      "category": "reference_economic_setup",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360113
+    },
+    "mem-reference_economic_setup-e-conomic-connection-process--": {
+      "id": "mem-reference_economic_setup-e-conomic-connection-process--",
+      "category": "reference_economic_setup",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360113
+    },
+    "mem-user_mess_broker----": {
+      "id": "mem-user_mess_broker----",
+      "category": "user_mess_broker",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1778919360113
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-MEMORY-operating-system",
+      "targetId": "mem-MEMORY-active-projects",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-active-projects",
+      "targetId": "mem-MEMORY-feedback",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-feedback",
+      "targetId": "mem-MEMORY-key-facts",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-key-facts",
+      "targetId": "mem-MEMORY-currentdate",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-clickup-operating-center----",
+      "targetId": "mem-clickup-operating-center-clickup-ids",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-clickup-operating-center-clickup-ids",
+      "targetId": "mem-clickup-operating-center-drive-folder-roots",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-clickup-operating-center-drive-folder-roots",
+      "targetId": "mem-clickup-operating-center-naming-convention",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-clickup-operating-center-naming-convention",
+      "targetId": "mem-clickup-operating-center-reminder-behavior--rules-summa",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-clickup-operating-center-reminder-behavior--rules-summa",
+      "targetId": "mem-clickup-operating-center-folder-rename-log--2026-05-07-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-sitemap--implemented-routes-ma",
+      "targetId": "mem-del-dit-onske-ux-core-flows",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-core-flows",
+      "targetId": "mem-del-dit-onske-ux-viral-loop",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-viral-loop",
+      "targetId": "mem-del-dit-onske-ux-key-ux-decisions",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-key-ux-decisions",
+      "targetId": "mem-del-dit-onske-ux-blog-strategy",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-blog-strategy",
+      "targetId": "mem-del-dit-onske-ux-phase-2--later-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-phase-2--later-",
+      "targetId": "mem-del-dit-onske-ux-phase-3--later-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-location",
+      "targetId": "mem-del-dit-onske-documentation-system",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-documentation-system",
+      "targetId": "mem-del-dit-onske-current-state--2026-03-07-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-current-state--2026-03-07-",
+      "targetId": "mem-del-dit-onske-key-architecture-decisions",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-key-architecture-decisions",
+      "targetId": "mem-del-dit-onske-stack",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-stack",
+      "targetId": "mem-del-dit-onske-key-constraints",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic----",
+      "targetId": "mem-epilogue-organic-epilogue---organic-content-com",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-epilogue---organic-content-com",
+      "targetId": "mem-epilogue-organic-five-pillars--confirmed-2026-0",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-five-pillars--confirmed-2026-0",
+      "targetId": "mem-epilogue-organic-dual-track-compliance-pipeline",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-dual-track-compliance-pipeline",
+      "targetId": "mem-epilogue-organic-weekly-rhythm",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-weekly-rhythm",
+      "targetId": "mem-epilogue-organic-hard-rules",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-hard-rules",
+      "targetId": "mem-epilogue-organic-scrape-sources--thomas-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-scrape-sources--thomas-",
+      "targetId": "mem-epilogue-organic-thomas-architecture--important",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-thomas-architecture--important",
+      "targetId": "mem-epilogue-organic-rss-feeds--lift-into-news-sour",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-rss-feeds--lift-into-news-sour",
+      "targetId": "mem-epilogue-organic-compliance-handoff---simplifie",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-epilogue-organic-compliance-handoff---simplifie",
+      "targetId": "mem-epilogue-organic-open-tactical-decisions",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-ledig----",
+      "targetId": "mem-ledig-ledig---european-charter-marke",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-ledig-ledig---european-charter-marke",
+      "targetId": "mem-ledig-critical-product-decisions",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-ledig-critical-product-decisions",
+      "targetId": "mem-ledig-key-paths",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-ledig-key-paths",
+      "targetId": "mem-ledig-env-vars-needed",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-ledig-env-vars-needed",
+      "targetId": "mem-ledig-commands",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-ledig-commands",
+      "targetId": "mem-ledig-strategic-positioning",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand----",
+      "targetId": "mem-sebastian-personal-brand-sebastian-kolter---personal-br",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand-sebastian-kolter---personal-br",
+      "targetId": "mem-sebastian-personal-brand-honest-framing--use-these-exac",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand-honest-framing--use-these-exac",
+      "targetId": "mem-sebastian-personal-brand-voice---locked",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand-voice---locked",
+      "targetId": "mem-sebastian-personal-brand-things-to-never-say-in-his-voi",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand-things-to-never-say-in-his-voi",
+      "targetId": "mem-sebastian-personal-brand-files-in---users-kolter-projec",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand-files-in---users-kolter-projec",
+      "targetId": "mem-sebastian-personal-brand-how-to-behave",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-user",
+      "targetId": "mem-MEMORY-feedback",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-feedback",
+      "targetId": "mem-MEMORY-project",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-project",
+      "targetId": "mem-MEMORY-reference",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-reference",
+      "targetId": "mem-MEMORY-feedback--continued-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-feedback--continued-",
+      "targetId": "mem-MEMORY-project--continued-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session----",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-0--creative-library--",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-0--creative-library--",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-0b--true-multi-touch-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-0b--true-multi-touch-",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-1--ad-copy-fields-on-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-1--ad-copy-fields-on-",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-2--thomas---ai-cmo-ag",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-2--thomas---ai-cmo-ag",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-3--cross-platform-ad-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-3--cross-platform-ad-",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-4--performance-dashbo",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-4--performance-dashbo",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-5--investors-page---m",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dashboard_next_session-priority-5--investors-page---m",
+      "targetId": "mem-project_epilog_dashboard_next_session-priority-6--additional-fixes",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom----",
+      "targetId": "mem-project_epilog_dataroom-architecture-decision--2026-04",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom-architecture-decision--2026-04",
+      "targetId": "mem-project_epilog_dataroom-access-tiers",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom-access-tiers",
+      "targetId": "mem-project_epilog_dataroom-stakeholders-needing-access",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom-stakeholders-needing-access",
+      "targetId": "mem-project_epilog_dataroom-key-features-built",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom-key-features-built",
+      "targetId": "mem-project_epilog_dataroom-9-pre-seeded-folders",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom-9-pre-seeded-folders",
+      "targetId": "mem-project_epilog_dataroom-migration-status",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_invisu_reference----",
+      "targetId": "mem-project_epilog_invisu_reference-reference--invisu-dashboard--r",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_epilog_session_handoff_apr13----",
+      "targetId": "mem-project_epilog_session_handoff_apr13-session-handoff---epilog-dashb",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-user",
+      "targetId": "mem-MEMORY-project",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-project",
+      "targetId": "mem-MEMORY-feedback",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-feedback",
+      "targetId": "mem-MEMORY-reference",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-project",
+      "targetId": "mem-MEMORY-user",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-user",
+      "targetId": "mem-MEMORY-reference",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-reference_economic_setup----",
+      "targetId": "mem-reference_economic_setup-e-conomic-connection-process--",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-del-dit-onske-ux-sitemap--implemented-routes-ma",
+      "targetId": "mem-del-dit-onske-ux-core-flows",
+      "type": "similar",
+      "weight": 0.3440366972477064
+    },
+    {
+      "sourceId": "mem-del-dit-onske-current-state--2026-03-07-",
+      "targetId": "mem-del-dit-onske-key-architecture-decisions",
+      "type": "similar",
+      "weight": 0.3016949152542373
+    },
+    {
+      "sourceId": "mem-sebastian-personal-brand-honest-framing--use-these-exac",
+      "targetId": "mem-sebastian-personal-brand-things-to-never-say-in-his-voi",
+      "type": "similar",
+      "weight": 0.37668161434977576
+    },
+    {
+      "sourceId": "mem-project_epilog_dataroom----",
+      "targetId": "mem-project_epilog_dataroom-architecture-decision--2026-04",
+      "type": "similar",
+      "weight": 0.30158730158730157
+    },
+    {
+      "sourceId": "mem-user_profile----",
+      "targetId": "mem-user_profile----",
+      "type": "similar",
+      "weight": 0.4698275862068966
+    }
+  ],
+  "pageRanks": {
+    "mem-MEMORY-operating-system": 0.0039004575589546894,
+    "mem-MEMORY-active-projects": 0.007215898895878223,
+    "mem-MEMORY-feedback": 0.014773145914125907,
+    "mem-MEMORY-key-facts": 0.008086266331048307,
+    "mem-MEMORY-currentdate": 0.010773920613775703,
+    "mem-clickup-operating-center----": 0.0039004575589546894,
+    "mem-clickup-operating-center-clickup-ids": 0.007215898895878223,
+    "mem-clickup-operating-center-drive-folder-roots": 0.010034076489543887,
+    "mem-clickup-operating-center-naming-convention": 0.012429579993234022,
+    "mem-clickup-operating-center-reminder-behavior--rules-summa": 0.014465810598597926,
+    "mem-clickup-operating-center-folder-rename-log--2026-05-07-": 0.01619665967877519,
+    "mem-del-dit-onske-ux-sitemap--implemented-routes-ma": 0.0039004575589546894,
+    "mem-del-dit-onske-ux-core-flows": 0.007215898895878223,
+    "mem-del-dit-onske-ux-viral-loop": 0.010034076489543887,
+    "mem-del-dit-onske-ux-key-ux-decisions": 0.012429579993234022,
+    "mem-del-dit-onske-ux-blog-strategy": 0.014465810598597926,
+    "mem-del-dit-onske-ux-phase-2--later-": 0.01619665967877519,
+    "mem-del-dit-onske-ux-phase-3--later-": 0.017667934777703675,
+    "mem-del-dit-onske-location": 0.0039004575589546894,
+    "mem-del-dit-onske-documentation-system": 0.007215898895878223,
+    "mem-del-dit-onske-current-state--2026-03-07-": 0.010034076489543887,
+    "mem-del-dit-onske-key-architecture-decisions": 0.012429579993234022,
+    "mem-del-dit-onske-stack": 0.014465810598597926,
+    "mem-del-dit-onske-key-constraints": 0.01619665967877519,
+    "mem-epilogue-organic----": 0.0039004575589546894,
+    "mem-epilogue-organic-epilogue---organic-content-com": 0.007215898895878223,
+    "mem-epilogue-organic-five-pillars--confirmed-2026-0": 0.010034076489543887,
+    "mem-epilogue-organic-dual-track-compliance-pipeline": 0.012429579993234022,
+    "mem-epilogue-organic-weekly-rhythm": 0.014465810598597926,
+    "mem-epilogue-organic-hard-rules": 0.01619665967877519,
+    "mem-epilogue-organic-scrape-sources--thomas-": 0.017667934777703675,
+    "mem-epilogue-organic-thomas-architecture--important": 0.018918571755336157,
+    "mem-epilogue-organic-rss-feeds--lift-into-news-sour": 0.01998166661732147,
+    "mem-epilogue-organic-compliance-handoff---simplifie": 0.020885347922839876,
+    "mem-epilogue-organic-open-tactical-decisions": 0.021653531236713482,
+    "mem-feedback_ai_image_realism----": 0.0039004575589546894,
+    "mem-feedback_simplicity_first----": 0.0039004575589546894,
+    "mem-feedback_working_directory----": 0.0039004575589546894,
+    "mem-holstrup-ts----": 0.0039004575589546894,
+    "mem-ledig----": 0.0039004575589546894,
+    "mem-ledig-ledig---european-charter-marke": 0.007215898895878223,
+    "mem-ledig-critical-product-decisions": 0.010034076489543887,
+    "mem-ledig-key-paths": 0.012429579993234022,
+    "mem-ledig-env-vars-needed": 0.014465810598597926,
+    "mem-ledig-commands": 0.01619665967877519,
+    "mem-ledig-strategic-positioning": 0.017667934777703675,
+    "mem-profil-markiser----": 0.0039004575589546894,
+    "mem-sebastian-personal-brand----": 0.0039004575589546894,
+    "mem-sebastian-personal-brand-sebastian-kolter---personal-br": 0.007215898895878223,
+    "mem-sebastian-personal-brand-honest-framing--use-these-exac": 0.010034076489543887,
+    "mem-sebastian-personal-brand-voice---locked": 0.008165018776094357,
+    "mem-sebastian-personal-brand-things-to-never-say-in-his-voi": 0.015105415964377741,
+    "mem-sebastian-personal-brand-files-in---users-kolter-projec": 0.01674032393551939,
+    "mem-sebastian-personal-brand-how-to-behave": 0.018130048980084502,
+    "mem-MEMORY-user": 0.0067320702730686265,
+    "mem-MEMORY-project": 0.00999372304151639,
+    "mem-MEMORY-reference": 0.012825335755630326,
+    "mem-MEMORY-feedback--continued-": 0.014802224495777219,
+    "mem-MEMORY-project--continued-": 0.01648263294821711,
+    "mem-feedback_ai_philosophy----": 0.0039004575589546894,
+    "mem-feedback_dont_overengineer_automation----": 0.0039004575589546894,
+    "mem-feedback_dont_use_flyweel_for_profil----": 0.0039004575589546894,
+    "mem-feedback_vercel_hobby_cron----": 0.0039004575589546894,
+    "mem-project_epilog_dashboard_next_session----": 0.0039004575589546894,
+    "mem-project_epilog_dashboard_next_session-priority-0--creative-library--": 0.007215898895878223,
+    "mem-project_epilog_dashboard_next_session-priority-0b--true-multi-touch-": 0.010034076489543887,
+    "mem-project_epilog_dashboard_next_session-priority-1--ad-copy-fields-on-": 0.012429579993234022,
+    "mem-project_epilog_dashboard_next_session-priority-2--thomas---ai-cmo-ag": 0.014465810598597926,
+    "mem-project_epilog_dashboard_next_session-priority-3--cross-platform-ad-": 0.01619665967877519,
+    "mem-project_epilog_dashboard_next_session-priority-4--performance-dashbo": 0.017667934777703675,
+    "mem-project_epilog_dashboard_next_session-priority-5--investors-page---m": 0.018918571755336157,
+    "mem-project_epilog_dashboard_next_session-priority-6--additional-fixes": 0.01998166661732147,
+    "mem-project_epilog_dataroom----": 0.0039004575589546894,
+    "mem-project_epilog_dataroom-architecture-decision--2026-04": 0.007215898895878223,
+    "mem-project_epilog_dataroom-access-tiers": 0.010034076489543887,
+    "mem-project_epilog_dataroom-stakeholders-needing-access": 0.012429579993234022,
+    "mem-project_epilog_dataroom-key-features-built": 0.014465810598597926,
+    "mem-project_epilog_dataroom-9-pre-seeded-folders": 0.01619665967877519,
+    "mem-project_epilog_dataroom-migration-status": 0.017667934777703675,
+    "mem-project_epilog_invisu_reference----": 0.0039004575589546894,
+    "mem-project_epilog_invisu_reference-reference--invisu-dashboard--r": 0.007215898895878223,
+    "mem-project_epilog_session_handoff_apr13----": 0.0039004575589546894,
+    "mem-project_epilog_session_handoff_apr13-session-handoff---epilog-dashb": 0.007215898895878223,
+    "mem-project_epilog_ugc_blueprint----": 0.0039004575589546894,
+    "mem-project_invisu_dashboard----": 0.0039004575589546894,
+    "mem-project_invisu_revenue_baseline----": 0.0039004575589546894,
+    "mem-project_maegleren_folder_system----": 0.0039004575589546894,
+    "mem-project_profil_gads_conversion_cleanup----": 0.0039004575589546894,
+    "mem-project_profil_markiser_data_access----": 0.0039004575589546894,
+    "mem-project_workspace_cleanup----": 0.0039004575589546894,
+    "mem-user_profile----": 0.025886162934914192,
+    "mem-user_workstyle----": 0.0039004575589546894,
+    "mem-feedback_visual_direction----": 0.0039004575589546894,
+    "mem-project_epilog_ads_engine----": 0.0039004575589546894,
+    "mem-project_epilog_tm----": 0.0039004575589546894,
+    "mem-project_workspace_map----": 0.0039004575589546894,
+    "mem-reference_mcp_image_gen----": 0.0039004575589546894,
+    "mem-project_comparison_flow----": 0.0039004575589546894,
+    "mem-project_comparison_model----": 0.0039004575589546894,
+    "mem-reference_economic_setup----": 0.0039004575589546894,
+    "mem-reference_economic_setup-e-conomic-connection-process--": 0.007215898895878223,
+    "mem-user_mess_broker----": 0.0039004575589546894
+  }
+}
