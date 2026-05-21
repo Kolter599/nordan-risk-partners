@@ -80,7 +80,7 @@ const SESSION_KEY = "nrp.track.session";
  * page loads. Falls back to in-memory if storage isn't available.
  */
 let memoryClientId: string | null = null;
-function getClientId(): string {
+export function getClientId(): string {
   if (memoryClientId) return memoryClientId;
   try {
     const existing = localStorage.getItem(SESSION_KEY);

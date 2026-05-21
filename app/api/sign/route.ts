@@ -17,6 +17,17 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? "info@ndrp.dk";
 
+type AttributionTouch = {
+  source?: string | null;
+  medium?: string | null;
+  campaign?: string | null;
+  content?: string | null;
+  term?: string | null;
+  referrer?: string | null;
+  landingPath?: string | null;
+  capturedAt?: string | null;
+};
+
 type SignRequest = {
   name?: string;
   title?: string;
@@ -30,6 +41,11 @@ type SignRequest = {
     read?: boolean;
     authorized?: boolean;
     eidas?: boolean;
+  };
+  clientId?: string;
+  attribution?: {
+    first?: AttributionTouch | null;
+    last?: AttributionTouch | null;
   };
 };
 
@@ -95,6 +111,13 @@ export async function POST(req: Request) {
 
   const { pdfBytes, finalHash } = await buildSignedFuldmagtPdf(signer, audit);
 
+  const serverContext = {
+    userAgent: audit.userAgent,
+    referer: req.headers.get("referer"),
+    ip: audit.ip,
+    capturedAt: audit.signedAt,
+  };
+
   // Track lead — graceful no-op if Supabase isn't configured.
   const leadId = await upsertLead({
     source: "sign",
@@ -109,6 +132,9 @@ export async function POST(req: Request) {
       title: signer.title,
       insurers,
       finalHash,
+      clientId: body.clientId ?? null,
+      attribution: body.attribution ?? null,
+      serverContext,
     },
   });
   await recordEvent(leadId, "sign_completed", {

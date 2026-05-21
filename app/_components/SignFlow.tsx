@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { track } from "./GoogleAnalytics";
+import { getClientId, track } from "./GoogleAnalytics";
+import { getAttribution } from "@/lib/attribution";
 
 export type SignResult = {
   auditId: string;
@@ -250,6 +251,8 @@ export function SignFlow({ onSigned, defaults }: Props) {
           cvr: defaults.cvr,
           insurers: allInsurers,
           consent: { read: combinedConsent, authorized: combinedConsent, eidas: combinedConsent },
+          clientId: getClientId(),
+          attribution: getAttribution(),
         }),
       });
       const data = await res.json();

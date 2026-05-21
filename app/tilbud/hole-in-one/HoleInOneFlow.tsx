@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { track } from "../../_components/GoogleAnalytics";
+import { getClientId, track } from "../../_components/GoogleAnalytics";
 import { setRecentSigned } from "@/lib/recent-signed";
+import { getAttribution } from "@/lib/attribution";
 
 type Company = {
   name: string;
@@ -236,6 +237,8 @@ export function HoleInOneFlow({ initialCvr }: { initialCvr: string }) {
           topic: "Hole-in-one forsikring · tilbudsanmodning",
           message,
           customerMessage,
+          clientId: getClientId(),
+          attribution: getAttribution(),
         }),
       });
       const data = await res.json();

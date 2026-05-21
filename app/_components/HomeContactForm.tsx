@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { track } from "./GoogleAnalytics";
+import { getClientId, track } from "./GoogleAnalytics";
+import { getAttribution } from "@/lib/attribution";
 
 type State = "idle" | "submitting" | "success" | "error";
 
@@ -30,6 +31,8 @@ export function HomeContactForm() {
       topic: cvr ? `CVR: ${cvr}` : undefined,
       message: userMessage,
       customerMessage: userMessage,
+      clientId: getClientId(),
+      attribution: getAttribution(),
     };
     setState("submitting");
     setError(null);

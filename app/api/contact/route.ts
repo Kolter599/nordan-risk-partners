@@ -31,6 +31,17 @@ type SignedFuldmagt = {
   insurers?: string[];
 };
 
+type AttributionTouch = {
+  source?: string | null;
+  medium?: string | null;
+  campaign?: string | null;
+  content?: string | null;
+  term?: string | null;
+  referrer?: string | null;
+  landingPath?: string | null;
+  capturedAt?: string | null;
+};
+
 type Body = {
   name: string;
   email: string;
@@ -49,6 +60,11 @@ type Body = {
   /** When set, the follow-up mails are sent as replies to the sign mails
    *  (via In-Reply-To/References headers) so they thread in Outlook/Gmail. */
   signedFuldmagt?: SignedFuldmagt;
+  clientId?: string;
+  attribution?: {
+    first?: AttributionTouch | null;
+    last?: AttributionTouch | null;
+  };
 };
 
 type Attachment = {
@@ -99,6 +115,7 @@ export async function POST(req: Request) {
         }
       }
       const signedRaw = String(form.get("signedFuldmagt") ?? "");
+      const attributionRaw = String(form.get("attribution") ?? "");
       body = {
         name: String(form.get("name") ?? ""),
         email: String(form.get("email") ?? ""),
@@ -109,6 +126,8 @@ export async function POST(req: Request) {
         customerMessage: String(form.get("customerMessage") ?? "") || undefined,
         sendCustomerConfirmation: form.get("sendCustomerConfirmation") !== "false",
         signedFuldmagt: signedRaw ? safeJsonParse<SignedFuldmagt>(signedRaw) : undefined,
+        clientId: String(form.get("clientId") ?? "") || undefined,
+        attribution: attributionRaw ? safeJsonParse<Body["attribution"]>(attributionRaw) : undefined,
       };
     } catch {
       return NextResponse.json({ error: "Ugyldig anmodning." }, { status: 400 });
@@ -155,6 +174,15 @@ export async function POST(req: Request) {
     : topicLower.includes("cvr:")
     ? "hero"
     : "kontakt";
+  const serverContext = {
+    userAgent: req.headers.get("user-agent"),
+    referer: req.headers.get("referer"),
+    ip:
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      req.headers.get("x-real-ip") ||
+      null,
+    capturedAt: new Date().toISOString(),
+  };
   const leadId = await upsertLead({
     source,
     status: signedFuldmagt ? "completed" : "new",
@@ -168,6 +196,9 @@ export async function POST(req: Request) {
       customerMessage,
       filesCount: totalFileCount,
       hasSignedFuldmagt: !!signedFuldmagt,
+      clientId: (body as Body).clientId ?? null,
+      attribution: (body as Body).attribution ?? null,
+      serverContext,
     },
   });
   await recordEvent(

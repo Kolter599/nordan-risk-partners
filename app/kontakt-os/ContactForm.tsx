@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { track } from "../_components/GoogleAnalytics";
+import { getClientId, track } from "../_components/GoogleAnalytics";
+import { getAttribution } from "@/lib/attribution";
 
 type State = "idle" | "submitting" | "success" | "error";
 
@@ -27,6 +28,8 @@ export function ContactForm() {
       topic: String(data.get("topic") ?? "").trim() || undefined,
       message: userMessage,
       customerMessage: userMessage,
+      clientId: getClientId(),
+      attribution: getAttribution(),
     };
 
     setState("submitting");

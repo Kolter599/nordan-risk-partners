@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
   listLeads,
+  attachAttributionToLeads,
   getStatsBetween,
   getFunnelStats,
   listSessionsByCvr,
@@ -10,6 +11,7 @@ import {
   isDbConfigured,
   FUNNEL_STEPS,
   type Lead,
+  type LeadAttribution,
   type FunnelStep,
   type AttributionRow,
 } from "@/lib/db";
@@ -77,7 +79,7 @@ export default async function AdminDashboard() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const [leads, monthStats, allTimeStats, funnel, sessionsByCvr, attribution] =
+  const [rawLeads, monthStats, allTimeStats, funnel, sessionsByCvr, attribution] =
     await Promise.all([
       listLeads({ limit: 100 }),
       getStatsBetween(monthStart, now),
@@ -86,6 +88,7 @@ export default async function AdminDashboard() {
       listSessionsByCvr(last30, 80),
       getAttributionStats(last30),
     ]);
+  const leads = await attachAttributionToLeads(rawLeads);
 
   return (
     <main className="min-h-screen bg-[color:var(--color-nordan-soft)] py-10 px-5">
@@ -275,6 +278,7 @@ export default async function AdminDashboard() {
                     <th className="text-left px-4 py-3">Tidspunkt</th>
                     <th className="text-left px-4 py-3">Navn</th>
                     <th className="text-left px-4 py-3">Firma</th>
+                    <th className="text-left px-4 py-3">Indkommet via</th>
                     <th className="text-left px-4 py-3">Kilde</th>
                     <th className="text-left px-4 py-3">Status</th>
                     <th className="text-left px-4 py-3">Kontakt</th>
@@ -475,7 +479,7 @@ function Stat({
   );
 }
 
-function LeadRow({ lead }: { lead: Lead }) {
+function LeadRow({ lead }: { lead: Lead & { attribution: LeadAttribution } }) {
   const status = STATUS_LABELS[lead.status] ?? { label: lead.status, color: "#0a0a0a" };
   const formatted = new Date(lead.created_at).toLocaleString("da-DK", {
     dateStyle: "short",
@@ -483,7 +487,7 @@ function LeadRow({ lead }: { lead: Lead }) {
     timeZone: "Europe/Copenhagen",
   });
   return (
-    <tr className="hover:bg-[color:var(--color-nordan-soft)]/30">
+    <tr className="hover:bg-[color:var(--color-nordan-soft)]/30 align-top">
       <td className="px-4 py-3 text-[color:var(--color-nordan-muted)] whitespace-nowrap font-mono text-[0.78rem]">
         {formatted}
       </td>
@@ -497,6 +501,9 @@ function LeadRow({ lead }: { lead: Lead }) {
         {lead.cvr ? (
           <span className="text-[0.72rem] text-[color:var(--color-nordan-muted)] ml-1.5">CVR {lead.cvr}</span>
         ) : null}
+      </td>
+      <td className="px-4 py-3">
+        <AttributionBadge attribution={lead.attribution} />
       </td>
       <td className="px-4 py-3 text-[color:var(--color-nordan-ink-soft)]">
         {SOURCE_LABELS[lead.source] ?? lead.source}
@@ -522,5 +529,45 @@ function LeadRow({ lead }: { lead: Lead }) {
         ) : null}
       </td>
     </tr>
+  );
+}
+
+function AttributionBadge({ attribution }: { attribution: LeadAttribution }) {
+  const hasSignal =
+    attribution.firstTouch?.source ||
+    attribution.firstTouch?.referrer ||
+    attribution.firstTouch?.campaign ||
+    attribution.firstTouch?.landingPath;
+  if (!hasSignal) {
+    return <span className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">Direct / ingen signal</span>;
+  }
+  return (
+    <div className="flex flex-col gap-0.5 text-[0.8rem] leading-tight">
+      <div className="flex items-center gap-1.5">
+        <span
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.7rem] font-semibold"
+          style={{ background: "#a5887815", color: "#a58878" }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#a58878]" />
+          {attribution.channel}
+        </span>
+        <span className="text-[0.7rem] text-[color:var(--color-nordan-muted)]">
+          {attribution.channelMedium}
+        </span>
+      </div>
+      {attribution.firstTouch?.campaign ? (
+        <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] font-mono truncate max-w-[200px]">
+          {attribution.firstTouch.campaign}
+        </div>
+      ) : null}
+      {attribution.firstTouch?.landingPath || attribution.funnelStartPath ? (
+        <div
+          className="text-[0.72rem] text-[color:var(--color-nordan-muted)] truncate max-w-[220px]"
+          title={attribution.firstTouch?.landingPath ?? attribution.funnelStartPath ?? ""}
+        >
+          ↳ {attribution.firstTouch?.landingPath ?? attribution.funnelStartPath}
+        </div>
+      ) : null}
+    </div>
   );
 }

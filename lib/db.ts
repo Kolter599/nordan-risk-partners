@@ -621,6 +621,359 @@ export async function getAttributionStats(since: Date): Promise<AttributionStats
   }
 }
 
+/* -------------------- Per-lead attribution (join leads → sessions) -------------------- */
+
+export type LeadAttribution = {
+  firstTouch: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    referrer: string | null;
+    landingPath: string | null;
+    at: string | null;
+  } | null;
+  lastTouch: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    content: string | null;
+    term: string | null;
+  } | null;
+  sourcePath: string | null;
+  userAgent: string | null;
+  serverReferer: string | null;
+  clientIp: string | null;
+  /** Where on this site they first interacted — typically the page that
+   *  triggered the flow (e.g. "/erhvervsforsikringer/fredede-ejendomme"). */
+  funnelStartPath: string | null;
+  matchedSessionId: string | null;
+  matchedBy: "audit" | "cvr_email" | "cvr" | "email" | "payload" | null;
+  /** Friendly channel label derived from source + referrer. */
+  channel: string;
+  channelMedium: string;
+};
+
+const EMPTY_ATTRIBUTION: LeadAttribution = {
+  firstTouch: null,
+  lastTouch: null,
+  sourcePath: null,
+  userAgent: null,
+  serverReferer: null,
+  clientIp: null,
+  funnelStartPath: null,
+  matchedSessionId: null,
+  matchedBy: null,
+  channel: "direct",
+  channelMedium: "direct",
+};
+
+function deriveChannel(
+  firstSource: string | null,
+  firstMedium: string | null,
+  firstReferrer: string | null
+): { channel: string; channelMedium: string } {
+  if (firstSource) {
+    return { channel: firstSource, channelMedium: firstMedium ?? "referral" };
+  }
+  const d = deriveFromReferrer(firstReferrer);
+  return { channel: d.source, channelMedium: d.medium };
+}
+
+type LeadAttributionRow = {
+  id: string;
+  client_id: string;
+  source_path: string | null;
+  user_agent: string | null;
+  referrer: string | null;
+  landing_path: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_content: string | null;
+  utm_term: string | null;
+  first_touch_source: string | null;
+  first_touch_medium: string | null;
+  first_touch_campaign: string | null;
+  first_touch_referrer: string | null;
+  first_touch_path: string | null;
+  first_touch_at: string | null;
+  last_seen_at: string;
+};
+
+function rowToAttribution(
+  row: LeadAttributionRow,
+  matchedBy: LeadAttribution["matchedBy"],
+  payloadContext?: PayloadServerContext | null
+): LeadAttribution {
+  const channel = deriveChannel(row.first_touch_source, row.first_touch_medium, row.first_touch_referrer);
+  return {
+    firstTouch: {
+      source: row.first_touch_source,
+      medium: row.first_touch_medium,
+      campaign: row.first_touch_campaign,
+      referrer: row.first_touch_referrer,
+      landingPath: row.first_touch_path,
+      at: row.first_touch_at,
+    },
+    lastTouch: {
+      source: row.utm_source,
+      medium: row.utm_medium,
+      campaign: row.utm_campaign,
+      content: row.utm_content,
+      term: row.utm_term,
+    },
+    sourcePath: row.source_path,
+    userAgent: row.user_agent ?? payloadContext?.userAgent ?? null,
+    serverReferer: payloadContext?.referer ?? row.referrer,
+    clientIp: payloadContext?.ip ?? null,
+    funnelStartPath: row.landing_path ?? row.first_touch_path,
+    matchedSessionId: row.id,
+    matchedBy,
+    channel: channel.channel,
+    channelMedium: channel.channelMedium,
+  };
+}
+
+type PayloadServerContext = {
+  userAgent?: string | null;
+  referer?: string | null;
+  ip?: string | null;
+};
+
+type PayloadAttribution = {
+  first?: { source?: string | null; medium?: string | null; campaign?: string | null; content?: string | null; term?: string | null; referrer?: string | null; landingPath?: string | null; capturedAt?: string | null } | null;
+  last?: { source?: string | null; medium?: string | null; campaign?: string | null; content?: string | null; term?: string | null; referrer?: string | null; landingPath?: string | null; capturedAt?: string | null } | null;
+  clientId?: string | null;
+};
+
+function payloadFallback(
+  payload: Record<string, unknown>
+): LeadAttribution | null {
+  const serverContext = (payload?.serverContext as PayloadServerContext | undefined) ?? null;
+  const attribution = (payload?.attribution as PayloadAttribution | undefined) ?? null;
+  if (!serverContext && !attribution) return null;
+  const first = attribution?.first ?? null;
+  const last = attribution?.last ?? null;
+  const channel = deriveChannel(first?.source ?? null, first?.medium ?? null, first?.referrer ?? null);
+  return {
+    firstTouch: first
+      ? {
+          source: first.source ?? null,
+          medium: first.medium ?? null,
+          campaign: first.campaign ?? null,
+          referrer: first.referrer ?? null,
+          landingPath: first.landingPath ?? null,
+          at: first.capturedAt ?? null,
+        }
+      : null,
+    lastTouch: last
+      ? {
+          source: last.source ?? null,
+          medium: last.medium ?? null,
+          campaign: last.campaign ?? null,
+          content: last.content ?? null,
+          term: last.term ?? null,
+        }
+      : null,
+    sourcePath: null,
+    userAgent: serverContext?.userAgent ?? null,
+    serverReferer: serverContext?.referer ?? null,
+    clientIp: serverContext?.ip ?? null,
+    funnelStartPath: first?.landingPath ?? null,
+    matchedSessionId: null,
+    matchedBy: "payload",
+    channel: channel.channel,
+    channelMedium: channel.channelMedium,
+  };
+}
+
+/**
+ * Find the best-matching session for a lead and build a full attribution
+ * snapshot. Match order:
+ *   1. payload.clientId — strongest, written when the lead row is created
+ *   2. cvr + email (lower-cased)  — same person, same company
+ *   3. cvr alone — same company, possibly different signer
+ *   4. email alone — same person across companies
+ *   5. payload-only fallback (no matching session row)
+ */
+export async function getLeadAttribution(lead: Lead): Promise<LeadAttribution> {
+  const sql = getDb();
+  if (!sql) return EMPTY_ATTRIBUTION;
+  const payload = lead.payload ?? {};
+  const fallback = payloadFallback(payload) ?? EMPTY_ATTRIBUTION;
+  try {
+    const clientId = (payload as { clientId?: unknown })?.clientId;
+    const emailLower = lead.email.toLowerCase();
+    const cvr = lead.cvr;
+
+    if (typeof clientId === "string" && clientId.length > 0) {
+      const rows = (await sql`
+        SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+               first_touch_source, first_touch_medium, first_touch_campaign,
+               first_touch_referrer, first_touch_path, first_touch_at, last_seen_at
+        FROM sessions WHERE client_id = ${clientId} LIMIT 1
+      `) as LeadAttributionRow[];
+      if (rows[0]) return rowToAttribution(rows[0], "audit", payloadFallback(payload));
+    }
+
+    if (cvr) {
+      const rows = (await sql`
+        SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+               first_touch_source, first_touch_medium, first_touch_campaign,
+               first_touch_referrer, first_touch_path, first_touch_at, last_seen_at
+        FROM sessions
+        WHERE cvr = ${cvr} AND LOWER(contact_email) = ${emailLower}
+        ORDER BY last_seen_at DESC
+        LIMIT 1
+      `) as LeadAttributionRow[];
+      if (rows[0]) return rowToAttribution(rows[0], "cvr_email", payloadFallback(payload));
+    }
+
+    if (cvr) {
+      const rows = (await sql`
+        SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+               first_touch_source, first_touch_medium, first_touch_campaign,
+               first_touch_referrer, first_touch_path, first_touch_at, last_seen_at
+        FROM sessions WHERE cvr = ${cvr}
+        ORDER BY last_seen_at DESC LIMIT 1
+      `) as LeadAttributionRow[];
+      if (rows[0]) return rowToAttribution(rows[0], "cvr", payloadFallback(payload));
+    }
+
+    const rows = (await sql`
+      SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+             utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+             first_touch_source, first_touch_medium, first_touch_campaign,
+             first_touch_referrer, first_touch_path, first_touch_at, last_seen_at
+      FROM sessions WHERE LOWER(contact_email) = ${emailLower}
+      ORDER BY last_seen_at DESC LIMIT 1
+    `) as LeadAttributionRow[];
+    if (rows[0]) return rowToAttribution(rows[0], "email", payloadFallback(payload));
+
+    return fallback;
+  } catch (err) {
+    console.error("[db] getLeadAttribution failed:", err);
+    return fallback;
+  }
+}
+
+/**
+ * Batch version — used by the admin list. One DB round trip per match
+ * strategy, then in-memory join. Falls back to payload-only attribution
+ * for leads without a matching session.
+ */
+export async function attachAttributionToLeads(
+  leads: Lead[]
+): Promise<Array<Lead & { attribution: LeadAttribution }>> {
+  if (leads.length === 0) return [];
+  const sql = getDb();
+  if (!sql) {
+    return leads.map((l) => ({
+      ...l,
+      attribution: payloadFallback(l.payload) ?? EMPTY_ATTRIBUTION,
+    }));
+  }
+  try {
+    const clientIds = Array.from(
+      new Set(
+        leads
+          .map((l) => (l.payload as { clientId?: unknown })?.clientId)
+          .filter((v): v is string => typeof v === "string" && v.length > 0)
+      )
+    );
+    const cvrs = Array.from(new Set(leads.map((l) => l.cvr).filter((c): c is string => !!c)));
+    const emails = Array.from(new Set(leads.map((l) => l.email.toLowerCase())));
+
+    type SessionMatchRow = LeadAttributionRow & {
+      cvr: string | null;
+      contact_email: string | null;
+    };
+
+    const byClientId = new Map<string, SessionMatchRow>();
+    if (clientIds.length > 0) {
+      const rows = (await sql`
+        SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+               first_touch_source, first_touch_medium, first_touch_campaign,
+               first_touch_referrer, first_touch_path, first_touch_at, last_seen_at,
+               cvr, contact_email
+        FROM sessions WHERE client_id = ANY(${clientIds})
+      `) as SessionMatchRow[];
+      for (const r of rows) byClientId.set(r.client_id, r);
+    }
+
+    const byCvrEmail = new Map<string, SessionMatchRow>();
+    const byCvr = new Map<string, SessionMatchRow>();
+    if (cvrs.length > 0) {
+      const rows = (await sql`
+        SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+               first_touch_source, first_touch_medium, first_touch_campaign,
+               first_touch_referrer, first_touch_path, first_touch_at, last_seen_at,
+               cvr, contact_email
+        FROM sessions WHERE cvr = ANY(${cvrs})
+        ORDER BY last_seen_at DESC
+      `) as SessionMatchRow[];
+      for (const r of rows) {
+        if (r.cvr) {
+          if (r.contact_email) {
+            const key = `${r.cvr}::${r.contact_email.toLowerCase()}`;
+            if (!byCvrEmail.has(key)) byCvrEmail.set(key, r);
+          }
+          if (!byCvr.has(r.cvr)) byCvr.set(r.cvr, r);
+        }
+      }
+    }
+
+    const byEmail = new Map<string, SessionMatchRow>();
+    if (emails.length > 0) {
+      const rows = (await sql`
+        SELECT id, client_id, source_path, user_agent, referrer, landing_path,
+               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+               first_touch_source, first_touch_medium, first_touch_campaign,
+               first_touch_referrer, first_touch_path, first_touch_at, last_seen_at,
+               cvr, contact_email
+        FROM sessions WHERE LOWER(contact_email) = ANY(${emails})
+        ORDER BY last_seen_at DESC
+      `) as SessionMatchRow[];
+      for (const r of rows) {
+        if (r.contact_email) {
+          const key = r.contact_email.toLowerCase();
+          if (!byEmail.has(key)) byEmail.set(key, r);
+        }
+      }
+    }
+
+    return leads.map((lead) => {
+      const fallback = payloadFallback(lead.payload);
+      const clientId = (lead.payload as { clientId?: unknown })?.clientId;
+      if (typeof clientId === "string" && byClientId.has(clientId)) {
+        return { ...lead, attribution: rowToAttribution(byClientId.get(clientId)!, "audit", fallback) };
+      }
+      const emailLower = lead.email.toLowerCase();
+      if (lead.cvr) {
+        const key = `${lead.cvr}::${emailLower}`;
+        const row = byCvrEmail.get(key);
+        if (row) return { ...lead, attribution: rowToAttribution(row, "cvr_email", fallback) };
+        const cvrRow = byCvr.get(lead.cvr);
+        if (cvrRow) return { ...lead, attribution: rowToAttribution(cvrRow, "cvr", fallback) };
+      }
+      const emailRow = byEmail.get(emailLower);
+      if (emailRow) return { ...lead, attribution: rowToAttribution(emailRow, "email", fallback) };
+      return { ...lead, attribution: fallback ?? EMPTY_ATTRIBUTION };
+    });
+  } catch (err) {
+    console.error("[db] attachAttributionToLeads failed:", err);
+    return leads.map((l) => ({
+      ...l,
+      attribution: payloadFallback(l.payload) ?? EMPTY_ATTRIBUTION,
+    }));
+  }
+}
+
 export type SessionsByCvrGroup = {
   cvr: string;
   company: string | null;
