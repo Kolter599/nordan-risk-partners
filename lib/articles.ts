@@ -54,9 +54,9 @@ export const ARTICLES: Article[] = [
     deck:
       "Forsikringsmarkedet for fredede ejendomme er under pres — og ejerne mærker det nu",
     metaDescription:
-      "Præmiestigninger på 160% er ikke længere usædvanlige for fredede ejendomme. Læs hvorfor markedet er presset, og hvad ejere kan gøre.",
+      "Præmiestigninger på 160% er ikke længere usædvanlige for fredede ejendomme. Halvdelen af ansøgninger afvises, og selskaberne trækker sig. Få indblik i markedet og hvad ejere kan gøre.",
     heroImage: "/images/fredede-ejendomme-160-procent.jpg",
-    author: "Mads Berg, Nordan Risk Partners",
+    author: "Mads Horvits, Nordan Risk Partners",
     publishedAt: "2026-05-21",
     readingTime: "6 min",
     cvrLabel: "Få en uforpligtende vurdering af jeres fredede ejendom",

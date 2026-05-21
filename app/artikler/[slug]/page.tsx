@@ -22,34 +22,60 @@ export async function generateMetadata({
   const article = getArticle(slug);
   if (!article) return { title: "Artikel" };
   const path = `/artikler/${article.slug}`;
+  // Shorter SEO title for Google's ~60-char window — keeps the brand
+  // suffix but avoids truncation that hurts CTR in the SERP.
+  const seoTitle = `${article.title} | Nordan Risk Partners`;
+  const ogImageUrl = `${SITE_URL}${article.heroImage}`;
   return {
-    title: `${article.title} — Nordan Risk Partners`,
+    title: seoTitle,
     description: article.metaDescription,
     alternates: { canonical: path },
+    authors: [{ name: article.author }],
     keywords: [
-      article.title.toLowerCase(),
       "forsikring fredede ejendomme",
-      "præmiestigning fredede bygninger",
       "fredet ejendom forsikring",
+      "præmiestigning fredede bygninger",
       "forsikringsmægler fredede ejendomme",
+      "forsikring fredet bygning afslag",
+      "fredet bygning forsikringssum",
+      "Slots- og Kulturstyrelsen forsikring",
+      "Historiske Huse forsikring",
+      "førsterisikoforsikring fredet ejendom",
       "Nordan Risk Partners",
     ],
     openGraph: {
-      ...pageOpenGraph({
-        title: article.title,
-        description: article.metaDescription,
-        path,
-        image: article.heroImage,
-      }),
-      type: "article",
-      publishedTime: article.publishedAt,
-      authors: [article.author],
-    },
-    twitter: pageTwitter({
       title: article.title,
       description: article.metaDescription,
-      image: article.heroImage,
-    }),
+      url: `${SITE_URL}${path}`,
+      siteName: "Nordan Risk Partners",
+      locale: "da_DK",
+      type: "article",
+      publishedTime: article.publishedAt,
+      modifiedTime: article.publishedAt,
+      authors: [article.author],
+      section: "Forsikring",
+      tags: [
+        "fredede ejendomme",
+        "forsikring",
+        "forsikringsmægler",
+        "præmiestigning",
+        "kulturarv",
+      ],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 1200,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.metaDescription,
+      images: [ogImageUrl],
+    },
     robots: {
       index: true,
       follow: true,
@@ -77,24 +103,64 @@ export default async function ArticlePage({
     ? getProduct(article.relatedProductSlug)
     : null;
 
+  const wordCount = article.body.reduce((acc, s) => {
+    if (s.type === "paragraph" || s.type === "lead") return acc + s.body.split(/\s+/).length;
+    if (s.type === "heading") return acc + s.body.split(/\s+/).length;
+    if (s.type === "list") return acc + s.items.join(" ").split(/\s+/).length;
+    if (s.type === "callout")
+      return acc + s.body.split(/\s+/).length + (s.title?.split(/\s+/).length ?? 0);
+    return acc;
+  }, 0);
+
+  const authorName = article.author.split(",")[0].trim();
+
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: article.title,
+    alternativeHeadline: article.deck,
     description: article.metaDescription,
-    image: `${SITE_URL}${article.heroImage}`,
+    image: [
+      {
+        "@type": "ImageObject",
+        url: `${SITE_URL}${article.heroImage}`,
+        width: 1200,
+        height: 1200,
+      },
+    ],
     datePublished: article.publishedAt,
     dateModified: article.publishedAt,
-    author: { "@type": "Organization", name: "Nordan Risk Partners", url: SITE_URL },
+    inLanguage: "da-DK",
+    wordCount,
+    author: {
+      "@type": "Person",
+      name: authorName,
+      affiliation: {
+        "@type": "Organization",
+        name: "Nordan Risk Partners",
+        url: SITE_URL,
+      },
+    },
     publisher: {
       "@type": "Organization",
       name: "Nordan Risk Partners",
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/images/logo.png` },
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/images/logo.png`,
+        width: 600,
+        height: 160,
+      },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `${SITE_URL}/artikler/${article.slug}`,
     },
+    about: [
+      { "@type": "Thing", name: "Forsikring af fredede ejendomme" },
+      { "@type": "Thing", name: "Forsikringsmægler" },
+      { "@type": "Thing", name: "Bevaringsværdige bygninger" },
+    ],
   };
 
   const breadcrumbs = breadcrumbJsonLd([
@@ -120,54 +186,66 @@ export default async function ArticlePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
 
-      {/* HERO — image with title overlay */}
-      <section className="relative overflow-hidden text-white">
-        <div className="absolute inset-0">
-          <Image
-            src={article.heroImage}
-            alt={article.title}
-            fill
-            priority
-            fetchPriority="high"
-            className="object-cover object-center"
-            sizes="100vw"
-            quality={95}
-          />
-          <div className="absolute inset-0 bg-[color:var(--color-nordan-dark)] opacity-[0.78]" />
-        </div>
-
-        <div className="relative mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10 pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-20 md:pb-24">
+      {/* HEADER — editorial layout with 1:1 social image as a feature.
+          Image preserves its square aspect ratio (it's a social-style
+          graphic with text baked in), not stretched as full-bleed. */}
+      <section className="pt-24 sm:pt-28 md:pt-32 pb-10 sm:pb-12 bg-white">
+        <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10">
           <Breadcrumbs
-            tone="dark"
             items={[
               { label: "Forside", href: "/" },
               { label: "Artikler", href: "/artikler" },
               { label: article.title },
             ]}
           />
-          <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-5 mt-2">
+          <div className="text-[0.72rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent)] mb-4 mt-2">
             Artikel · {article.readingTime}
           </div>
-          <h1
-            lang="da"
-            className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.8rem,5.5vw,3rem)] leading-[1.12] tracking-[-0.015em] max-w-[24ch]"
-            style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}
-          >
-            {article.title}
-          </h1>
-          <p className="mt-5 sm:mt-6 max-w-2xl text-base sm:text-lg md:text-xl text-white/90 leading-[1.5]">
-            {article.deck}
-          </p>
-          <div className="mt-7 flex flex-wrap items-center gap-4 text-[0.85rem] text-white/75">
-            <span className="font-semibold text-white">{article.author}</span>
-            <span className="opacity-50">·</span>
-            <span>{formattedDate}</span>
+          <div className="grid lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-start">
+            <div className="min-w-0 max-w-[36rem]">
+              <h1
+                lang="da"
+                className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.85rem,4.4vw,2.9rem)] leading-[1.1] tracking-[-0.015em] text-[color:var(--color-nordan-ink)]"
+                style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}
+              >
+                {article.title}
+              </h1>
+              <p className="mt-5 text-[1.1rem] sm:text-[1.18rem] leading-[1.55] text-[color:var(--color-nordan-ink-soft)]">
+                {article.deck}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3 text-[0.86rem] text-[color:var(--color-nordan-muted)]">
+                <span className="font-semibold text-[color:var(--color-nordan-ink)]">
+                  {article.author}
+                </span>
+                <span className="opacity-50">·</span>
+                <span>{formattedDate}</span>
+              </div>
+            </div>
+            <figure className="lg:w-[380px] xl:w-[420px] mx-auto lg:mx-0 w-full max-w-[460px]">
+              <div className="relative aspect-square overflow-hidden rounded-[10px] shadow-[0_18px_50px_rgba(36,65,52,0.18)] border border-[color:var(--color-nordan-line)]">
+                <Image
+                  src={article.heroImage}
+                  alt={article.title}
+                  fill
+                  priority
+                  fetchPriority="high"
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 420px"
+                  quality={95}
+                />
+              </div>
+            </figure>
           </div>
         </div>
       </section>
 
+      {/* Divider */}
+      <div className="mx-auto max-w-[760px] px-5 sm:px-6 md:px-10">
+        <div className="h-px bg-[color:var(--color-nordan-line)]" />
+      </div>
+
       {/* BODY */}
-      <section className="py-14 sm:py-20 md:py-24 bg-white">
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
         <div className="mx-auto max-w-[760px] px-5 sm:px-6 md:px-10">
           <ArticleBody body={article.body} />
 
