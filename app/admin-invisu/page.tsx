@@ -2,18 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
-  listLeads,
-  attachAttributionToLeads,
   getStatsBetween,
   getFunnelStats,
-  listSessionsByCvr,
+  listUnifiedActivity,
   getAttributionStats,
   isDbConfigured,
   FUNNEL_STEPS,
-  type Lead,
   type LeadAttribution,
   type FunnelStep,
   type AttributionRow,
+  type UnifiedActivityGroup,
 } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -79,16 +77,13 @@ export default async function AdminDashboard() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const [rawLeads, monthStats, allTimeStats, funnel, sessionsByCvr, attribution] =
-    await Promise.all([
-      listLeads({ limit: 100 }),
-      getStatsBetween(monthStart, now),
-      getStatsBetween(new Date(2020, 0, 1), now),
-      getFunnelStats(last30),
-      listSessionsByCvr(last30, 80),
-      getAttributionStats(last30),
-    ]);
-  const leads = await attachAttributionToLeads(rawLeads);
+  const [monthStats, allTimeStats, funnel, activity, attribution] = await Promise.all([
+    getStatsBetween(monthStart, now),
+    getStatsBetween(new Date(2020, 0, 1), now),
+    getFunnelStats(last30),
+    listUnifiedActivity(last30, 120),
+    getAttributionStats(last30),
+  ]);
 
   return (
     <main className="min-h-screen bg-[color:var(--color-nordan-soft)] py-10 px-5">
@@ -225,71 +220,30 @@ export default async function AdminDashboard() {
           )}
         </section>
 
-        {/* Per-CVR sessions */}
-        <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] mb-8 overflow-hidden">
-          <div className="px-5 py-4 border-b border-[color:var(--color-nordan-line)]">
-            <h2 className="font-semibold text-[1rem]">Aktivitet pr. virksomhed (CVR)</h2>
-            <p className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mt-1">
-              Sessions der er nået til mindst step 2 (CVR udfyldt). Flere
-              personer fra samme virksomhed bindes sammen på CVR.
-            </p>
+        {/* Unified activity per company — sessions + leads + attribution */}
+        <section className="mb-8">
+          <div className="flex items-baseline justify-between mb-4">
+            <div>
+              <h2 className="font-semibold text-[1rem]">Aktivitet & leads pr. virksomhed</h2>
+              <p className="text-[0.78rem] text-[color:var(--color-nordan-muted)] mt-1">
+                Alt vi ved om hver virksomhed samlet — sessions, attribution, kontakter og leads i ét.
+                Sorteret efter senest aktive.
+              </p>
+            </div>
+            <span className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">
+              {activity.length} virksomheder · sidste 30 dage
+            </span>
           </div>
-          {sessionsByCvr.length === 0 ? (
-            <div className="p-8 text-center text-[color:var(--color-nordan-muted)]">
-              Ingen halvfærdige flows endnu.
+          {activity.length === 0 ? (
+            <div className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] p-8 text-center text-[color:var(--color-nordan-muted)]">
+              Ingen aktivitet endnu — den dukker op her så snart en besøgende
+              starter på CVR-flowet eller indsender en formular.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[0.88rem]">
-                <thead className="bg-[color:var(--color-nordan-soft)]/40 text-[0.72rem] uppercase tracking-[0.08em] text-[color:var(--color-nordan-muted)]">
-                  <tr>
-                    <th className="text-left px-4 py-3">CVR</th>
-                    <th className="text-left px-4 py-3">Virksomhed</th>
-                    <th className="text-left px-4 py-3">Sessions</th>
-                    <th className="text-left px-4 py-3">Længst nået</th>
-                    <th className="text-left px-4 py-3">Sidst aktiv</th>
-                    <th className="text-left px-4 py-3">Kontakt(er)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[color:var(--color-nordan-line)]">
-                  {sessionsByCvr.map((g) => (
-                    <CvrGroupRow key={g.cvr} group={g} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        {/* Leads table */}
-        <section className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] overflow-hidden">
-          <div className="px-5 py-4 border-b border-[color:var(--color-nordan-line)]">
-            <h2 className="font-semibold text-[1rem]">Seneste leads</h2>
-          </div>
-          {leads.length === 0 ? (
-            <div className="p-8 text-center text-[color:var(--color-nordan-muted)]">
-              Ingen leads endnu — de begynder at dukke op her når kunder bruger formularen.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[0.88rem]">
-                <thead className="bg-[color:var(--color-nordan-soft)]/40 text-[0.72rem] uppercase tracking-[0.08em] text-[color:var(--color-nordan-muted)]">
-                  <tr>
-                    <th className="text-left px-4 py-3">Tidspunkt</th>
-                    <th className="text-left px-4 py-3">Navn</th>
-                    <th className="text-left px-4 py-3">Firma</th>
-                    <th className="text-left px-4 py-3">Indkommet via</th>
-                    <th className="text-left px-4 py-3">Kilde</th>
-                    <th className="text-left px-4 py-3">Status</th>
-                    <th className="text-left px-4 py-3">Kontakt</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[color:var(--color-nordan-line)]">
-                  {leads.map((lead) => (
-                    <LeadRow key={lead.id} lead={lead} />
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-4">
+              {activity.map((group) => (
+                <ActivityCard key={group.groupKey} group={group} />
+              ))}
             </div>
           )}
         </section>
@@ -388,58 +342,169 @@ function FunnelChart({ funnel }: { funnel: import("@/lib/db").FunnelStats }) {
   );
 }
 
-function CvrGroupRow({ group }: { group: import("@/lib/db").SessionsByCvrGroup }) {
-  const stepColor = STEP_COLORS[group.furthestStep];
-  const stepLabel = STEP_LABELS[group.furthestStep];
-  const lastSeen = new Date(group.lastSeen).toLocaleString("da-DK", {
+function ActivityCard({ group }: { group: UnifiedActivityGroup }) {
+  const stepColor = group.furthestStep ? STEP_COLORS[group.furthestStep] : "#9ca3af";
+  const stepLabel = group.furthestStep ? STEP_LABELS[group.furthestStep] : "Ingen session";
+  const lastActivity = new Date(group.lastActivity).toLocaleString("da-DK", {
     dateStyle: "short",
     timeStyle: "short",
     timeZone: "Europe/Copenhagen",
   });
-  const contacts = group.sessions
-    .map((s) => ({ name: s.contact_name, email: s.contact_email, phone: s.contact_phone }))
-    .filter((c) => c.email || c.name || c.phone);
+  const title = group.company ?? group.contacts[0]?.name ?? group.contacts[0]?.email ?? "Ukendt";
+  const latestLeadStatus = group.leads[0]
+    ? STATUS_LABELS[group.leads[0].status]
+    : null;
+
   return (
-    <tr className="hover:bg-[color:var(--color-nordan-soft)]/30 align-top">
-      <td className="px-4 py-3 font-mono text-[0.82rem] whitespace-nowrap">{group.cvr}</td>
-      <td className="px-4 py-3 font-semibold text-[color:var(--color-nordan-ink)]">
-        {group.company ?? "—"}
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-nordan-ink-soft)]">{group.totalSessions}</td>
-      <td className="px-4 py-3">
-        <span
-          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.7rem] font-semibold"
-          style={{ background: `${stepColor}15`, color: stepColor }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: stepColor }} />
-          {stepLabel}
-        </span>
-      </td>
-      <td className="px-4 py-3 font-mono text-[0.78rem] text-[color:var(--color-nordan-muted)] whitespace-nowrap">
-        {lastSeen}
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-nordan-ink-soft)]">
-        {contacts.length === 0 ? (
-          <span className="text-[color:var(--color-nordan-muted)]">— ingen oplyst</span>
-        ) : (
-          <ul className="space-y-1">
-            {contacts.map((c, i) => (
-              <li key={i} className="text-[0.82rem] leading-tight">
-                {c.name ? <span className="font-medium">{c.name}</span> : null}
-                {c.email ? (
-                  <a href={`mailto:${c.email}`} className="block hover:text-[color:var(--color-nordan-accent)]">
-                    {c.email}
-                  </a>
-                ) : null}
-                {c.phone ? (
-                  <span className="block text-[0.78rem] text-[color:var(--color-nordan-muted)]">{c.phone}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </td>
-    </tr>
+    <article className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] overflow-hidden hover:border-[color:var(--color-nordan-accent)]/40 transition-colors">
+      {/* Header: title + CVR + status badge + timestamp */}
+      <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4 border-b border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/30">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1">
+            <h3 className="font-semibold text-[1.02rem] text-[color:var(--color-nordan-ink)] truncate">
+              {title}
+            </h3>
+            {group.cvr ? (
+              <span className="font-mono text-[0.78rem] text-[color:var(--color-nordan-muted)]">
+                CVR {group.cvr}
+              </span>
+            ) : (
+              <span className="text-[0.72rem] uppercase tracking-[0.16em] text-[color:var(--color-nordan-muted)]">
+                Uden CVR
+              </span>
+            )}
+          </div>
+          <div className="text-[0.78rem] text-[color:var(--color-nordan-muted)] font-mono mt-0.5">
+            sidst aktiv {lastActivity}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.7rem] font-semibold"
+            style={{ background: `${stepColor}15`, color: stepColor }}
+            title="Længst nået i CVR-flowet"
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: stepColor }} />
+            {stepLabel}
+          </span>
+          {latestLeadStatus ? (
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.7rem] font-semibold"
+              style={{ background: `${latestLeadStatus.color}15`, color: latestLeadStatus.color }}
+              title="Status på seneste lead"
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: latestLeadStatus.color }} />
+              {latestLeadStatus.label}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Body grid: attribution | metrics | contacts | leads */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5 px-5 py-5 text-[0.85rem]">
+        <Col label="Indkommet via">
+          <AttributionBadge attribution={group.attribution} />
+        </Col>
+
+        <Col label="Sessions">
+          <div className="text-[0.92rem] font-semibold text-[color:var(--color-nordan-ink)]">
+            {group.totalSessions === 0
+              ? "—"
+              : `${group.totalSessions} ${group.totalSessions === 1 ? "session" : "sessioner"}`}
+          </div>
+          {group.attribution.sourcePath ? (
+            <div
+              className="text-[0.72rem] text-[color:var(--color-nordan-muted)] truncate mt-1"
+              title={`Udfyldte CVR på: ${group.attribution.sourcePath}`}
+            >
+              📝 {group.attribution.sourcePath === "/" ? "Forsiden" : group.attribution.sourcePath}
+            </div>
+          ) : null}
+        </Col>
+
+        <Col label="Kontakter">
+          {group.contacts.length === 0 ? (
+            <span className="text-[color:var(--color-nordan-muted)] text-[0.82rem]">— ingen oplyst</span>
+          ) : (
+            <ul className="space-y-1.5">
+              {group.contacts.slice(0, 3).map((c, i) => (
+                <li key={i} className="text-[0.82rem] leading-tight">
+                  {c.name ? <span className="font-medium text-[color:var(--color-nordan-ink)]">{c.name}</span> : null}
+                  {c.email ? (
+                    <a
+                      href={`mailto:${c.email}`}
+                      className="block hover:text-[color:var(--color-nordan-accent)] truncate"
+                    >
+                      {c.email}
+                    </a>
+                  ) : null}
+                  {c.phone ? (
+                    <span className="block text-[0.76rem] text-[color:var(--color-nordan-muted)]">{c.phone}</span>
+                  ) : null}
+                </li>
+              ))}
+              {group.contacts.length > 3 ? (
+                <li className="text-[0.74rem] text-[color:var(--color-nordan-muted)]">
+                  +{group.contacts.length - 3} mere
+                </li>
+              ) : null}
+            </ul>
+          )}
+        </Col>
+
+        <Col label={group.leads.length > 0 ? `Leads (${group.leads.length})` : "Leads"}>
+          {group.leads.length === 0 ? (
+            <span className="text-[color:var(--color-nordan-muted)] text-[0.82rem]">— ingen lead endnu</span>
+          ) : (
+            <ul className="space-y-1.5">
+              {group.leads.slice(0, 3).map((lead) => {
+                const leadStatus = STATUS_LABELS[lead.status] ?? { label: lead.status, color: "#0a0a0a" };
+                const date = new Date(lead.created_at).toLocaleDateString("da-DK", {
+                  day: "2-digit",
+                  month: "short",
+                });
+                return (
+                  <li key={lead.id} className="text-[0.82rem] leading-tight">
+                    <Link
+                      href={`/admin-invisu/leads/${lead.id}`}
+                      className="group inline-flex items-baseline gap-1.5 hover:text-[color:var(--color-nordan-accent)]"
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
+                        style={{ background: leadStatus.color }}
+                      />
+                      <span className="font-mono text-[0.74rem] text-[color:var(--color-nordan-muted)] shrink-0">
+                        {date}
+                      </span>
+                      <span className="font-medium">{lead.name ?? lead.email}</span>
+                      <span className="text-[0.72rem] text-[color:var(--color-nordan-muted)]">
+                        · {SOURCE_LABELS[lead.source] ?? lead.source}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+              {group.leads.length > 3 ? (
+                <li className="text-[0.74rem] text-[color:var(--color-nordan-muted)]">
+                  +{group.leads.length - 3} ældre leads
+                </li>
+              ) : null}
+            </ul>
+          )}
+        </Col>
+      </div>
+    </article>
+  );
+}
+
+function Col({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[0.66rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-1.5">
+        {label}
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -476,59 +541,6 @@ function Stat({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function LeadRow({ lead }: { lead: Lead & { attribution: LeadAttribution } }) {
-  const status = STATUS_LABELS[lead.status] ?? { label: lead.status, color: "#0a0a0a" };
-  const formatted = new Date(lead.created_at).toLocaleString("da-DK", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "Europe/Copenhagen",
-  });
-  return (
-    <tr className="hover:bg-[color:var(--color-nordan-soft)]/30 align-top">
-      <td className="px-4 py-3 text-[color:var(--color-nordan-muted)] whitespace-nowrap font-mono text-[0.78rem]">
-        {formatted}
-      </td>
-      <td className="px-4 py-3">
-        <Link href={`/admin-invisu/leads/${lead.id}`} className="font-semibold hover:text-[color:var(--color-nordan-accent)]">
-          {lead.name ?? "—"}
-        </Link>
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-nordan-ink-soft)]">
-        {lead.company ?? "—"}
-        {lead.cvr ? (
-          <span className="text-[0.72rem] text-[color:var(--color-nordan-muted)] ml-1.5">CVR {lead.cvr}</span>
-        ) : null}
-      </td>
-      <td className="px-4 py-3">
-        <AttributionBadge attribution={lead.attribution} />
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-nordan-ink-soft)]">
-        {SOURCE_LABELS[lead.source] ?? lead.source}
-      </td>
-      <td className="px-4 py-3">
-        <span
-          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.7rem] font-semibold"
-          style={{
-            background: `${status.color}15`,
-            color: status.color,
-          }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.color }} />
-          {status.label}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-nordan-ink-soft)] whitespace-nowrap">
-        <a href={`mailto:${lead.email}`} className="hover:text-[color:var(--color-nordan-accent)]">
-          {lead.email}
-        </a>
-        {lead.phone ? (
-          <span className="text-[0.78rem] text-[color:var(--color-nordan-muted)] block">{lead.phone}</span>
-        ) : null}
-      </td>
-    </tr>
   );
 }
 

@@ -1031,6 +1031,206 @@ export async function listSessionsByCvr(since: Date, limit = 100): Promise<Sessi
   }
 }
 
+/* -------------------- Unified activity (sessions + leads per company) -------------------- */
+
+export type UnifiedActivityGroup = {
+  /** Stable group identifier — CVR if we have one, otherwise "email:<lowercased>". */
+  groupKey: string;
+  cvr: string | null;
+  company: string | null;
+  /** Sessions tied to this group (sorted by last_seen_at desc). */
+  sessions: Session[];
+  totalSessions: number;
+  furthestStep: FunnelStep | null;
+  /** Leads tied to this group (sorted by created_at desc). */
+  leads: Array<Lead & { attribution: LeadAttribution }>;
+  /** Most recent activity timestamp across sessions + leads. */
+  lastActivity: string;
+  /** Best attribution snapshot — pulled from the most-recent session, or
+   *  falls back to the most-recent lead's payload attribution. */
+  attribution: LeadAttribution;
+  /** Distinct contacts (name/email/phone) seen across sessions + leads. */
+  contacts: Array<{ name: string | null; email: string | null; phone: string | null }>;
+};
+
+const STEP_LABEL_FALLBACK: Record<FunnelStep, FunnelStep> = {
+  started: "started",
+  cvr_submitted: "cvr_submitted",
+  confirm: "confirm",
+  actions: "actions",
+  completed: "completed",
+};
+void STEP_LABEL_FALLBACK;
+
+/**
+ * One unified view of "everything that happened around a company" in the
+ * given time window. Combines per-CVR session groups with leads and
+ * attribution into a single list ordered by most-recent activity. Leads
+ * without a CVR end up in their own group keyed by email so kontakt /
+ * hole-in-one submissions are still surfaced.
+ */
+export async function listUnifiedActivity(
+  since: Date,
+  limit = 100
+): Promise<UnifiedActivityGroup[]> {
+  const sql = getDb();
+  if (!sql) return [];
+  try {
+    const sessionsRaw = (await sql`
+      SELECT * FROM sessions
+      WHERE created_at >= ${since.toISOString()}
+      ORDER BY last_seen_at DESC
+      LIMIT ${limit * 8}
+    `) as unknown as Session[];
+    const leadsRaw = (await sql`
+      SELECT * FROM leads
+      WHERE created_at >= ${since.toISOString()}
+      ORDER BY created_at DESC
+      LIMIT ${limit * 4}
+    `) as unknown as Lead[];
+
+    const sessions = sessionsRaw;
+    const leads = await attachAttributionToLeads(leadsRaw);
+
+    const groups = new Map<string, UnifiedActivityGroup>();
+
+    const keyFor = (cvr: string | null, email: string | null) => {
+      if (cvr) return `cvr:${cvr}`;
+      if (email) return `email:${email.toLowerCase()}`;
+      return null;
+    };
+
+    const upsertGroup = (
+      key: string,
+      cvr: string | null,
+      company: string | null,
+      activityAt: string
+    ): UnifiedActivityGroup => {
+      const existing = groups.get(key);
+      if (existing) {
+        if (!existing.cvr && cvr) existing.cvr = cvr;
+        if (!existing.company && company) existing.company = company;
+        if (new Date(activityAt) > new Date(existing.lastActivity)) {
+          existing.lastActivity = activityAt;
+        }
+        return existing;
+      }
+      const fresh: UnifiedActivityGroup = {
+        groupKey: key,
+        cvr,
+        company,
+        sessions: [],
+        totalSessions: 0,
+        furthestStep: null,
+        leads: [],
+        lastActivity: activityAt,
+        attribution: EMPTY_ATTRIBUTION,
+        contacts: [],
+      };
+      groups.set(key, fresh);
+      return fresh;
+    };
+
+    // Pass 1: sessions group by CVR (preferred) or contact_email.
+    for (const s of sessions) {
+      const key = keyFor(s.cvr, s.contact_email);
+      if (!key) continue;
+      const g = upsertGroup(key, s.cvr, s.company, s.last_seen_at);
+      g.sessions.push(s);
+      g.totalSessions += 1;
+      if (!g.furthestStep || (STEP_RANK[s.furthest_step] ?? 0) > (STEP_RANK[g.furthestStep] ?? 0)) {
+        g.furthestStep = s.furthest_step;
+      }
+    }
+
+    // Pass 2: leads — match preferentially by CVR, else by email.
+    for (const lead of leads) {
+      const cvrKey = lead.cvr ? `cvr:${lead.cvr}` : null;
+      const emailKey = `email:${lead.email.toLowerCase()}`;
+      const key = (cvrKey && groups.has(cvrKey) ? cvrKey : null)
+        ?? (groups.has(emailKey) ? emailKey : null)
+        ?? cvrKey
+        ?? emailKey;
+      const g = upsertGroup(key, lead.cvr ?? null, lead.company ?? null, lead.created_at);
+      g.leads.push(lead);
+    }
+
+    // Pass 3: pick best attribution + de-dupe contacts.
+    for (const g of groups.values()) {
+      g.sessions.sort(
+        (a, b) => new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
+      );
+      g.leads.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      const seenContact = new Set<string>();
+      const pushContact = (
+        name: string | null,
+        email: string | null,
+        phone: string | null
+      ) => {
+        const fp = `${(name ?? "").toLowerCase()}|${(email ?? "").toLowerCase()}|${(phone ?? "").replace(/\D/g, "")}`;
+        if (fp === "||" || seenContact.has(fp)) return;
+        seenContact.add(fp);
+        g.contacts.push({ name, email, phone });
+      };
+      for (const lead of g.leads) {
+        pushContact(lead.name, lead.email, lead.phone);
+      }
+      for (const s of g.sessions) {
+        pushContact(s.contact_name, s.contact_email, s.contact_phone);
+      }
+
+      // Attribution priority: most-recent session row wins; otherwise the
+      // top lead's attribution (which itself may be payload-only).
+      const topSession = g.sessions[0];
+      if (topSession) {
+        const channel = deriveChannel(
+          topSession.first_touch_source,
+          topSession.first_touch_medium,
+          topSession.first_touch_referrer
+        );
+        g.attribution = {
+          firstTouch: {
+            source: topSession.first_touch_source,
+            medium: topSession.first_touch_medium,
+            campaign: topSession.first_touch_campaign,
+            referrer: topSession.first_touch_referrer,
+            landingPath: topSession.first_touch_path,
+            at: topSession.first_touch_at,
+          },
+          lastTouch: {
+            source: topSession.utm_source,
+            medium: topSession.utm_medium,
+            campaign: topSession.utm_campaign,
+            content: topSession.utm_content,
+            term: topSession.utm_term,
+          },
+          sourcePath: topSession.source_path,
+          userAgent: topSession.user_agent,
+          serverReferer: topSession.referrer,
+          clientIp: null,
+          funnelStartPath: topSession.landing_path ?? topSession.first_touch_path,
+          matchedSessionId: topSession.id,
+          matchedBy: "cvr_email",
+          channel: channel.channel,
+          channelMedium: channel.channelMedium,
+        };
+      } else if (g.leads[0]) {
+        g.attribution = g.leads[0].attribution;
+      }
+    }
+
+    return Array.from(groups.values())
+      .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
+      .slice(0, limit);
+  } catch (err) {
+    console.error("[db] listUnifiedActivity failed:", err);
+    return [];
+  }
+}
+
 export async function listRecentSessions(since: Date, limit = 50): Promise<Session[]> {
   const sql = getDb();
   if (!sql) return [];
