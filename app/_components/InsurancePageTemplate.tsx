@@ -302,15 +302,15 @@ function InlineCtaStrip({ cta }: { cta: InlineCta }) {
               ) : null}
             </div>
 
-            <Link
-              href="/analyse"
-              className="group inline-flex items-center justify-center gap-2 h-[54px] px-7 rounded-[8px] bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_8px_22px_rgba(165,136,120,0.32)] whitespace-nowrap self-start md:self-center"
+            <ScrollToCta
+              targetId="hio-form"
+              className="group inline-flex items-center justify-center gap-2 h-[54px] px-7 rounded-[8px] bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_8px_22px_rgba(165,136,120,0.32)] whitespace-nowrap self-start md:self-center cursor-pointer"
             >
               <span>{cta.buttonLabel ?? "Få gratis vurdering"}</span>
               <span className="transition-transform group-hover:translate-x-0.5" aria-hidden>
                 →
               </span>
-            </Link>
+            </ScrollToCta>
           </div>
         </div>
       </div>

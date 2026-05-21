@@ -537,13 +537,18 @@ function AttributionBadge({ attribution }: { attribution: LeadAttribution }) {
     attribution.firstTouch?.source ||
     attribution.firstTouch?.referrer ||
     attribution.firstTouch?.campaign ||
-    attribution.firstTouch?.landingPath;
+    attribution.firstTouch?.landingPath ||
+    attribution.sourcePath;
   if (!hasSignal) {
     return <span className="text-[0.78rem] text-[color:var(--color-nordan-muted)]">Direct / ingen signal</span>;
   }
+  const sourcePath = attribution.sourcePath;
+  const landingPath = attribution.firstTouch?.landingPath ?? attribution.funnelStartPath;
+  // Same path = no point showing twice — the CVR was filled where they landed.
+  const showLandingSeparately = sourcePath && landingPath && sourcePath !== landingPath;
   return (
-    <div className="flex flex-col gap-0.5 text-[0.8rem] leading-tight">
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-col gap-1 text-[0.8rem] leading-tight">
+      <div className="flex items-center gap-1.5 flex-wrap">
         <span
           className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.7rem] font-semibold"
           style={{ background: "#a5887815", color: "#a58878" }}
@@ -556,16 +561,25 @@ function AttributionBadge({ attribution }: { attribution: LeadAttribution }) {
         </span>
       </div>
       {attribution.firstTouch?.campaign ? (
-        <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] font-mono truncate max-w-[200px]">
+        <div className="text-[0.72rem] text-[color:var(--color-nordan-muted)] font-mono truncate max-w-[220px]">
           {attribution.firstTouch.campaign}
         </div>
       ) : null}
-      {attribution.firstTouch?.landingPath || attribution.funnelStartPath ? (
+      {sourcePath ? (
         <div
-          className="text-[0.72rem] text-[color:var(--color-nordan-muted)] truncate max-w-[220px]"
-          title={attribution.firstTouch?.landingPath ?? attribution.funnelStartPath ?? ""}
+          className="text-[0.74rem] text-[color:var(--color-nordan-ink-soft)] truncate max-w-[240px] font-medium"
+          title={`Udfyldte CVR på: ${sourcePath}`}
         >
-          ↳ {attribution.firstTouch?.landingPath ?? attribution.funnelStartPath}
+          <span className="text-[color:var(--color-nordan-muted)] font-normal">📝 </span>
+          {sourcePath === "/" ? "Forsiden" : sourcePath}
+        </div>
+      ) : null}
+      {showLandingSeparately && landingPath ? (
+        <div
+          className="text-[0.7rem] text-[color:var(--color-nordan-muted)] truncate max-w-[240px]"
+          title={`Landede først på: ${landingPath}`}
+        >
+          ↳ landede på {landingPath === "/" ? "/" : landingPath}
         </div>
       ) : null}
     </div>

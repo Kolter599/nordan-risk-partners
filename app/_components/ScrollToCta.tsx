@@ -7,14 +7,18 @@
  * After scrolling, focuses the first <input> inside the target so the user
  * can start typing immediately.
  */
+import type { ReactNode } from "react";
+
 export function ScrollToCta({
   targetId,
   label,
+  children,
   className,
   block = "center",
 }: {
   targetId: string;
-  label: string;
+  label?: string;
+  children?: ReactNode;
   className?: string;
   block?: ScrollLogicalPosition;
 }) {
@@ -35,7 +39,7 @@ export function ScrollToCta({
       }}
       className={className}
     >
-      {label}
+      {children ?? label}
     </button>
   );
 }

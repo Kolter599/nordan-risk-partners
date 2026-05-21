@@ -153,7 +153,7 @@ function AttributionBlock({ attribution }: { attribution: LeadAttribution }) {
       ) : (
         <>
           <div className="mb-5">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-3">
               <span
                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.7rem] font-bold"
                 style={{ background: "#a5887818", color: "#a58878" }}
@@ -165,11 +165,28 @@ function AttributionBlock({ attribution }: { attribution: LeadAttribution }) {
                 {attribution.channelMedium}
               </span>
             </div>
-            {attribution.funnelStartPath ? (
-              <div className="text-[0.85rem] text-[color:var(--color-nordan-ink-soft)]">
-                Først set på: <code className="text-[0.82rem]">{attribution.funnelStartPath}</code>
-              </div>
-            ) : null}
+            <div className="space-y-2">
+              {attribution.sourcePath ? (
+                <div className="flex items-baseline gap-2 text-[0.92rem]">
+                  <span className="text-[0.7rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)] w-[10rem] shrink-0">
+                    Udfyldte CVR på
+                  </span>
+                  <code className="text-[0.88rem] font-semibold text-[color:var(--color-nordan-ink)] break-all">
+                    {attribution.sourcePath}
+                  </code>
+                </div>
+              ) : null}
+              {attribution.funnelStartPath && attribution.funnelStartPath !== attribution.sourcePath ? (
+                <div className="flex items-baseline gap-2 text-[0.88rem]">
+                  <span className="text-[0.7rem] uppercase tracking-[0.16em] font-semibold text-[color:var(--color-nordan-muted)] w-[10rem] shrink-0">
+                    Landede først på
+                  </span>
+                  <code className="text-[0.85rem] text-[color:var(--color-nordan-ink-soft)] break-all">
+                    {attribution.funnelStartPath}
+                  </code>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {attribution.firstTouch ? (
