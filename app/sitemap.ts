@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { ARTICLES } from "@/lib/articles";
 import { INSURANCE_PRODUCTS } from "@/lib/insurance-products";
 
 const SITE = "https://nordanriskpartners.dk";
@@ -30,5 +31,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticEntries, ...productEntries];
+  const articleEntries = ARTICLES.map((a) => ({
+    url: `${SITE}/artikler/${a.slug}`,
+    lastModified: new Date(a.publishedAt),
+    changeFrequency: "yearly" as const,
+    priority: 0.65,
+  }));
+
+  return [...staticEntries, ...productEntries, ...articleEntries];
 }
