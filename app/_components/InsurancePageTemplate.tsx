@@ -279,34 +279,39 @@ function FeatureSection({ feature, index }: { feature: FeatureBlock; index: numb
 /* ---------------- InlineCtaStrip ---------------- */
 function InlineCtaStrip({ cta }: { cta: InlineCta }) {
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-[color:var(--color-nordan-dark)] text-white">
-      <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-6 md:gap-10 items-center">
-        <div className="md:col-span-8">
-          {cta.eyebrow ? (
-            <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-3">
-              {cta.eyebrow}
+    <section className="py-14 sm:py-20 md:py-24 bg-[color:var(--color-nordan-soft)]">
+      <div className="mx-auto max-w-[1040px] px-5 sm:px-6 md:px-10">
+        <div className="relative bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] shadow-[0_8px_30px_rgba(36,65,52,0.06)] overflow-hidden">
+          {/* Accent rail — anchors the card visually without competing with the headline */}
+          <div className="absolute top-0 bottom-0 left-0 w-[3px] bg-[color:var(--color-nordan-accent)]" aria-hidden />
+
+          <div className="grid md:grid-cols-[1fr_auto] gap-7 md:gap-12 items-center px-7 sm:px-10 md:px-12 py-9 sm:py-11 md:py-12">
+            <div className="min-w-0">
+              {cta.eyebrow ? (
+                <div className="text-[0.7rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent)] mb-3">
+                  {cta.eyebrow}
+                </div>
+              ) : null}
+              <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.45rem,2.6vw,1.95rem)] leading-[1.2] tracking-[-0.01em] text-[color:var(--color-nordan-ink)] mb-3">
+                {cta.headline}
+              </h2>
+              {cta.body ? (
+                <p className="text-[0.98rem] sm:text-[1rem] leading-[1.65] text-[color:var(--color-nordan-ink-soft)] max-w-[42rem]">
+                  {cta.body}
+                </p>
+              ) : null}
             </div>
-          ) : null}
-          <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.4rem,2.4vw,1.9rem)] leading-[1.25] mb-3">
-            {cta.headline}
-          </h2>
-          {cta.body ? (
-            <p className="text-white/85 text-[0.98rem] leading-[1.65] max-w-2xl">{cta.body}</p>
-          ) : null}
-        </div>
-        <div className="md:col-span-4 flex flex-col sm:flex-row md:flex-col gap-3 md:items-end">
-          <Link
-            href="/analyse"
-            className="inline-flex items-center justify-center h-12 px-6 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)] whitespace-nowrap"
-          >
-            {cta.buttonLabel ?? "Få gratis analyse"}
-          </Link>
-          <a
-            href="tel:+4553520006"
-            className="inline-flex items-center justify-center h-12 px-6 rounded-[6px] border border-white/50 text-white text-[0.86rem] font-semibold tracking-wide hover:bg-white/10 transition-colors whitespace-nowrap"
-          >
-            Ring +45 53 52 00 06
-          </a>
+
+            <Link
+              href="/analyse"
+              className="group inline-flex items-center justify-center gap-2 h-[54px] px-7 rounded-[8px] bg-[color:var(--color-nordan-accent)] text-white text-[0.92rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_8px_22px_rgba(165,136,120,0.32)] whitespace-nowrap self-start md:self-center"
+            >
+              <span>{cta.buttonLabel ?? "Få gratis vurdering"}</span>
+              <span className="transition-transform group-hover:translate-x-0.5" aria-hidden>
+                →
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

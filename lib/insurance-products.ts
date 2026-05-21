@@ -472,7 +472,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
         eyebrow: "Kom videre",
         headline: "Lad os finde en dækning der passer til jeres ejendom",
         body: "Vi har adgang til både danske specialister og internationale markeder der fortsat dækker fredede ejendomme.",
-        buttonLabel: "Start jeres analyse",
+        buttonLabel: "Få gratis vurdering",
       },
     ],
     faq: [
