@@ -290,7 +290,7 @@ export function SignFlow({ onSigned, defaults }: Props) {
               <div className="flex items-center gap-2 mb-2.5">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--color-nordan-dark)]" />
                 <h3 className="text-[0.74rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-dark)]">
-                  Hvorfor en fuldmagt?
+                  Hvorfor en undersøgelsesfuldmagt?
                 </h3>
               </div>
               <p className="text-[0.9rem] leading-relaxed text-[color:var(--color-nordan-ink)]">
@@ -299,7 +299,7 @@ export function SignFlow({ onSigned, defaults }: Props) {
                 undersøgelsesfuldmagt for at kunne lave analysen.{" "}
                 <span className="text-[color:var(--color-nordan-ink-soft)]">
                   Det er standard branchepraksis; alle mæglere arbejder sådan her. Du forpligter
-                  dig til intet, og fuldmagten kan trækkes tilbage når som helst.
+                  dig til intet, og undersøgelsesfuldmagten kan trækkes tilbage når som helst.
                 </span>
               </p>
             </div>
@@ -399,7 +399,7 @@ export function SignFlow({ onSigned, defaults }: Props) {
             >
               {scrolledToBottom
                 ? "✓ Du har læst hele teksten"
-                : "↓ Scroll til bunden for at læse fuldmagten"}
+                : "↓ Scroll til bunden for at læse undersøgelsesfuldmagten"}
             </div>
           </div>
 
@@ -430,7 +430,7 @@ export function SignFlow({ onSigned, defaults }: Props) {
             </button>
             {scrolledToBottom ? (
               <p className="mt-2 text-center text-[0.72rem] text-[color:var(--color-nordan-muted)] leading-snug">
-                ✓ Du har læst hele fuldmagten
+                ✓ Du har læst hele undersøgelsesfuldmagten
               </p>
             ) : null}
           </div>

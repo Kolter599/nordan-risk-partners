@@ -549,7 +549,7 @@ function StepDone({ company }: { company: Company | null }) {
         Tak — vi er i gang
       </div>
       <p className="text-[0.92rem] text-[color:var(--color-nordan-ink-soft)] leading-relaxed max-w-sm mx-auto">
-        Fuldmagten er modtaget for <strong>{company?.name ?? "din virksomhed"}</strong>.
+        Undersøgelsesfuldmagten er modtaget for <strong>{company?.name ?? "din virksomhed"}</strong>.
         Tjek din indbakke for kvitteringen.
       </p>
     </div>
