@@ -9,6 +9,7 @@ import {
   getRelated,
   type FeatureBlock,
   type Faq,
+  type InlineCta,
   type InsuranceProduct,
   type Stat,
 } from "@/lib/insurance-products";
@@ -26,6 +27,8 @@ const PRODUCT_REDIRECTS: Record<string, { path: string; ctaLabel: string; headli
 export function InsurancePageTemplate({ product }: Props) {
   const related = getRelated(product.related);
   const productOverride = PRODUCT_REDIRECTS[product.slug];
+  const ctasAfterIntro = (product.inlineCtas ?? []).filter((c) => c.position === "afterIntro");
+  const ctasAfterFeatures = (product.inlineCtas ?? []).filter((c) => c.position === "afterFeatures");
 
   return (
     <>
@@ -119,9 +122,19 @@ export function InsurancePageTemplate({ product }: Props) {
         <StatsStrip stats={product.stats} />
       ) : null}
 
+      {/* INLINE CTA — after intro + stats, before deep content */}
+      {ctasAfterIntro.map((cta, i) => (
+        <InlineCtaStrip key={`cta-intro-${i}`} cta={cta} />
+      ))}
+
       {/* FEATURE BLOCKS — alternating image + text */}
       {product.features?.map((f, i) => (
         <FeatureSection key={i} feature={f} index={i} />
+      ))}
+
+      {/* INLINE CTA — after features, before FAQ */}
+      {ctasAfterFeatures.map((cta, i) => (
+        <InlineCtaStrip key={`cta-features-${i}`} cta={cta} />
       ))}
 
       {/* PULL QUOTE */}
@@ -257,6 +270,43 @@ function FeatureSection({ feature, index }: { feature: FeatureBlock; index: numb
             sizes="(max-width: 768px) 100vw, 50vw"
             quality={95}
           />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- InlineCtaStrip ---------------- */
+function InlineCtaStrip({ cta }: { cta: InlineCta }) {
+  return (
+    <section className="py-12 sm:py-16 md:py-20 bg-[color:var(--color-nordan-dark)] text-white">
+      <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-6 md:gap-10 items-center">
+        <div className="md:col-span-8">
+          {cta.eyebrow ? (
+            <div className="text-[0.74rem] uppercase tracking-[0.22em] font-semibold text-[color:var(--color-nordan-accent-soft)] mb-3">
+              {cta.eyebrow}
+            </div>
+          ) : null}
+          <h2 className="font-[family-name:var(--font-playfair)] font-medium text-[clamp(1.4rem,2.4vw,1.9rem)] leading-[1.25] mb-3">
+            {cta.headline}
+          </h2>
+          {cta.body ? (
+            <p className="text-white/85 text-[0.98rem] leading-[1.65] max-w-2xl">{cta.body}</p>
+          ) : null}
+        </div>
+        <div className="md:col-span-4 flex flex-col sm:flex-row md:flex-col gap-3 md:items-end">
+          <Link
+            href="/analyse"
+            className="inline-flex items-center justify-center h-12 px-6 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold tracking-wide hover:bg-[#8f715f] transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.25)] whitespace-nowrap"
+          >
+            {cta.buttonLabel ?? "Få gratis analyse"}
+          </Link>
+          <a
+            href="tel:+4553520006"
+            className="inline-flex items-center justify-center h-12 px-6 rounded-[6px] border border-white/50 text-white text-[0.86rem] font-semibold tracking-wide hover:bg-white/10 transition-colors whitespace-nowrap"
+          >
+            Ring +45 53 52 00 06
+          </a>
         </div>
       </div>
     </section>

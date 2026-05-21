@@ -21,6 +21,16 @@ export type Faq = { q: string; a: string };
 
 export type Quote = { text: string; who?: string; role?: string };
 
+export type InlineCta = {
+  /** Where in the page flow to render the CTA strip. */
+  position: "afterIntro" | "afterFeatures";
+  eyebrow?: string;
+  headline: string;
+  body?: string;
+  /** Override default button label ("Få gratis analyse"). */
+  buttonLabel?: string;
+};
+
 export type InsuranceProduct = {
   slug: string;
   title: string;
@@ -38,6 +48,7 @@ export type InsuranceProduct = {
   stats?: Stat[]; // numbered stat strip
   quote?: Quote; // editorial pull quote
   faq?: Faq[]; // accordion FAQ
+  inlineCtas?: InlineCta[]; // optional mid-page CTA strips for CRO
 
   related?: string[];
 };
@@ -398,10 +409,37 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     heroImage: IMG.wenchen,
     cvrLabel: "Få en uforpligtende vurdering af jeres fredede ejendom",
     introParagraphs: [
+      "Forsikring af fredede ejendomme er i øjeblikket blandt de mest udfordrede områder i det danske forsikringsmarked. Mange ejere oplever afslag, markante præmiestigninger eller væsentligt reducerede dækninger – ofte med forsikringer, der alene omfatter brand og typisk på en 1. risikosum som ingen har tjekket om reelt stemmer overens med bygningens faktiske værdi.",
+      "Hos Nordan Risk Partners hjælper vi ejere, bestyrelser og administratorer med at få overblik og træffe informerede beslutninger i et marked, hvor mulighederne er få og komplekse.",
       "Ifølge branchekilder afvises omkring halvdelen af henvendelser om forsikring af fredede ejendomme allerede ved første kontakt. Mange af dem der får tilbud, oplever præmiestigninger på 30–100% — og ender ofte med reduceret dækning til højere pris.",
       "Vi specialiserer os i netop dette område og har adgang til både danske specialister og internationale markeder der løfter denne type ejendomme. Selv når andre har givet op, kan vi ofte finde en løsning.",
     ],
     features: [
+      {
+        eyebrow: "Vigtigt om markedet lige nu",
+        title: "Hvorfor er forsikring dyrere for fredede ejendomme?",
+        body: "Markedet beskrives som begrænset og ugennemsigtigt med få konkrete produkter målrettet fredede ejendomme. Ca. 50 % af ejere får ikke tilbud eller får afslag ved første henvendelse, og præmier for dem der får dækning stiger typisk 30–100 %+ som en del af branchens reaktion på højere genopbygningsomkostninger og vurderet risiko. Her er de vigtigste årsager:",
+        bullets: [
+          {
+            label: "1. Høje omkostninger ved reparationer",
+            body: "Fredede bygninger kræver særlige materialer og håndværkere (fx traditionelle tagsten, kalkmørtel, specialtømrerarbejde). Reparationer skal godkendes af Slots- og Kulturstyrelsen, hvilket gør processen dyrere og langsommere.",
+          },
+          {
+            label: "2. Øget risiko i forsikringsselskabernes øjne",
+            body: "Ældre konstruktioner kan være mere brandfølsomme. Tekniske installationer (el, VVS) kan være sværere at opgradere pga. fredningen. Mange er placeret på udsatte steder (fugt, sætningsskader osv.).",
+          },
+          {
+            label: "3. Flere store skader de seneste år",
+            body: "Mange selskaber har generelt oplevet stigende omkostninger ved storme, skybrud og fugtskader — og fredede ejendomme er ofte dyrere at reparere end moderne byggeri.",
+          },
+          {
+            label: "4. Forsikringsselskaber trækker sig",
+            body: "Nogle selskaber tilbyder slet ikke forsikring af fredede ejendomme længere, hvilket giver mindre konkurrence og højere priser for dem der gør.",
+          },
+        ],
+        image: IMG.marion,
+        imageSide: "left",
+      },
       {
         eyebrow: "Hvad vi kigger på",
         title: "Specialvurdering af jeres fredede ejendom",
@@ -420,6 +458,22 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       { value: "~50%", label: "af henvendelser afvises eller får ikke tilbud" },
       { value: "30–100%", label: "typiske prisstigninger de sidste år" },
       { value: "Ja", label: "vi har løsninger også efter afslag" },
+    ],
+    inlineCtas: [
+      {
+        position: "afterIntro",
+        eyebrow: "Står I med et afslag?",
+        headline: "Vi har set markedet for fredede ejendomme indefra",
+        body: "Få en uforpligtende vurdering — selv hvis I allerede har fået nej hos andre selskaber.",
+        buttonLabel: "Få gratis vurdering",
+      },
+      {
+        position: "afterFeatures",
+        eyebrow: "Kom videre",
+        headline: "Lad os finde en dækning der passer til jeres ejendom",
+        body: "Vi har adgang til både danske specialister og internationale markeder der fortsat dækker fredede ejendomme.",
+        buttonLabel: "Start jeres analyse",
+      },
     ],
     faq: [
       {
