@@ -127,11 +127,6 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
         imageSide: "left",
       },
     ],
-    stats: [
-      { value: "1 ud af ~12.500", label: "amatørslag rammer hole in one" },
-      { value: "Op til 1 mio. kr.", label: "præmie dækket af policen" },
-      { value: "24 t", label: "fra forespørgsel til tilbud" },
-    ],
     faq: [
       {
         q: "Hvad koster hole in one forsikring?",
@@ -509,7 +504,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       "Forsikring til andelsboligforeninger og ejerforeninger. Bygningsforsikring, bestyrelsesansvar, retshjælp og mere — samlet i ét program.",
     intro:
       "Vi hjælper andelsboligforeninger og ejerforeninger med en uvildig gennemgang af forsikringsprogrammet — både på dækning og pris. Direkte adgang til erfarne rådgivere.",
-    heroImage: IMG.marion,
+    heroImage: IMG.wenchen,
     cvrLabel: "Få tjekket jeres forenings forsikringer gratis",
     introParagraphs: [
       "Forsikringsprogrammet er ofte det vigtigste ansvar bestyrelsen har — og samtidig det område hvor vi ser flest fejl og overpriser. Hovedparten af danske foreninger har programmer der ikke er blevet gennemgået struktureret siden sidste fornyelse — typisk 3–5 år.",
@@ -541,7 +536,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "3. Anbefaling til bestyrelsen", body: "Klar sammenligning, anbefalet løsning, svar på spørgsmål." },
           { label: "4. Implementering og årlig opfølgning", body: "Vi bliver ved — løbende rådgivning ved ændringer." },
         ],
-        image: IMG.meeting,
+        image: IMG.puskeiler,
         imageSide: "left",
       },
     ],
@@ -736,7 +731,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "18–24 måneder", body: "Anbefales ved specialiseret produktion eller komplekse bygninger." },
           { label: "36 måneder+", body: "For fredede ejendomme og hvor myndighedsgodkendelser forsinker." },
         ],
-        image: IMG.golfBall,
+        image: IMG.business,
         imageSide: "left",
       },
     ],

@@ -43,7 +43,7 @@ const STEPS = [
   },
   {
     n: "02",
-    title: "Dataindsamling & analyse",
+    title: "Dataindsamling og analyse",
     body: "Vi indhenter og analyserer jeres nuværende forsikringsprogram med henblik på at skabe overblik over dækninger, vilkår og eventuelle specielle klausuler vi skal være opmærksomme på. På den måde er vi sikre på at få behovsafdækket jeres risiko, så vi kan udforme udbudsmaterialet nøjagtigt til selskaberne når de skal byde ind.",
   },
   {
@@ -53,12 +53,12 @@ const STEPS = [
   },
   {
     n: "04",
-    title: "Markedsdialog & forhandling",
+    title: "Markedsdialog og forhandling",
     body: "Vi sender udbudsmaterialet ud til de respektive forsikringsselskaber og indhenter tilbud. Herefter går vi i forhandling med selskaberne hvis ikke de opfylder vores krav i udbudsmaterialet.",
   },
   {
     n: "05",
-    title: "Tilbudssammenligning & anbefaling",
+    title: "Tilbudssammenligning og anbefaling",
     body: "Når vi har modtaget og gennemgået tilbuddene, præsenterer vi dem i et struktureret og letforståeligt sammenligningsgrundlag. Vi rådgiver aktivt og ærligt omkring fordele, ulemper og anbefalinger — baseret på langt mere end pris alene.",
   },
   {
@@ -79,7 +79,7 @@ export default function SaadanArbejderViPage() {
         eyebrow="Vores proces"
         title={<>Sådan arbejder vi — trin for trin</>}
         body="Som uafhængige forsikringsmæglere arbejder vi ud fra en struktureret og veldokumenteret proces. Det sikrer at du som kunde får en gennemtænkt løsning der matcher netop din virksomheds behov."
-        image="/images/unsplash-meeting.jpg"
+        image="/images/nordan-56.jpg"
         imageAlt="Forsikringsmægler i møde med erhvervskunde — gennemgang af forsikringsprogram"
       />
 

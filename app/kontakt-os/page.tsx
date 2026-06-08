@@ -49,7 +49,7 @@ export default function KontaktPage() {
         eyebrow="Kontakt os"
         title={<>Lad os tage en uforpligtende snak</>}
         body="Vælg selv hvordan. Start analysen via CVR — eller skriv til os direkte. Ingen salgsretorik, ingen telefonsluser."
-        image="/images/nordan-12.jpg"
+        image="/images/nordan-50.jpg"
         imageAlt="Nordan Risk Partners — kontaktsiden"
       />
 

@@ -82,23 +82,6 @@ export function ContactForm() {
       </div>
 
       <div>
-        <label className="block eyebrow mb-2">Emne</label>
-        <select
-          name="topic"
-          defaultValue=""
-          className="w-full h-12 px-4 bg-white border border-[color:var(--color-nordan-line)] rounded-sm focus:outline-none focus:border-[color:var(--color-nordan-dark)]"
-        >
-          <option value="">Vælg emne (valgfrit)</option>
-          <option>Uforpligtende tjek af eksisterende forsikringer</option>
-          <option>Andelsbolig- eller ejerforening</option>
-          <option>Fredet ejendom</option>
-          <option>Hole in one forsikring</option>
-          <option>Nystartet virksomhed / opbygning af program</option>
-          <option>Andet</option>
-        </select>
-      </div>
-
-      <div>
         <label className="block eyebrow mb-2">Besked</label>
         <textarea
           name="message"
