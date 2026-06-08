@@ -82,6 +82,13 @@ const IMG = {
   lastbilMotorvej: "/images/lastbil-motorvej.jpg", // truck on Danish motorway
   boligselskab: "/images/boligselskab-bebyggelse.jpg", // social-housing estate
   flaade: "/images/flaade-koeretoejer.jpg", // row of company vans
+  // Sunny refresh of older generic-reuse pages
+  bilErhvervsbiler: "/images/bil-erhvervsbiler.jpg", // company cars in sunlight
+  erhvervsansvarProduktion: "/images/erhvervsansvar-produktion.jpg", // bright workshop
+  loosereLager: "/images/loosere-lager.jpg", // sunlit inventory room
+  kollektivMedarbejdere: "/images/kollektiv-medarbejdere.jpg", // colleagues in sun
+  sundhedKlinik: "/images/sundhed-klinik.jpg", // bright physio clinic
+  netbankKontor: "/images/netbank-kontor.jpg", // sunlit office finance
 };
 
 export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
@@ -126,6 +133,11 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
         image: IMG.golfCourse,
         imageSide: "left",
       },
+    ],
+    stats: [
+      { value: "Bil eller rejse", label: "udlov den helt store gevinst — vi dækker værdien" },
+      { value: "Op til 1 mio. kr.", label: "kontantpræmie dækket af policen" },
+      { value: "24 t", label: "fra forespørgsel til tilbud" },
     ],
     faq: [
       {
@@ -570,7 +582,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       "Beskyt virksomheden mod erstatningskrav. Erhvervs- og produktansvar dækker person- og tingsskader under drift og efter levering.",
     intro:
       "Ansvarsforsikring er grundlæggende for enhver virksomhed. Én stor sag kan true hele økonomien — vi sikrer at dækningsgrundlag, summer og vilkår matcher jeres reelle eksponering.",
-    heroImage: IMG.moisa,
+    heroImage: IMG.erhvervsansvarProduktion,
     cvrLabel: "Se om jeres ansvarsforsikring er i orden",
     introParagraphs: [
       "Erhvervs- og produktansvarsforsikring er den vigtigste 'usynlige' forsikring I kan have. Den dækker det øjeblik hvor noget I har lavet, solgt eller installeret skader en anden virksomhed eller person — og kravet kan let løbe op i millioner.",
@@ -587,7 +599,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Produktansvarsloven", body: "Objektivt ansvar — krav kan rejses uden at kunden beviser uagtsomhed." },
           { label: "Rådgiveransvar (E&O)", body: "Rent økonomisk tab fra fagligt arbejde — separat dækning." },
         ],
-        image: IMG.moisa,
+        image: IMG.erhvervsansvarProduktion,
         imageSide: "right",
       },
       {
@@ -665,7 +677,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     eyebrow: "Køretøjer",
     metaDescription: "Bilforsikring til erhvervsbiler og firmakøretøjer. Vi sammenligner markedet og samler jeres flåde under de bedste vilkår.",
     intro: "Erhvervsbiler kører hver dag — og kræver en forsikringsløsning der følger med. Vi finder de bedste vilkår for firmabiler, hvad enten det er en enkelt bil eller en hel flåde.",
-    heroImage: IMG.partnership,
+    heroImage: IMG.bilErhvervsbiler,
     cvrLabel: "Få tilbud på jeres bilforsikringer",
     introParagraphs: [
       "Hvor mange biler I har, hvordan de bruges, og hvem der kører dem — alt har betydning for både dækning og præmie. Vi gennemgår jeres portefølje og finder den løsning der passer jeres hverdag.",
@@ -854,7 +866,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     eyebrow: "Medarbejdere",
     metaDescription: "Kollektiv ulykkesforsikring giver jeres medarbejdere tryghed ved ulykker døgnet rundt — også uden for arbejdstiden. Et stærkt, skattefrit medarbejdergode.",
     intro: "Kollektiv ulykkesforsikring er et stærkt medarbejdergode. Den supplerer den lovpligtige arbejdsskadeforsikring med dækning døgnet rundt — også fritidsulykker og ferier.",
-    heroImage: IMG.partnership,
+    heroImage: IMG.kollektivMedarbejdere,
     cvrLabel: "Få tilbud på kollektiv ulykkesforsikring",
     introParagraphs: [
       "Arbejdsskadeforsikringen er lovpligtig, men dækker kun arbejdsulykker. Kollektiv ulykkesforsikring udvider trygheden til at gælde hele døgnet — både i fritiden, på ferien og i weekenden. Det giver medarbejderne et ægte gode og styrker jer som arbejdsgiver.",
@@ -871,7 +883,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Rejseulykke inkluderet", body: "Typisk også under ferier og tjenesterejser." },
           { label: "Skattefri op til 500 kr./md.", body: "Eget bidrag fra medarbejderen ikke nødvendigt op til grænsen." },
         ],
-        image: IMG.partnership,
+        image: IMG.kollektivMedarbejdere,
         imageSide: "right",
       },
     ],
@@ -937,7 +949,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     eyebrow: "Inventar og indbo",
     metaDescription: "Løsøreforsikring dækker virksomhedens inventar, maskiner, varer, lager og it-udstyr mod brand, tyveri, vandskade og pludselige skader.",
     intro: "Alt indvendigt i lokalet — maskiner, varer, it, kontorinventar — udgør betydelige værdier. Løsøreforsikring sikrer jer økonomisk hvis en brand, vandskade eller indbrud rammer.",
-    heroImage: IMG.business,
+    heroImage: IMG.loosereLager,
     cvrLabel: "Få tjekket jeres løsøreforsikring",
     introParagraphs: [
       "Løsøreforsikring er typisk grundforsikringen for virksomheder der ikke ejer deres ejendom selv. Den dækker alt det 'løsørlige' — inventar, maskiner, it-udstyr, lager og varer — mod brand, storm, vand, indbrud og andre pludselige skader.",
@@ -954,7 +966,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Varelager", body: "Ved indstigende værdier kan kvartalsvis indberetning spare præmie." },
           { label: "Maskiner", body: "Produktionsudstyr — kan med fordel også have maskinkaskoforsikring." },
         ],
-        image: IMG.business,
+        image: IMG.loosereLager,
         imageSide: "right",
       },
     ],
@@ -1005,7 +1017,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     eyebrow: "Bedrageri",
     metaDescription: "Netbanksforsikring dækker tab ved netbanksbedrageri og uautoriserede transaktioner via virksomhedens bankkonti — et supplement til cyber- og kriminalitetsforsikring.",
     intro: "Netbanksbedrageri rammer virksomheder hver måned i Danmark. Forsikringen dækker de økonomiske tab hvis jeres konti kompromitteres — og er typisk et stærkt supplement til cyber- og kriminalitetsforsikring.",
-    heroImage: IMG.moisa,
+    heroImage: IMG.netbankKontor,
     cvrLabel: "Få tilbud på jeres netbanksforsikring",
     introParagraphs: [
       "Bankerne har deres egne sikkerhedsnet — men dækningen er begrænset, og ofte ender virksomheden med tabet hvis sagen ikke klart kan kategoriseres som bankens fejl. Netbanksforsikring lukker det hul og giver jer en økonomisk bund under kontoerne.",
@@ -1021,7 +1033,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Malware og man-in-the-browser", body: "Transaktioner der ændres af virus under overførsel." },
           { label: "Falske betalingsordrer", body: "Når medarbejdere vildledes til at godkende forkerte overførsler." },
         ],
-        image: IMG.moisa,
+        image: IMG.netbankKontor,
         imageSide: "right",
       },
     ],
@@ -1082,7 +1094,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     eyebrow: "Medarbejdergoder",
     metaDescription: "Sundhedsforsikring som medarbejdergode — reducerer sygefravær og styrker fastholdelse. Dækker privat behandling, fysioterapi, psykolog og speciallæge.",
     intro: "En stærk sundhedsforsikring er blevet et standardkrav blandt medarbejdere. Vi forhandler programmer der både reducerer sygefravær og styrker jer i kampen om talenter — og tilpasses jeres branche og virksomhedsstørrelse.",
-    heroImage: IMG.partnership,
+    heroImage: IMG.sundhedKlinik,
     cvrLabel: "Få tilbud på sundhedsforsikring til jeres medarbejdere",
     introParagraphs: [
       "Sundhedsforsikring er i dag et af de mest eftertragtede medarbejdergoder — og for mange kandidater er det en forudsætning for at sige ja til et job. Hurtig adgang til behandling betyder også mindre sygefravær og hurtigere tilbagekomst efter skader og operationer.",
@@ -1100,7 +1112,7 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Speciallægeundersøgelse", body: "Uden henvisning fra egen læge." },
           { label: "Misbrugsbehandling", body: "Alkohol, stoffer, spiseforstyrrelser." },
         ],
-        image: IMG.partnership,
+        image: IMG.sundhedKlinik,
         imageSide: "right",
       },
     ],
