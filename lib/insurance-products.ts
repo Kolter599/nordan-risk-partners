@@ -74,6 +74,14 @@ const IMG = {
   nordan75: "/images/nordan-75.jpg",
   nordan73: "/images/nordan-73.jpg",
   nordan27: "/images/nordan-27.jpg",
+  // Topic-specific documentary photos
+  ejendomBygning: "/images/ejendom-bygning.jpg", // Copenhagen apartment facade
+  itKaskoServer: "/images/it-kasko-server.jpg", // server racks + cabling
+  fragtLaesning: "/images/fragtfoerer-laesning.jpg", // loading pallets into lorry
+  speditoerLager: "/images/speditoer-lager.jpg", // freight-forwarding warehouse
+  lastbilMotorvej: "/images/lastbil-motorvej.jpg", // truck on Danish motorway
+  boligselskab: "/images/boligselskab-bebyggelse.jpg", // social-housing estate
+  flaade: "/images/flaade-koeretoejer.jpg", // row of company vans
 };
 
 export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
@@ -1112,6 +1120,507 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       },
     ],
     related: ["kollektiv-ulykkesforsikring", "arbejdsskadeforsikring"],
+  },
+  {
+    slug: "ejendomsforsikring",
+    title: "Ejendomsforsikring",
+    navLabel: "Ejendom",
+    letter: "E",
+    eyebrow: "Fast ejendom",
+    metaDescription:
+      "Ejendomsforsikring til udlejnings- og investeringsejendomme, ejerforeninger og andelsboligforeninger. Bygning, husejeransvar og lejetab samlet — vi sikrer at summerne matcher genopførselsværdien.",
+    intro:
+      "Ejendomsforsikring er paraplyen over alt det der kan ramme en udlejnings- eller investeringsejendom — selve bygningen, ansvaret som ejer og det lejetab der følger efter en skade. Vi sikrer at dækningen er komplet, og at summerne matcher den reelle genopførselsværdi.",
+    heroImage: IMG.ejendomBygning,
+    cvrLabel: "Få jeres ejendomsforsikring gennemgået gratis",
+    introParagraphs: [
+      "For ejere af udlejningsejendomme, ejerforeninger og andelsboligforeninger er ejendomsforsikringen ofte den største enkeltpost på driftsbudgettet — og samtidig den der har størst betydning hvis uheldet er ude. En brand, en rørskade eller en stormskade kan koste millioner, og er summen sat forkert, ender ejeren selv med en del af regningen.",
+      "Vi ser ofte ejendomme der er forsikret på tal fra sidste renovering — uden at prisstigninger på materialer og håndværk er regnet med. Det betyder underforsikring. Vi gennemgår policen, validerer dækningssummer og tager programmet i udbud, så I betaler den rigtige pris for den rigtige dækning.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad bør en ejendomsforsikring rumme",
+        title: "Mere end bygningen — også ansvar og lejetab",
+        body: "En ejendomsforsikring er bygget op af flere dækninger, der tilsammen beskytter både murstenene og økonomien bag dem. Vi sammensætter det program der passer netop jeres ejendom og lejere.",
+        bullets: [
+          { label: "Bygningsbrand og udvidet dækning", body: "Brand, storm, skybrud, vandskade og indbrud — fundamentet i enhver ejendomsforsikring." },
+          { label: "Skjulte rør og stikledninger", body: "Ofte de dyreste skader — bør altid være med, særligt i ældre ejendomme." },
+          { label: "Husejeransvar", body: "Dækker ejerens ansvar hvis en lejer eller forbipasserende kommer til skade på ejendommen." },
+          { label: "Huslejetab", body: "Kompenserer for mistede lejeindtægter mens ejendommen genopbygges efter en skade." },
+          { label: "Svamp, insekt og rådskade", body: "Vigtigt tilvalg i ejendomme med ældre trækonstruktioner." },
+          { label: "Glas og sanitet", body: "Relevant for ejendomme med butikslejemål og udadvendte facader." },
+        ],
+        image: IMG.ejendomBygning,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Bygningsforsikring vs. ejendomsforsikring",
+        title: "Hvad er forskellen?",
+        body: "Begreberne bruges ofte i flæng, men en ejendomsforsikring tænkes typisk bredere — som det samlede program for en udlejnings- eller investeringsejendom, hvor ansvar og lejetab er lige så vigtige som selve bygningsskaden.",
+        bullets: [
+          { label: "Bygningsforsikring", body: "Dækker den fysiske bygning mod brand, vand, storm mv." },
+          { label: "Ejendomsforsikring", body: "Samler bygning, husejeransvar og lejetab i ét program for ejeren." },
+          { label: "Investeringsejendomme", body: "Her er lejetab og ansvar afgørende — en ren bygningsdækning er sjældent nok." },
+        ],
+        image: IMG.marion,
+        imageSide: "left",
+      },
+    ],
+    stats: [
+      { value: "3 dækninger", label: "bygning, husejeransvar og lejetab samlet i ét program" },
+      { value: "10–25%", label: "typisk besparelse ved at tage programmet i udbud" },
+      { value: "1× årligt", label: "anbefalet gennemgang af dækningssummer" },
+    ],
+    faq: [
+      {
+        q: "Hvordan fastsættes forsikringssummen korrekt?",
+        a: "Den skal afspejle genopførselsomkostningerne — altså hvad det koster at genopbygge ejendommen i dag — ikke ejendomsvurderingen eller den bogførte værdi. En bygningsbesigtigelse giver det mest præcise grundlag og beskytter mod underforsikring.",
+      },
+      {
+        q: "Er huslejetab automatisk med i dækningen?",
+        a: "Ikke altid. I mange standardpolicer er huslejetab kun et tilvalg eller har en for kort dækningsperiode. For udlejningsejendomme er det en af de vigtigste dækninger, og vi sikrer at perioden matcher en realistisk genopbygningstid.",
+      },
+      {
+        q: "Gælder ejendomsforsikring også for ejer- og andelsboligforeninger?",
+        a: "Ja. Foreninger har samme grundbehov — bygning, ansvar og ofte bestyrelsesansvar og arbejdsskade oveni. Vi rådgiver både private ejere, professionelle udlejere og foreningsbestyrelser.",
+      },
+    ],
+    related: ["bygningsforsikring", "forsikring-andelsboligforening-ejerforening", "driftstabsforsikring"],
+  },
+  {
+    slug: "ansvarsforsikring",
+    title: "Ansvarsforsikring",
+    navLabel: "Erhvervsansvar",
+    letter: "A",
+    eyebrow: "Ansvar",
+    metaDescription:
+      "Erhvervsansvarsforsikring dækker virksomheden mod erstatningskrav når jeres drift forårsager person- eller tingsskade på andre. Vi sikrer at dækningssum og vilkår matcher jeres reelle risiko.",
+    intro:
+      "Ansvarsforsikring er den grundlæggende beskyttelse enhver virksomhed bør have. Den dækker erstatningskravet hvis I under driften forvolder skade på andres person eller ejendom — og én stor sag kan ellers true hele økonomien.",
+    heroImage: IMG.moisa,
+    cvrLabel: "Se om jeres erhvervsansvarsforsikring dækker nok",
+    introParagraphs: [
+      "Erhvervsansvarsforsikring — også kaldet almindelig ansvarsforsikring — træder til når jeres virksomhed bliver mødt med et erstatningskrav, fordi noget I har gjort under driften har skadet en anden. Det kan være montøren der beskadiger kundens gulv, varen der vælter på et lager, eller stilladset der falder ned på en parkeret bil.",
+      "Mange virksomheder har en standarddækning, der ikke er fulgt med virkeligheden — for lav dækningssum, forkert branchekode eller geografiske begrænsninger der udelukker netop de markeder I sælger til. Vi gennemgår jeres reelle eksponering og sikrer at policen matcher den.",
+    ],
+    features: [
+      {
+        eyebrow: "Tre former for ansvar",
+        title: "Erhvervs-, produkt- og rådgiveransvar er ikke det samme",
+        body: "Det er afgørende at forstå forskellen — de dækker hver sin type skade, og den ene kan ikke erstatte den anden. Vi sikrer at I har den rette kombination uden huller i kæden.",
+        bullets: [
+          { label: "Erhvervsansvar", body: "Person- og tingsskade I forvolder under den løbende drift — fx hos en kunde eller på en byggeplads." },
+          { label: "Produktansvar", body: "Skader forårsaget af et produkt I har solgt eller leveret, efter det har forladt jer." },
+          { label: "Professionelt ansvar (E&O)", body: "Rent økonomisk tab som følge af fejl i jeres faglige rådgivning — en separat dækning." },
+          { label: "Underleverandører", body: "Vi tjekker at ansvaret er afstemt i hele kæden, så der ikke opstår et dækningshul." },
+        ],
+        image: IMG.moisa,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Det vi tjekker for jer",
+        title: "Er dækningssum og geografi i orden?",
+        body: "De to hyppigste problemer vi ser er en dækningssum der ikke står mål med en stor kontrakt, og en geografisk afgrænsning der udelukker eksportmarkeder. Begge dele kan koste dyrt når skaden sker.",
+        bullets: [
+          { label: "Dækningssum", body: "Typisk 10 mio. kr. for mindre virksomheder — men store kunder og kontrakter kan kræve mere." },
+          { label: "Geografisk dækning", body: "Europa er standard; USA, Canada og Australien kræver særskilt og dyrere dækning." },
+          { label: "Kontraktkrav", body: "Mange kunder kræver dokumenteret ansvarsdækning før de vil indgå aftale." },
+        ],
+        image: IMG.mandrup,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Er erhvervsansvarsforsikring lovpligtig?",
+        a: "Nej, der er ingen generel lovpligt om erhvervsansvarsforsikring i Danmark. Men i praksis er den uundværlig — og mange kunder, udbud og samarbejdsaftaler kræver den kontraktligt, før de vil arbejde sammen med jer.",
+      },
+      {
+        q: "Hvad er forskellen på erhvervsansvar og produktansvar?",
+        a: "Erhvervsansvar dækker skader I forvolder under driften — mens arbejdet står på. Produktansvar dækker skader forårsaget af et produkt efter det er leveret. De fleste produktions- og handelsvirksomheder har brug for begge, og de tegnes ofte samlet.",
+      },
+      {
+        q: "Hvor stor bør dækningssummen være?",
+        a: "Det afhænger af branche, størrelse og eksponering. For mindre virksomheder er 10 mio. kr. typisk udgangspunktet, mens producenter og virksomheder med eksport ofte har brug for væsentligt mere. Vi hjælper med at fastsætte det rigtige niveau.",
+      },
+    ],
+    related: ["erhvervs-og-produktansvarsforsikring", "professionel-ansvarsforsikring", "bestyrelsesansvarsforsikring"],
+  },
+  {
+    slug: "it-kaskoforsikring",
+    title: "IT-kaskoforsikring",
+    navLabel: "IT-kasko",
+    letter: "I",
+    eyebrow: "Hardware og udstyr",
+    metaDescription:
+      "IT-kaskoforsikring (all-risk) dækker virksomhedens it-udstyr — servere, computere, netværk og av-udstyr — mod pludselige skader, tyveri, brand, vand og overspænding. Inkl. dataretablering og meromkostninger.",
+    intro:
+      "IT-kaskoforsikring beskytter selve hardwaren — servere, computere, netværksudstyr og av-installationer — mod pludselige fysiske skader. Hvor cyberforsikring dækker angreb og IT-ansvar dækker jeres leverancer, dækker IT-kasko udstyret og det data der ligger på det.",
+    heroImage: IMG.itKaskoServer,
+    cvrLabel: "Få tilbud på jeres IT-kaskoforsikring",
+    introParagraphs: [
+      "Moderne virksomheder har store værdier bundet i it-udstyr — og endnu større værdier i det data og de systemer der kører på det. En overspænding, en vandskade i serverrummet eller et indbrud med tyveri af udstyr kan lamme driften på få minutter.",
+      "IT-kaskoforsikring er en all-risk-dækning, der favner bredere end den almindelige løsøreforsikring. Den dækker ikke kun genanskaffelsen af hardwaren, men typisk også reetablering af data og software samt de meromkostninger der opstår mens systemerne er nede.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækker IT-kasko",
+        title: "All-risk på hardware — og det der ligger på den",
+        body: "IT-kasko er bredere end en standard løsøredækning. Den er bygget til at favne de pludselige og uforudsete skader der rammer netop teknisk udstyr.",
+        bullets: [
+          { label: "Pludselige fysiske skader", body: "Fald, stød, væskespild og mekaniske skader på udstyret." },
+          { label: "Kortslutning og overspænding", body: "Skader fra strømudsving og lynnedslag — ofte undtaget i basisdækninger." },
+          { label: "Brand, vand og tyveri", body: "De klassiske risici, der er særligt kritiske i serverrum." },
+          { label: "Dataretablering", body: "Omkostninger til at genskabe tabt data og geninstallere software." },
+          { label: "Meromkostninger", body: "Leje af erstatningsudstyr og ekstra arbejdstimer mens driften genoprettes." },
+        ],
+        image: IMG.itKaskoServer,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "IT-kasko, IT-ansvar og cyber",
+        title: "Tre forsikringer der dækker hver sin risiko",
+        body: "It-virksomheder forveksler dem ofte — men de tre dækker vidt forskellige situationer, og de fleste har brug for mere end én.",
+        bullets: [
+          { label: "IT-kasko", body: "Dækker jeres eget udstyr og data mod fysiske skader og tyveri." },
+          { label: "IT-ansvar", body: "Dækker når I som leverandør forvolder tab hos en kunde." },
+          { label: "Cyberforsikring", body: "Dækker når I rammes af et angreb — ransomware, databrud og driftstab." },
+        ],
+        image: IMG.vandergriff,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Er IT-kasko ikke allerede dækket af min løsøreforsikring?",
+        a: "Delvist — men løsøreforsikringen dækker typisk kun navngivne risici som brand og indbrud. IT-kasko er en all-risk-dækning, der også omfatter pludselige driftsskader, kortslutning og overspænding, og som oftest inkluderer dataretablering. For udstyrstunge virksomheder er forskellen markant.",
+      },
+      {
+        q: "Dækker IT-kasko også tab af data?",
+        a: "Selve hardwaren dækkes altid, og de fleste policer inkluderer omkostningerne til at reetablere data og geninstallere software. Det forudsætter dog at I har fungerende backups — noget vi altid anbefaler at få vurderet samtidig.",
+      },
+    ],
+    related: ["it-ansvarsforsikring", "cyberforsikring", "loosereforsikring"],
+  },
+  {
+    slug: "fragtforeransvarsforsikring",
+    title: "Fragtføreransvarsforsikring",
+    navLabel: "Fragtføreransvar",
+    letter: "F",
+    eyebrow: "Transportansvar",
+    metaDescription:
+      "Fragtføreransvarsforsikring dækker vognmandens ansvar for kundens gods under transport — efter CMR-loven og dansk vejtransportlovgivning. Vi sikrer at dækningen følger jeres reelle ansvar.",
+    intro:
+      "Som vognmand har I ansvaret for kundens gods fra det øjeblik I overtager det, til det er leveret. Fragtføreransvarsforsikring dækker det erstatningsansvar — og sikrer at I ikke selv står med regningen, når godset bliver beskadiget eller forsvinder undervejs.",
+    heroImage: IMG.fragtLaesning,
+    cvrLabel: "Få tjekket jeres fragtføreransvarsforsikring",
+    introParagraphs: [
+      "Fragtførerens ansvar er reguleret af loven — internationalt af CMR-konventionen og nationalt af den danske vejtransportlovgivning. Ansvaret er som udgangspunkt begrænset til SDR 8,33 pr. kilo bruttovægt af det beskadigede gods, uanset hvad varen reelt er værd. Det er dette lovbestemte ansvar, fragtføreransvarsforsikringen er bygget til at dække.",
+      "Faldgruben er, at mange vognmænd tror de er fuldt dækket, men har en police der kun følger CMR-ansvaret ved international kørsel. Kører I også nationalt, skal det udtrykkeligt aftales at CMR-loven gælder — ellers kan I stå uden ordentlig dækning. Vi gennemgår jeres betingelser og forsikring, så ansvar og dækning passer sammen.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvad dækker fragtføreransvar",
+        title: "Jeres ansvar for godset — fra overtagelse til levering",
+        body: "Forsikringen følger det ansvar lovgivningen pålægger fragtføreren. Det er vigtigt at dækningen matcher den type kørsel I rent faktisk udfører — national, international eller begge dele.",
+        bullets: [
+          { label: "Beskadigelse og bortkomst", body: "Erstatning for gods der skades eller forsvinder under transporten — op til den lovbestemte grænse." },
+          { label: "CMR-ansvar (international)", body: "Dækker ansvaret efter CMR-konventionen ved grænseoverskridende vejtransport." },
+          { label: "National transport", body: "Kræver at CMR-loven udtrykkeligt aftales — ellers gælder andre regler. Vi sikrer at det er på plads." },
+          { label: "Følgeskader", body: "Visse tab ud over selve godsværdien kan dækkes — afhængigt af aftalegrundlag og betingelser." },
+        ],
+        image: IMG.fragtLaesning,
+        imageSide: "right",
+      },
+    ],
+    stats: [
+      { value: "SDR 8,33/kg", label: "lovbestemt ansvarsgrænse pr. kilo bruttovægt" },
+      { value: "CMR", label: "konventionen der gælder international vejtransport" },
+      { value: "National + int.", label: "ved national kørsel skal CMR-loven aftales udtrykkeligt" },
+    ],
+    faq: [
+      {
+        q: "Er fragtføreransvarsforsikring lovpligtig?",
+        a: "Selve forsikringen er ikke lovpligtig, men ansvaret for godset er lovbestemt. Uden forsikring hæfter I selv for erstatningen, og i praksis kræver de fleste transportkøbere og samarbejdspartnere dokumenteret dækning, før de overdrager gods til jer.",
+      },
+      {
+        q: "Dækker min forsikring både national og international kørsel?",
+        a: "Det skal tjekkes konkret. Mange policer er skrevet til CMR-ansvaret ved international transport. Kører I også nationalt, skal det udtrykkeligt aftales at CMR-loven gælder — ellers kan der opstå et dækningshul. Det er præcis den type detalje vi gennemgår.",
+      },
+      {
+        q: "Hvad er forskellen på fragtføreransvar og en vareforsikring?",
+        a: "Fragtføreransvar dækker jeres lovbestemte ansvar som transportør — begrænset til SDR 8,33 pr. kilo. En vareforsikring (transportforsikring) dækker varens fulde værdi og tegnes typisk af vareejeren. Ved højværdigods er ansvarsgrænsen ofte langt under varens reelle værdi, og så er en vareforsikring nødvendig oveni.",
+      },
+    ],
+    related: ["speditoransvarsforsikring", "transportforsikring", "lastbilforsikring"],
+  },
+  {
+    slug: "speditoransvarsforsikring",
+    title: "Speditøransvarsforsikring",
+    navLabel: "Speditøransvar",
+    letter: "S",
+    eyebrow: "Transportansvar",
+    metaDescription:
+      "Speditøransvarsforsikring dækker speditørens ansvar efter NSAB 2015 — godsskade, forsinkelse, oplagring og fejlekspedition. Vi sikrer at dækning og ansvarsgrænser hænger sammen.",
+    intro:
+      "Som speditør påtager I jer ansvar for gods I formidler, håndterer og oplagrer. Speditøransvarsforsikring dækker det ansvar — typisk efter NSAB 2015 — og sikrer at I er beskyttet mod de krav der opstår, når noget går galt i transportkæden.",
+    heroImage: IMG.speditoerLager,
+    cvrLabel: "Få tilbud på jeres speditøransvarsforsikring",
+    introParagraphs: [
+      "Speditørens ansvar reguleres i de nordiske lande af NSAB 2015 — Nordisk Speditørforbunds Almindelige Bestemmelser. De fastlægger nøje hvilket ansvar speditøren bærer, og hvilke beløbsgrænser der gælder for forskellige typer skade. Forsikringen er bygget op om netop disse regler.",
+      "Ansvaret afhænger af om I optræder som formidler eller som selvkontraherende speditør, og af hvilken opgave der er tale om. Vi sikrer at jeres betingelser, ansvar og forsikringsdækning hænger sammen — så I hverken er overeksponerede eller betaler for dækning I ikke behøver.",
+    ],
+    features: [
+      {
+        eyebrow: "Ansvar efter NSAB 2015",
+        title: "Klare beløbsgrænser for hver type skade",
+        body: "NSAB 2015 fastlægger speditørens ansvar med specifikke grænser. Det er vigtigt at forsikringen dækker fuldt op til disse grænser — og at I forstår hvor jeres reelle eksponering ligger.",
+        bullets: [
+          { label: "Godsskade og bortkomst", body: "Ansvaret er begrænset til SDR 8,33 pr. kilo bruttovægt af det beskadigede gods." },
+          { label: "Forsinkelse", body: "Ansvaret er begrænset til fragtbeløbet for den forsinkede sending." },
+          { label: "Øvrige tab", body: "Andre formuetab er begrænset til SDR 100.000 pr. opgave." },
+          { label: "Oplagring og fejlekspedition", body: "Samlet ansvar begrænset til SDR 500.000 for én og samme hændelse." },
+        ],
+        image: IMG.speditoerLager,
+        imageSide: "right",
+      },
+    ],
+    stats: [
+      { value: "NSAB 2015", label: "regelsættet speditøransvaret bygger på" },
+      { value: "SDR 8,33/kg", label: "ansvarsgrænse for beskadiget eller bortkommet gods" },
+      { value: "SDR 500.000", label: "maksimalt ansvar pr. hændelse ved oplagring" },
+    ],
+    faq: [
+      {
+        q: "Hvad er NSAB 2015?",
+        a: "NSAB 2015 er Nordisk Speditørforbunds Almindelige Bestemmelser — det standardregelsæt der regulerer speditørers ansvar i Danmark og de øvrige nordiske lande. Det fastlægger både ansvarets omfang og de beløbsgrænser, speditøransvarsforsikringen er bygget op om.",
+      },
+      {
+        q: "Hvad er forskellen på speditør- og fragtføreransvar?",
+        a: "Fragtføreransvar dækker den der fysisk udfører transporten (vognmanden). Speditøransvar dækker den der organiserer og formidler transporten. Optræder speditøren som selvkontraherende, kan ansvaret nærme sig fragtførerens — og så skal dækningen afspejle det.",
+      },
+      {
+        q: "Kræver det medlemskab af Danske Speditører at bruge NSAB 2015?",
+        a: "Ja, anvendelsen af NSAB 2015 som standardvilkår forudsætter medlemskab af Danske Speditører. Vi rådgiver om hvordan jeres aftalegrundlag og forsikring spiller sammen, uanset om I anvender NSAB eller andre betingelser.",
+      },
+    ],
+    related: ["fragtforeransvarsforsikring", "transportforsikring"],
+  },
+  {
+    slug: "lastbilforsikring",
+    title: "Lastbilforsikring",
+    navLabel: "Lastbil",
+    letter: "L",
+    eyebrow: "Køretøjer",
+    metaDescription:
+      "Lastbilforsikring til vognmænd og erhverv — lovpligtig ansvarsforsikring, kasko og godsansvar samlet. Vi sammenligner markedet og samler jeres lastbiler under de bedste vilkår.",
+    intro:
+      "En lastbil er et stort aktiv og et stort ansvar. Lastbilforsikring samler den lovpligtige ansvarsdækning, kasko på køretøjet og ansvaret for godset — så I er dækket hele vejen rundt, hvad enten det er én lastbil eller en hel flåde.",
+    heroImage: IMG.lastbilMotorvej,
+    cvrLabel: "Få tilbud på jeres lastbilforsikring",
+    introParagraphs: [
+      "Ansvarsforsikring på lastbilen er lovpligtig — den dækker de skader I forvolder på andre mennesker, køretøjer og ting i trafikken. Men for en vognmand er det kun fundamentet. Kaskodækning beskytter selve lastbilen, og godsansvaret dækker kundens varer under transport.",
+      "Vi gennemgår jeres køretøjer, kørselsmønster og risikoprofil og finder den løsning der passer driften. For vognmænd med flere lastbiler er der ofte både administrative og økonomiske gevinster ved at samle det hele i én aftale frem for enkeltpolicer.",
+    ],
+    features: [
+      {
+        eyebrow: "Sådan er en lastbilforsikring bygget op",
+        title: "Tre lag — ansvar, kasko og gods",
+        body: "Den rigtige lastbilforsikring afhænger af om I kører eget eller andres gods, hvor langt I kører, og hvor stor en del af driften der står og falder med det enkelte køretøj.",
+        bullets: [
+          { label: "Lovpligtig ansvarsforsikring", body: "Dækker skader på andre i trafikken — et lovkrav for ethvert køretøj." },
+          { label: "Kasko", body: "Dækker lastbilen selv ved tyveri, brand, hærværk og færdselsuheld — ofte med vejhjælp." },
+          { label: "Godsansvar / fragtføreransvar", body: "Dækker ansvaret for kundens gods under transporten." },
+          { label: "Afsavn og driftstab", body: "Tilvalg der kompenserer for tabt indtjening mens lastbilen er ude af drift." },
+        ],
+        image: IMG.lastbilMotorvej,
+        imageSide: "right",
+      },
+    ],
+    faq: [
+      {
+        q: "Er godsansvar med i en almindelig lastbilforsikring?",
+        a: "Ikke automatisk. Ansvarsforsikringen dækker skader på andre i trafikken, og kasko dækker lastbilen — men ansvaret for kundens gods kræver en særskilt godsansvars- eller fragtføreransvarsforsikring. Vi sikrer at hele kæden er dækket.",
+      },
+      {
+        q: "Kan jeg samle flere lastbiler på én forsikring?",
+        a: "Ja, og det kan ofte betale sig. En flådeaftale giver typisk både lavere præmie og mindre administration end enkeltpolicer — og et fælles overblik over skadeshistorikken. Vi hjælper med at vurdere om en flådeløsning passer jer.",
+      },
+    ],
+    related: ["flaadeforsikring", "fragtforeransvarsforsikring", "bilforsikring", "transportforsikring"],
+  },
+  {
+    slug: "boligselskabsforsikring",
+    title: "Boligselskabsforsikring",
+    navLabel: "Boligselskab",
+    letter: "B",
+    eyebrow: "Almene boliger",
+    metaDescription:
+      "Boligselskabsforsikring til almene boligorganisationer og boligselskaber. Bygning, bestyrelsesansvar, arbejdsskade og ledningsskade samlet i ét program — uvildig gennemgang på tværs af alle afdelinger.",
+    intro:
+      "Et alment boligselskab forvalter store værdier og mange menneskers hjem. Boligselskabsforsikring samler bygningsdækning, ansvar og de øvrige nødvendige forsikringer i ét program — og vi sikrer at det er gennemgået uvildigt på tværs af alle afdelinger.",
+    heroImage: IMG.boligselskab,
+    cvrLabel: "Få jeres boligselskabs forsikringer gennemgået",
+    introParagraphs: [
+      "Almene boligorganisationer og boligselskaber har en forsikringsmæssig kompleksitet, de færreste andre brancher kan måle sig med: mange afdelinger, store bygningsmasser, ansatte ejendomsfunktionærer og et samlet ansvar over for både beboere og myndigheder. Det stiller krav til et program der hænger sammen på tværs.",
+      "Som uvildig mægler gennemgår vi hele porteføljen — afdeling for afdeling — og sikrer at dækningssummer, vilkår og ansvar er på plads. Vi tager programmet i udbud og forhandler på selskabets vegne, så I får den rette dækning til den rigtige pris.",
+    ],
+    features: [
+      {
+        eyebrow: "Det typiske program",
+        title: "Hvad et boligselskab har brug for",
+        body: "Et alment boligselskab har et bredt forsikringsbehov, der rækker langt ud over selve bygningerne. Vi sammensætter et samlet program, så afdelingerne er ensartet dækket.",
+        bullets: [
+          { label: "Bygningsforsikring", body: "Brand, storm, skybrud, vand og indbrud på hele bygningsmassen." },
+          { label: "Skjulte rør og stikledninger", body: "Blandt de hyppigste og dyreste skader i ældre boligafdelinger." },
+          { label: "Bestyrelsesansvar", body: "Beskytter organisationsbestyrelse og afdelingsbestyrelser personligt." },
+          { label: "Arbejdsskadeforsikring", body: "Lovpligtig for ejendomsfunktionærer, viceværter og andet personale." },
+          { label: "Erhvervs- og produktansvar", body: "Dækker selskabets ansvar over for beboere og tredjemand." },
+          { label: "Retshjælp", body: "Dækker advokatomkostninger ved tvister." },
+        ],
+        image: IMG.boligselskab,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Den uvildige gennemgang",
+        title: "Fra spredte policer til samlet overblik",
+        body: "Mange boligselskaber har programmer der er vokset frem afdeling for afdeling over mange år — med overlap, huller og uensartede vilkår. En struktureret gennemgang skaber både tryghed og besparelser.",
+        bullets: [
+          { label: "1. Kortlægning på tværs", body: "Vi samler alle afdelingers policer og finder huller, overlap og underforsikring." },
+          { label: "2. Udbud til markedet", body: "Vi forhandler med flere selskaber på hele porteføljens vegne." },
+          { label: "3. Anbefaling til bestyrelsen", body: "Klar sammenligning og en samlet, ensartet løsning på tværs af afdelinger." },
+        ],
+        image: IMG.marion,
+        imageSide: "left",
+      },
+    ],
+    stats: [
+      { value: "10–25%", label: "typisk besparelse ved samlet udbud" },
+      { value: "Alle afdelinger", label: "samlet program med ensartede vilkår på tværs" },
+      { value: "1× årligt", label: "anbefalet gennemgang af programmet" },
+    ],
+    faq: [
+      {
+        q: "Hvad er forskellen på en boligselskabsforsikring og en foreningsforsikring?",
+        a: "Behovet ligner hinanden, men et alment boligselskab er typisk større og mere komplekst end en enkelt ejer- eller andelsboligforening — med mange afdelinger, ansatte og en organisationsstruktur, der stiller andre krav. Vi rådgiver begge typer, men tilpasser programmet til den konkrete struktur.",
+      },
+      {
+        q: "Skal hver afdeling have sin egen police?",
+        a: "Ikke nødvendigvis. Ofte er det en fordel at samle afdelingerne i ét fælles program med ensartede vilkår — det giver bedre overblik, lettere administration og typisk en stærkere forhandlingsposition. Vi vurderer den rette struktur for netop jeres selskab.",
+      },
+    ],
+    related: ["forsikring-andelsboligforening-ejerforening", "bygningsforsikring", "bestyrelsesansvarsforsikring"],
+  },
+  {
+    slug: "projektansvarsforsikring",
+    title: "Projektansvarsforsikring",
+    navLabel: "Projektansvar",
+    letter: "P",
+    eyebrow: "Byggeri",
+    metaDescription:
+      "Projektansvarsforsikring samler rådgivernes ansvar på ét byggeprojekt under én police efter ABR18. Den sikrer byggeriets økonomi og giver bygherren tryghed for at ansvaret er dækket.",
+    intro:
+      "På et byggeprojekt er der mange rådgivere — og dermed mange ansvarsforsikringer i spil. En projektansvarsforsikring samler rådgivernes ansvar for det enkelte projekt under én police, så byggeriets økonomi er sikret hvis der opstår fejl i projekteringen.",
+    heroImage: IMG.nordan27,
+    cvrLabel: "Få tilbud på projektansvarsforsikring til byggeriet",
+    introParagraphs: [
+      "Når en teknisk rådgiver påtager sig en opgave under ABR18, skal der som udgangspunkt være en sædvanlig professionel ansvarsforsikring i bund — medmindre der tegnes en projektansvarsforsikring for det konkrete byggeri. Projektansvarsforsikringen samler alle projektets rådgivere under én dækning, knyttet til netop dette projekt.",
+      "Fordelen er klarhed og tryghed: i stedet for at skulle forlade sig på den enkelte rådgivers egen police — og dennes ansvarsbegrænsning — har bygherren én samlet dækning at holde sig til. Vi rådgiver bygherrer, totalrådgivere og entreprenører om hvornår en projektansvarsforsikring giver mening, og hvordan den spiller sammen med aftalegrundlaget.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvorfor projektansvar",
+        title: "Én samlet dækning frem for mange spredte policer",
+        body: "På større og komplekse byggerier kan det være svært at overskue om hver enkelt rådgivers forsikring er tilstrækkelig. Projektansvarsforsikringen samler trådene — og er ofte et krav på de store sager.",
+        bullets: [
+          { label: "Samler rådgiverne", body: "Alle projektets tekniske rådgivere er dækket under én og samme police." },
+          { label: "Knyttet til projektet", body: "Dækningen følger byggeriet — ikke den enkelte virksomheds årspolice." },
+          { label: "Tryghed for bygherren", body: "Én klar dækning at holde sig til, hvis der opstår projekteringsfejl." },
+          { label: "Sammenhæng med ABR18", body: "Vi sikrer at forsikringssum og aftalens ansvarsbegrænsning spiller sammen." },
+        ],
+        image: IMG.nordan27,
+        imageSide: "right",
+      },
+      {
+        eyebrow: "Vigtigt at vide",
+        title: "Ansvarsbegrænsningen og forsikringssummen hænger sammen",
+        body: "Et centralt punkt under ABR18 er, at rådgiverens ansvarsbegrænsning kobles til forsikringssummen på projektansvarsforsikringen. Sættes summen forkert, kan det få direkte betydning for hvad der reelt er dækket.",
+        bullets: [
+          { label: "Uden projektansvarsforsikring", body: "Rådgiverens ansvar er efter ABR18 typisk begrænset til 2× honoraret, dog mindst 2,5 mio. kr." },
+          { label: "Med projektansvarsforsikring", body: "Ansvaret knyttes til forsikringssummen — som derfor skal fastsættes med omhu." },
+          { label: "Aftalt ansvarsbegrænsning", body: "Begrænsninger i rådgiveraftalen kan påvirke dækningen — vi gennemgår sammenhængen." },
+        ],
+        image: IMG.mandrup,
+        imageSide: "left",
+      },
+    ],
+    faq: [
+      {
+        q: "Hvad er forskellen på projektansvar og en almindelig rådgiveransvarsforsikring?",
+        a: "En rådgiveransvarsforsikring (professionel ansvar) er rådgiverens egen årspolice, der dækker alle dennes opgaver. En projektansvarsforsikring er tegnet specifikt til ét byggeprojekt og samler alle projektets rådgivere under én dækning — knyttet til netop det byggeri.",
+      },
+      {
+        q: "Hvem tegner projektansvarsforsikringen?",
+        a: "Det aftales i det konkrete projekt — ofte er det bygherren eller totalrådgiveren der står for den, så alle projektets rådgivere er dækket samlet. Vi hjælper med at få det placeret korrekt og afstemt med aftalegrundlaget under ABR18.",
+      },
+      {
+        q: "Dækker projektansvarsforsikringen også entreprenørens projekteringsfejl?",
+        a: "Det afhænger af projektets opbygning og policens vilkår. Entreprenørers egen projektering og rådgiveres udførelsesfejl er traditionelt svære at forsikre på standardvilkår — derfor er det vigtigt at få vurderet den konkrete risiko fra start. Det er præcis den type rådgivning vi tilbyder.",
+      },
+    ],
+    related: ["entrepriseforsikring", "professionel-ansvarsforsikring", "erhvervs-og-produktansvarsforsikring"],
+  },
+  {
+    slug: "flaadeforsikring",
+    title: "Flådeforsikring",
+    navLabel: "Flåde",
+    letter: "F",
+    eyebrow: "Køretøjer",
+    metaDescription:
+      "Flådeforsikring samler virksomhedens køretøjer under én aftale — biler, varebiler og lastbiler. Lavere administration, fælles selvrisiko og bedre overblik over skadeshistorikken.",
+    intro:
+      "Har virksomheden mere end en håndfuld køretøjer, er en flådeforsikring næsten altid den smarteste løsning. Den samler biler, varebiler og lastbiler under én aftale — med lavere administration, fælles vilkår og et samlet overblik over skader og pris.",
+    heroImage: IMG.flaade,
+    cvrLabel: "Få tilbud på jeres flådeforsikring",
+    introParagraphs: [
+      "I stedet for at jonglere med en police pr. køretøj samler en flådeforsikring hele vognparken i én aftale. Det giver mindre administration, ét fælles selvrisikoniveau og — ikke mindst — et samlet billede af skadeshistorikken, der er afgørende når præmien skal forhandles.",
+      "Vi gennemgår sammensætningen af jeres flåde, kørselsmønster og skadeshistorik og tager aftalen i udbud på markedet. For de fleste virksomheder med 5 køretøjer og op er der både tid og penge at spare ved at konsolidere.",
+    ],
+    features: [
+      {
+        eyebrow: "Hvorfor en flådeaftale",
+        title: "Ét overblik — frem for en bunke enkeltpolicer",
+        body: "Flådeforsikringen er bygget til virksomheder med flere køretøjer. Den samler dækningen og gør både administration og forhandling enklere.",
+        bullets: [
+          { label: "Alle køretøjstyper", body: "Personbiler, varebiler og lastbiler kan samles i én aftale." },
+          { label: "Fælles selvrisiko og vilkår", body: "Ensartede betingelser på tværs af hele flåden." },
+          { label: "Mindre administration", body: "Til- og afgang af køretøjer håndteres løbende uden nye policer." },
+          { label: "Samlet skadeshistorik", body: "Et samlet billede der styrker forhandlingen om præmien." },
+        ],
+        image: IMG.flaade,
+        imageSide: "right",
+      },
+    ],
+    stats: [
+      { value: "Fra 5 køretøjer", label: "typisk hvor en flådeaftale begynder at betale sig" },
+      { value: "Alle typer", label: "biler, varebiler og lastbiler i samme aftale" },
+      { value: "Én police", label: "i stedet for en pr. køretøj" },
+    ],
+    faq: [
+      {
+        q: "Hvor mange køretøjer skal jeg have for at få en flådeforsikring?",
+        a: "Typisk begynder en flådeaftale at give mening fra omkring 5 køretøjer. Jo større flåde, jo mere er der at hente — både i administration og præmie. Vi vurderer konkret om en flådeløsning er den rigtige for jer.",
+      },
+      {
+        q: "Kan jeg blande biler, varebiler og lastbiler i samme flåde?",
+        a: "Ja. En flådeaftale kan rumme forskellige køretøjstyper, og det er ofte netop dér gevinsten ligger — alt samlet ét sted med fælles vilkår og overblik. Tunge køretøjer med godsansvar tænkes naturligt ind i den samlede løsning.",
+      },
+      {
+        q: "Påvirker én stor skade hele flådens pris?",
+        a: "Fordi flåden vurderes samlet, indgår skadeshistorikken som helhed i prissætningen. Det betyder at en god, samlet historik kan give rabat — men også at flere skader påvirker prisen. Vi hjælper med at holde øje med udviklingen og forhandle ved fornyelsen.",
+      },
+    ],
+    related: ["bilforsikring", "lastbilforsikring", "transportforsikring"],
   },
 ];
 
