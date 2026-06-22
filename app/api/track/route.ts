@@ -62,6 +62,39 @@ function pickString(v: unknown): string | null {
   return trimmed.length === 0 ? null : trimmed;
 }
 
+const QSTASH_TOKEN = process.env.QSTASH_TOKEN;
+const CRON_SECRET = process.env.CRON_SECRET;
+const SITE_ORIGIN = process.env.SITE_ORIGIN ?? "https://nordanriskpartners.dk";
+// Grace period before an unfinished CVR flow is reported to Mads.
+const ABANDON_DELAY = "20m";
+
+/**
+ * Schedule a one-shot abandon check via QStash, ~20 min out. QStash calls our
+ * cron endpoint for this single session; if it's still unfinished by then,
+ * Mads gets the lead. Fire-and-forget: tracking must never fail because of it,
+ * and the daily Vercel cron is the backstop if this publish is lost.
+ */
+async function scheduleAbandonCheck(sessionId: string): Promise<void> {
+  if (!QSTASH_TOKEN || !CRON_SECRET) return;
+  const destination = `${SITE_ORIGIN}/api/cron/abandoned-leads?secret=${encodeURIComponent(
+    CRON_SECRET
+  )}&session=${encodeURIComponent(sessionId)}`;
+  try {
+    await fetch(`https://qstash.upstash.io/v2/publish/${destination}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${QSTASH_TOKEN}`,
+        "Upstash-Delay": ABANDON_DELAY,
+        // Collapse duplicate cvr_submitted events for the same session into a
+        // single scheduled message within the dedup window.
+        "Upstash-Deduplication-Id": `abandon-${sessionId}`,
+      },
+    });
+  } catch (err) {
+    console.warn("[track] QStash schedule failed (backstop cron will cover it):", err);
+  }
+}
+
 export async function POST(req: Request) {
   let body: TrackBody;
   try {
@@ -121,6 +154,11 @@ export async function POST(req: Request) {
   });
 
   await recordSessionEvent(sessionId, event, params);
+
+  // When a CVR is entered, arm the 20-minute abandon check for this session.
+  if (sessionId && cvr && stepFromEvent === "cvr_submitted") {
+    await scheduleAbandonCheck(sessionId);
+  }
 
   return NextResponse.json({ ok: true });
 }

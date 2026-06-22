@@ -1231,6 +1231,88 @@ export async function listUnifiedActivity(
   }
 }
 
+/**
+ * Find sessions that entered a CVR but never completed the flow (no signed
+ * fuldmagt) and haven't been reported to Mads yet.
+ *
+ * Selection rules:
+ *  - cvr IS NOT NULL — they got at least to "CVR indtastet"
+ *  - furthest_step <> 'completed' — they never signed
+ *  - created_at older than `minAgeMinutes` — give them time to finish first
+ *  - last_seen_at idle at least `idleMinutes` — don't ping a user mid-flow
+ *  - created within `maxAgeDays` — don't resurrect ancient sessions on first run
+ *  - NO prior `abandon_notified` event — dedupe, one mail per session ever
+ *
+ * The "already notified" check joins the events table so we don't need a
+ * schema migration — marking is just an appended event row.
+ */
+export async function listAbandonedSessionsToNotify(opts: {
+  minAgeMinutes?: number;
+  idleMinutes?: number;
+  maxAgeDays?: number;
+  limit?: number;
+} = {}): Promise<Session[]> {
+  const sql = getDb();
+  if (!sql) return [];
+  const minAge = opts.minAgeMinutes ?? 20;
+  const idle = opts.idleMinutes ?? 5;
+  const maxAgeDays = opts.maxAgeDays ?? 30;
+  const limit = opts.limit ?? 50;
+  try {
+    return (await sql`
+      SELECT s.* FROM sessions s
+      WHERE s.cvr IS NOT NULL
+        AND s.furthest_step <> 'completed'
+        AND s.created_at <= NOW() - (${minAge} * INTERVAL '1 minute')
+        AND s.last_seen_at <= NOW() - (${idle} * INTERVAL '1 minute')
+        AND s.created_at >= NOW() - (${maxAgeDays} * INTERVAL '1 day')
+        AND NOT EXISTS (
+          SELECT 1 FROM events e
+          WHERE e.session_id = s.id AND e.type = 'abandon_notified'
+        )
+      ORDER BY s.last_seen_at DESC
+      LIMIT ${limit}
+    `) as Session[];
+  } catch (err) {
+    console.error("[db] listAbandonedSessionsToNotify failed:", err);
+    return [];
+  }
+}
+
+/**
+ * Single-session variant of the abandon check — used by the QStash callback
+ * which targets one specific session 20 minutes after its CVR was entered.
+ * Returns the session only if it still qualifies (CVR present, not completed,
+ * idle, and not already notified); otherwise null (completed / already
+ * reported / still active → no-op).
+ */
+export async function getAbandonableSession(
+  id: string,
+  opts: { idleMinutes?: number } = {}
+): Promise<Session | null> {
+  const sql = getDb();
+  if (!sql) return null;
+  const idle = opts.idleMinutes ?? 5;
+  try {
+    const rows = (await sql`
+      SELECT s.* FROM sessions s
+      WHERE s.id = ${id}
+        AND s.cvr IS NOT NULL
+        AND s.furthest_step <> 'completed'
+        AND s.last_seen_at <= NOW() - (${idle} * INTERVAL '1 minute')
+        AND NOT EXISTS (
+          SELECT 1 FROM events e
+          WHERE e.session_id = s.id AND e.type = 'abandon_notified'
+        )
+      LIMIT 1
+    `) as Session[];
+    return rows[0] ?? null;
+  } catch (err) {
+    console.error("[db] getAbandonableSession failed:", err);
+    return null;
+  }
+}
+
 export async function listRecentSessions(since: Date, limit = 50): Promise<Session[]> {
   const sql = getDb();
   if (!sql) return [];
