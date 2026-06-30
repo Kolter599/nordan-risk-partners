@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { JobForm } from "./JobForm";
 import { breadcrumbJsonLd, pageOpenGraph, pageTwitter, SITE_URL } from "@/lib/seo";
+
+const APPLY_EMAIL = "mh@ndrp.dk";
+const APPLY_MAILTO =
+  "mailto:mh@ndrp.dk" +
+  "?subject=" + encodeURIComponent("Ansøgning — Sælger / mødebooker") +
+  "&body=" + encodeURIComponent(
+    "Hej Mads,\n\nJeg vil gerne høre nærmere om stillingen som sælger / mødebooker.\n\nLidt om mig:\n\n\nMvh\n"
+  );
 
 const JOB_TITLE = "Sælger / mødebooker hos Nordan Risk Partners — provision, du sætter selv loftet";
 const JOB_DESC =
@@ -244,25 +251,24 @@ export default function JobPage() {
 
       {/* ANSØG */}
       <section id="ansoeg" className="py-16 sm:py-20 md:py-24 bg-[color:var(--color-nordan-dark)] text-white scroll-mt-24">
-        <div className="mx-auto max-w-[1100px] px-5 sm:px-6 md:px-10 grid md:grid-cols-12 gap-10 md:gap-16 items-start">
-          <div className="md:col-span-5">
-            <div className="eyebrow !text-[color:var(--color-nordan-accent-soft)] mb-4">Send en ansøgning</div>
-            <h2 className="display-lg mb-5">Lyder det som dig?</h2>
-            <p className="text-white/85 leading-relaxed">
-              Du behøver ikke en fancy ansøgning. Et par linjer om, hvem du er, og hvorfor det
-              fanger dig, er rigeligt til at vi kan tage en snak. Vi læser den selv — og vi vender
-              tilbage, uanset hvad.
-            </p>
-            <p className="mt-6 text-white/85 leading-relaxed">
-              Hellere ringe? Tag fat i Mads på{" "}
-              <a href="tel:+4531334936" className="underline">+45 31 33 49 36</a>.
-            </p>
+        <div className="mx-auto max-w-[820px] px-5 sm:px-6 md:px-10 text-center">
+          <div className="eyebrow !text-[color:var(--color-nordan-accent-soft)] mb-4">Sådan søger du</div>
+          <h2 className="display-lg mb-5">Lyder det som dig?</h2>
+          <p className="text-white/85 leading-relaxed max-w-[640px] mx-auto">
+            Du behøver ikke en fancy ansøgning. Send et par linjer om, hvem du er, og hvorfor det
+            fanger dig — har du et CV eller en LinkedIn, så smid det med. Vi læser hver eneste mail
+            selv og vender tilbage, uanset hvad.
+          </p>
+
+          <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
+            <a href={APPLY_MAILTO} className="btn-accent">Send ansøgning til {APPLY_EMAIL}</a>
+            <a href="tel:+4531334936" className="btn-ghost-light">Ring til Mads · +45 31 33 49 36</a>
           </div>
-          <div className="md:col-span-7">
-            <div className="bg-white text-[color:var(--color-nordan-ink)] rounded-sm p-6 sm:p-8 md:p-10">
-              <JobForm />
-            </div>
-          </div>
+
+          <p className="mt-7 text-white/65 text-[0.92rem] leading-relaxed">
+            Skriv til <a href={`mailto:${APPLY_EMAIL}`} className="underline">{APPLY_EMAIL}</a> —
+            eller ring til Mads, hvis du bare har et spørgsmål, før du sender noget.
+          </p>
         </div>
       </section>
     </>
