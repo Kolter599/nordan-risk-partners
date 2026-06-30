@@ -57,6 +57,7 @@ export function Footer() {
             <li><Link href="/om-os" className="hover:text-[color:var(--color-nordan-accent-soft)]">Om os</Link></li>
             <li><Link href="/hvorfor-forsikringsmaegler" className="hover:text-[color:var(--color-nordan-accent-soft)]">Hvorfor mægler?</Link></li>
             <li><Link href="/saadan-arbejder-vi" className="hover:text-[color:var(--color-nordan-accent-soft)]">Sådan arbejder vi</Link></li>
+            <li><Link href="/job" className="hover:text-[color:var(--color-nordan-accent-soft)]">Job</Link></li>
             <li><Link href="/kontakt-os" className="hover:text-[color:var(--color-nordan-accent-soft)]">Kontakt</Link></li>
             <li className="pt-2">
               <a
