@@ -119,19 +119,19 @@ export default function JobPage() {
 
           <div className="md:col-span-5">
             <div className="md:sticky md:top-28">
-              <figure className="relative w-full aspect-[4/5] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+              <figure className="relative w-full aspect-[2/3] overflow-hidden rounded-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                 <Image
-                  src="/images/hero-founders-wide.jpg"
-                  alt="Kontoret hos Nordan Risk Partners i Allerød"
+                  src="/images/founders-vertical.jpg"
+                  alt="Mads Horvitz Larsen og Leo Julsgaard — stifterne af Nordan Risk Partners"
                   fill
                   priority
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 100vw, 40vw"
-                  quality={90}
+                  quality={95}
                 />
               </figure>
               <figcaption className="mt-4 text-[0.82rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)]">
-                Toftevej 15B · 3450 Allerød
+                Mads &amp; Leo · Toftevej 15B, 3450 Allerød
               </figcaption>
             </div>
           </div>
