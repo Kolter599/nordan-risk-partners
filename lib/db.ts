@@ -144,6 +144,27 @@ export async function upsertLead(input: UpsertLeadInput): Promise<string | null>
   }
 }
 
+/**
+ * Persist the signed fuldmagt PDF URL onto a lead's payload. Non-destructive:
+ * merges into existing payload with jsonb `||` so no other columns are touched.
+ */
+export async function attachFuldmagtUrl(
+  leadId: string | null,
+  url: string
+): Promise<void> {
+  const sql = getDb();
+  if (!sql || !leadId) return;
+  try {
+    await sql`
+      UPDATE leads
+      SET payload = COALESCE(payload, '{}'::jsonb) || ${JSON.stringify({ fuldmagtUrl: url })}::jsonb
+      WHERE id = ${leadId}
+    `;
+  } catch (err) {
+    console.error("[db] attachFuldmagtUrl failed:", err);
+  }
+}
+
 export async function recordEvent(
   leadId: string | null,
   type: string,

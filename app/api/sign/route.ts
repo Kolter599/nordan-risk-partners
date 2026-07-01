@@ -11,7 +11,7 @@ import {
   emailKvTable,
   EMAIL_COLORS,
 } from "@/lib/email-template";
-import { upsertLead, recordEvent } from "@/lib/db";
+import { upsertLead, recordEvent, attachFuldmagtUrl } from "@/lib/db";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
@@ -156,6 +156,9 @@ export async function POST(req: Request) {
         contentType: "application/pdf",
       });
       blobUrl = blob.url;
+      // Persist the PDF link on the lead so it's downloadable from /admin —
+      // even when the person never completes the follow-up analyse step.
+      await attachFuldmagtUrl(leadId, blobUrl);
     } catch (err) {
       console.error("[sign] Blob upload failed:", err);
     }

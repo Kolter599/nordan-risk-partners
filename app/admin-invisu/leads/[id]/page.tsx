@@ -1,9 +1,38 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { list } from "@vercel/blob";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getLead, getLeadAttribution, listEventsForLead, type LeadAttribution } from "@/lib/db";
+import { getLead, getLeadAttribution, listEventsForLead, type Lead, type LeadAttribution } from "@/lib/db";
 import { LeadStatusForm } from "./LeadStatusForm";
+
+/**
+ * Find the signed fuldmagt PDF for a lead so admins can download it.
+ *   1. payload.fuldmagtUrl — written by /api/sign for every new signing.
+ *   2. payload.signedFuldmagt.blobUrl — legacy shape from the analyse flow.
+ *   3. Blob fallback — for signings from before the URL was persisted: the
+ *      PDF still lives in Blob under fuldmagter/{cvr}-{...}-{auditId8}.pdf.
+ */
+async function resolveFuldmagtUrl(lead: Lead): Promise<string | null> {
+  const payload = lead.payload ?? {};
+  const direct = payload.fuldmagtUrl;
+  if (typeof direct === "string" && direct.startsWith("http")) return direct;
+  const legacy = (payload.signedFuldmagt as { blobUrl?: unknown } | undefined)?.blobUrl;
+  if (typeof legacy === "string" && legacy.startsWith("http")) return legacy;
+
+  // Fallback: look it up in Blob storage by CVR + audit-id.
+  if (!process.env.BLOB_READ_WRITE_TOKEN || !lead.audit_id || !lead.cvr) return null;
+  try {
+    const cvrSlug = lead.cvr.replace(/\D/g, "");
+    const { blobs } = await list({ prefix: `fuldmagter/${cvrSlug}-` });
+    const auditFragment = lead.audit_id.slice(0, 8);
+    const match = blobs.find((b) => b.pathname.includes(auditFragment)) ?? blobs[0];
+    return match?.url ?? null;
+  } catch (err) {
+    console.error("[admin] resolveFuldmagtUrl blob lookup failed:", err);
+    return null;
+  }
+}
 
 export const metadata: Metadata = {
   title: "Admin · Lead detail",
@@ -21,9 +50,10 @@ export default async function LeadDetailPage({
   const { id } = await params;
   const lead = await getLead(id);
   if (!lead) notFound();
-  const [events, attribution] = await Promise.all([
+  const [events, attribution, fuldmagtUrl] = await Promise.all([
     listEventsForLead(id),
     getLeadAttribution(lead),
+    resolveFuldmagtUrl(lead),
   ]);
 
   const formatted = new Date(lead.created_at).toLocaleString("da-DK", {
@@ -59,6 +89,38 @@ export default async function LeadDetailPage({
             <KV label="Sidst opdateret" value={new Date(lead.updated_at).toLocaleString("da-DK", { dateStyle: "short", timeStyle: "short" })} />
           </dl>
         </div>
+
+        {fuldmagtUrl ? (
+          <div className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] p-7 mb-5">
+            <h2 className="text-[0.72rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-4">
+              Underskrevet fuldmagt
+            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={fuldmagtUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[6px] bg-[color:var(--color-nordan-accent)] text-white text-[0.88rem] font-semibold hover:bg-[#8f715f] transition-colors"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download PDF
+              </a>
+              <a
+                href={fuldmagtUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[0.85rem] text-[color:var(--color-nordan-muted)] hover:text-[color:var(--color-nordan-accent)] break-all"
+              >
+                Åbn i ny fane
+              </a>
+            </div>
+          </div>
+        ) : null}
 
         <div className="bg-white rounded-[10px] border border-[color:var(--color-nordan-line)] p-7 mb-5">
           <h2 className="text-[0.72rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-muted)] mb-4">
