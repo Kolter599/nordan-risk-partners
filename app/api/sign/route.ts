@@ -16,6 +16,8 @@ import { upsertLead, recordEvent } from "@/lib/db";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? "info@ndrp.dk";
+// CC på den interne fuldmagts-mail, så leads også lander hos bureauet. Overstyres med env.
+const LEAD_CC_EMAIL = process.env.LEAD_CC_EMAIL ?? "sebastian@invisu.dk";
 
 type AttributionTouch = {
   source?: string | null;
@@ -207,6 +209,7 @@ export async function POST(req: Request) {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: TO_EMAIL,
+        cc: LEAD_CC_EMAIL,
         replyTo: signer.email,
         subject: `Underskrevet fuldmagt · ${signer.companyName} (CVR ${signer.cvr})`,
         html: internalHtml,
