@@ -104,11 +104,12 @@ export default function JobPage() {
               <p>
                 Helt konkret: du ringer til virksomheder og booker møder til Mads og Leo,
                 som så tager den faglige snak. Du skal ikke kunne noget om forsikring fra dag
-                ét — det lærer du hos os. Du skal kunne lide telefonen og ikke gå i sort af et nej.
+                ét — det lærer du hos os. Du skal være god til at have folk i røret og ikke gå
+                i sort af et nej.
               </p>
               <p>
-                Lønnen er provision. Det betyder, at <strong>du selv bestemmer dit lønloft</strong> —
-                der er ingen øvre grænse. Booker du mange møder, tjener du derefter.
+                Lønnen er provisionsbaseret, hvilket vil sige, at <strong>du selv bestemmer dit
+                lønloft</strong> — der er ingen øvre grænse. Booker du mange møder, tjener du derefter.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -142,10 +143,10 @@ export default function JobPage() {
       <section className="border-y border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]">
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6 md:px-10 py-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            ["Løn", "Provision — intet loft"],
+            ["Løn", "Provisionsbaseret — intet loft"],
             ["Hvor", "På kontoret i Allerød"],
             ["Tid", "Fuldtid eller deltid"],
-            ["Krav", "Lyst til telefonen"],
+            ["Krav", "God i telefonen"],
           ].map(([k, v]) => (
             <div key={k}>
               <div className="eyebrow mb-1">{k}</div>
