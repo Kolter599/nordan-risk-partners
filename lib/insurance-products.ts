@@ -1007,6 +1007,24 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
         imageSide: "right",
       },
     ],
+    faq: [
+      {
+        q: "Hvem har ansvaret for varer under transport?",
+        a: "Det afhænger af aftalevilkårene — typisk defineret via Incoterms — og kan ligge hos afsender, transportør eller modtager. En transportforsikring fjerner usikkerheden, så I er dækket uanset hvor i kæden skaden opstår.",
+      },
+      {
+        q: "Dækker transportforsikringen både vej, sø og luft?",
+        a: "Ja. En transportforsikring kan dække hele rejsen på tværs af transportformer — ad vej, sø og luft — så der ikke opstår huller i dækningen, når godset skifter transportmiddel.",
+      },
+      {
+        q: "Hvad er forskellen på all risks og named perils?",
+        a: "All risks er den bredeste dækning og omfatter alle pludselige skader under transport. Named perils dækker kun specifikt nævnte risici og er typisk billigere, men efterlader flere undtagelser. Vi hjælper med at vælge det rette niveau.",
+      },
+      {
+        q: "Skal vi vælge enkeltrejse eller en løbende aftale?",
+        a: "Sender I gods løbende, giver en åben aftale (open cover) automatisk dækning af alle transporter. Ved enkeltstående forsendelser af højværdivarer kan en enkeltrejsepolice (single transit) være mere oplagt. Vi sammensætter den løsning, der passer til jeres transportflow.",
+      },
+    ],
     related: ["bilforsikring"],
   },
   {

@@ -11,6 +11,7 @@ const STATIC_ROUTES: { path: string; priority: number; changefreq: MetadataRoute
   { path: "/hvorfor-forsikringsmaegler", priority: 0.8, changefreq: "monthly" },
   { path: "/saadan-arbejder-vi", priority: 0.8, changefreq: "monthly" },
   { path: "/erhvervsforsikringer", priority: 0.85, changefreq: "weekly" },
+  { path: "/artikler", priority: 0.8, changefreq: "weekly" },
   { path: "/kontakt-os", priority: 0.9, changefreq: "monthly" },
   { path: "/job", priority: 0.7, changefreq: "monthly" },
   { path: "/tilbud/hole-in-one", priority: 0.7, changefreq: "monthly" },

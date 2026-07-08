@@ -31,16 +31,11 @@ export async function generateMetadata({
     description: article.metaDescription,
     alternates: { canonical: path },
     authors: [{ name: article.author }],
-    keywords: [
-      "forsikring fredede ejendomme",
-      "fredet ejendom forsikring",
-      "præmiestigning fredede bygninger",
-      "forsikringsmægler fredede ejendomme",
-      "forsikring fredet bygning afslag",
-      "fredet bygning forsikringssum",
-      "Slots- og Kulturstyrelsen forsikring",
-      "Historiske Huse forsikring",
-      "førsterisikoforsikring fredet ejendom",
+    keywords: article.keywords ?? [
+      "forsikringsmægler",
+      "erhvervsforsikring",
+      "uafhængig forsikringsmægler",
+      "uvildig rådgivning forsikring",
       "Nordan Risk Partners",
     ],
     openGraph: {
@@ -54,13 +49,7 @@ export async function generateMetadata({
       modifiedTime: article.publishedAt,
       authors: [article.author],
       section: "Forsikring",
-      tags: [
-        "fredede ejendomme",
-        "forsikring",
-        "forsikringsmægler",
-        "præmiestigning",
-        "kulturarv",
-      ],
+      tags: article.ogTags ?? ["forsikring", "forsikringsmægler", "erhvervsforsikring"],
       images: [
         {
           url: ogImageUrl,
@@ -156,11 +145,10 @@ export default async function ArticlePage({
       "@type": "WebPage",
       "@id": `${SITE_URL}/artikler/${article.slug}`,
     },
-    about: [
-      { "@type": "Thing", name: "Forsikring af fredede ejendomme" },
-      { "@type": "Thing", name: "Forsikringsmægler" },
-      { "@type": "Thing", name: "Bevaringsværdige bygninger" },
-    ],
+    about: (article.aboutTopics ?? ["Erhvervsforsikring", "Forsikringsmægler"]).map((name) => ({
+      "@type": "Thing",
+      name,
+    })),
   };
 
   const breadcrumbs = breadcrumbJsonLd([
@@ -299,6 +287,38 @@ export default async function ArticlePage({
                 </ScrollToCta>
               </div>
             </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Related internal links — distributes link equity to core pages
+          and gives readers a relevant next step. */}
+      {article.relatedLinks && article.relatedLinks.length > 0 ? (
+        <section className="py-12 sm:py-14 bg-white border-t border-[color:var(--color-nordan-line)]">
+          <div className="mx-auto max-w-[760px] px-5 sm:px-6 md:px-10">
+            <div className="text-[0.7rem] uppercase tracking-[0.18em] font-semibold text-[color:var(--color-nordan-accent)] mb-4">
+              Læs også
+            </div>
+            <ul className="grid sm:grid-cols-2 gap-3">
+              {article.relatedLinks.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="group flex items-center justify-between gap-3 p-4 bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)] rounded-[8px] hover:border-[color:var(--color-nordan-accent)] transition-colors"
+                  >
+                    <span className="text-[0.95rem] font-semibold text-[color:var(--color-nordan-ink)]">
+                      {l.label}
+                    </span>
+                    <span
+                      className="text-[color:var(--color-nordan-accent)] transition-transform group-hover:translate-x-0.5"
+                      aria-hidden
+                    >
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       ) : null}
