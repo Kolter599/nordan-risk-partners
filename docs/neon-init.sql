@@ -154,3 +154,20 @@ create trigger leads_touch
 
 -- Neon connection uses DATABASE_URL with full credentials. We never expose
 -- a public-facing client to the DB, so RLS isn't necessary.
+
+-- ----------------------------------------------------------------------------
+-- Frafaldne CVR-flows som rigtige leads.
+-- Indtastet CVR og/eller kontaktoplysninger, men ingen underskrevet fuldmagt.
+-- Egen kilde, så de ikke blandes sammen med de leads der faktisk gennemførte.
+-- ----------------------------------------------------------------------------
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typname = 'lead_source' and e.enumlabel = 'frafald'
+  ) then
+    alter type lead_source add value 'frafald';
+  end if;
+end $$;

@@ -13,6 +13,7 @@ import {
   type AttributionRow,
   type UnifiedActivityGroup,
 } from "@/lib/db";
+import { isPlaceholderEmail } from "@/lib/abandoned-lead";
 
 export const metadata: Metadata = {
   title: "Admin · Leads",
@@ -27,6 +28,7 @@ const SOURCE_LABELS: Record<string, string> = {
   analyse: "/analyse",
   hole_in_one: "Hole-in-one",
   sign: "Signering",
+  frafald: "Frafald (uden fuldmagt)",
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -476,7 +478,10 @@ function ActivityCard({ group }: { group: UnifiedActivityGroup }) {
                       <span className="font-mono text-[0.74rem] text-[color:var(--color-nordan-muted)] shrink-0">
                         {date}
                       </span>
-                      <span className="font-medium">{lead.name ?? lead.email}</span>
+                      <span className="font-medium">
+                        {lead.name ??
+                          (isPlaceholderEmail(lead.email) ? "Kun CVR" : lead.email)}
+                      </span>
                       <span className="text-[0.72rem] text-[color:var(--color-nordan-muted)]">
                         · {SOURCE_LABELS[lead.source] ?? lead.source}
                       </span>

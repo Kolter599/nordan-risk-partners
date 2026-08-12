@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { list } from "@vercel/blob";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getLead, getLeadAttribution, listEventsForLead, type Lead, type LeadAttribution } from "@/lib/db";
+import { isPlaceholderEmail } from "@/lib/abandoned-lead";
 import { LeadStatusForm } from "./LeadStatusForm";
 
 /**
@@ -83,7 +84,20 @@ export default async function LeadDetailPage({
           </div>
 
           <dl className="grid sm:grid-cols-2 gap-4 text-[0.92rem]">
-            <KV label="E-mail" value={<a href={`mailto:${lead.email}`} className="text-[color:var(--color-nordan-accent)]">{lead.email}</a>} />
+            <KV
+              label="E-mail"
+              value={
+                isPlaceholderEmail(lead.email) ? (
+                  <span className="text-[color:var(--color-nordan-muted)]">
+                    — ingen oplyst (kun CVR)
+                  </span>
+                ) : (
+                  <a href={`mailto:${lead.email}`} className="text-[color:var(--color-nordan-accent)]">
+                    {lead.email}
+                  </a>
+                )
+              }
+            />
             <KV label="Telefon" value={lead.phone ? <a href={`tel:${lead.phone}`} className="text-[color:var(--color-nordan-accent)]">{lead.phone}</a> : "—"} />
             <KV label="Audit-ID" value={lead.audit_id ? <span className="font-mono text-[0.82rem]">{lead.audit_id}</span> : "—"} />
             <KV label="Sidst opdateret" value={new Date(lead.updated_at).toLocaleString("da-DK", { dateStyle: "short", timeStyle: "short" })} />

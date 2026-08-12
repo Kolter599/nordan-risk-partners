@@ -155,8 +155,12 @@ export async function POST(req: Request) {
 
   await recordSessionEvent(sessionId, event, params);
 
-  // When a CVR is entered, arm the 20-minute abandon check for this session.
-  if (sessionId && cvr && stepFromEvent === "cvr_submitted") {
+  // Arm the 20-minute abandon check as soon as there's something to follow up
+  // on: a CVR (we can call the company) or contact details (we can call them).
+  const armsAbandonCheck =
+    (cvr && stepFromEvent === "cvr_submitted") ||
+    ((contactEmail || contactPhone) && event === "cvr_contact_submitted");
+  if (sessionId && armsAbandonCheck) {
     await scheduleAbandonCheck(sessionId);
   }
 

@@ -28,6 +28,8 @@ type CvrApiResponse = {
   city?: string;
   industrydesc?: string;
   employees?: string;
+  phone?: string | number;
+  email?: string;
   error?: string;
 };
 
@@ -71,6 +73,10 @@ export async function GET(req: Request) {
         address: [data.address, data.zipcode, data.city].filter(Boolean).join(", ") || null,
         industry: data.industrydesc ?? null,
         employees: data.employees ?? null,
+        // Offentligt registrerede kontaktoplysninger. Bruges af frafalds-cron'en
+        // til at kunne ringe til virksomheder der kun nåede at taste CVR.
+        phone: data.phone ? String(data.phone) : null,
+        email: data.email ?? null,
       },
     });
   } catch (err) {
