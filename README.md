@@ -56,3 +56,33 @@ Farver udtrukket fra live Squarespace CSS:
 Font: Montserrat (body + headings), 300/400/500/600/700.
 
 Logo: `public/images/logo.png` (hentet fra live site).
+
+## Sitemap-datoer
+
+Sitemap'ets `<lastmod>` kommer fra `lib/lastmod.ts`, som er **genereret og committet** —
+ikke beregnet under build. Det er hele pointen: et `lastmod` der altid er "i dag" er
+præcis det signal Google lærer at ignorere.
+
+```bash
+npm run lastmod            # skriv de nye datoer
+npm run lastmod -- --check # se kun hvad der ville ændre sig (exit 1 ved diff)
+```
+
+Kommandoen aflæser git-historikken. Reglen er at en side kun får ny dato når dens eget
+indhold er ændret:
+
+| Sidetype | Hvad datoen aflæses fra |
+|---|---|
+| Statiske sider | Filerne i sidens egen `app/`-mappe |
+| Produktsider | Den enkelte entry i `lib/insurance-products.ts` (`git blame` pr. linjeinterval) |
+| Artikler | Den enkelte entry i `lib/articles.ts`, aldrig tidligere end `publishedAt` |
+| Hub-sider | Egen mappe eller nyeste barn — det nyeste vinder |
+
+Delte ting er bevidst udeladt: `app/_components/`, `app/layout.tsx` og `lib/seo.ts`.
+Retter du navigationen eller en farve, har undersiden ikke ændret indhold, og så skal
+Google ikke have besked. Produkter og artikler dateres pr. entry, så en rettelse i én
+produkttekst kun rykker den ene side — ikke alle 29.
+
+Glemmer du at køre kommandoen, sker der ingen skade: datoen bliver stående på den
+forrige. En rute der mangler i kortet får slet ingen `<lastmod>` — ingen oplysning er
+bedre end en forkert.
