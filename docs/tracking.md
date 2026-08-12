@@ -71,9 +71,18 @@ Tre indgange, samme dedup (`abandoned_lead_created` pr. session):
 
 | Indgang | Hvornår | Kræver |
 |---|---|---|
-| `?session=<id>` | ~20 min efter CVR/kontakt via QStash | `QSTASH_TOKEN` + `CRON_SECRET` |
-| ingen parametre | dagligt kl. 07:00 (Vercel-cron), backstop | — |
+| ingen parametre | hvert 10. minut 06–22 via GCP Cloud Scheduler (`nordan-frafaldne-leads`) | `CRON_SECRET` |
+| ingen parametre | dagligt kl. 07:00 (Vercel-cron), backstop hvis Scheduler fejler | — |
+| `?session=<id>` | manuelt, ét enkelt frafald | `CRON_SECRET` |
 | `?backfill=1` | manuelt, ét års horisont | `CRON_SECRET` |
+
+Cloud Scheduler frem for en delay-kø: du kører den i forvejen (vejr-automatikken
+for Profil Markiser), så det er ingen ny leverandør og intet nyt login. En scanning
+hvert 10. minut er desuden enklere end at planlægge en besked pr. session — der er
+ingen planlagte beskeder der kan gå tabt, og ingen dedup af dem.
+
+Vercel Hobby kan kun køre cron dagligt og højst to jobs, så planlægningen kan ikke
+ligge der.
 
 `?dry=1` viser hvem der ville blive sendt uden at sende eller markere noget.
 

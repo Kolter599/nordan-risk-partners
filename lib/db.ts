@@ -1332,8 +1332,8 @@ export async function listAbandonedSessionsToNotify(opts: {
 }
 
 /**
- * Enkelt-session-varianten af frafaldstjekket — bruges af QStash-callbacket,
- * der rammer én bestemt session 20 minutter efter CVR blev indtastet.
+ * Enkelt-session-varianten af frafaldstjekket — et manuelt værktøj til at sende
+ * ét bestemt frafald videre uden at røre resten (via ?session=<id>).
  * Returnerer kun sessionen hvis den stadig kvalificerer (CVR eller kontaktinfo,
  * ikke gennemført, inaktiv og ikke allerede sendt videre); ellers null
  * (gennemført / allerede sendt / stadig aktiv → no-op).

@@ -43,14 +43,16 @@ const BACKFILL_MAX_AGE_DAYS = 365;
  *
  * Tre indgange, samme dedup (`abandoned_lead_created`-event pr. session):
  *
- *  - ?session=<id> — QStash-callback ~20 min efter CVR blev indtastet.
- *    Tjekker kun den ene session (primær vej, hurtig).
- *  - uden parametre — fuld scanning af alle frafaldne, ikke-sendte sessions.
- *    Kører dagligt som Vercel-cron, så intet går tabt hvis QStash fejler.
+ *  - uden parametre — scanning af alle frafaldne, ikke-sendte sessions.
+ *    Kaldes af Cloud Scheduler hvert 10. minut (job: nordan-frafaldne-leads),
+ *    så et frafald bliver til et lead inden for ca. et kvarter. Vercels
+ *    daglige cron kl. 07:00 er backstop hvis Scheduler skulle fejle.
+ *  - ?session=<id> — behandler én bestemt session. Manuelt værktøj til at
+ *    sende et enkelt frafald videre uden at røre resten.
  *  - ?backfill=1 — samme scanning, men med et års horisont og uden loft,
- *    til at hente efterslæbet ind én gang.
+ *    til at hente et efterslæb ind én gang.
  *
- * Auth: Vercel-cron-header ELLER ?secret=CRON_SECRET (QStash / manuelt).
+ * Auth: Vercel-cron-header ELLER ?secret=CRON_SECRET (Scheduler / manuelt).
  * Brug ?dry=1 til at se hvad der ville ske uden at sende eller markere noget.
  */
 export async function GET(req: Request) {
@@ -73,7 +75,7 @@ export async function GET(req: Request) {
     });
   }
 
-  // Enkelt session (QStash-callback) vs. fuld scanning (dagligt cron / backfill).
+  // Enkelt session (manuelt) vs. fuld scanning (Scheduler / dagligt cron / backfill).
   const sessions = sessionId
     ? await (async () => {
         const s = await getAbandonableSession(sessionId, { idleMinutes: IDLE_MINUTES });
@@ -129,8 +131,8 @@ export async function GET(req: Request) {
     }
   }
 
-  // 5xx ved delvis fejl, så QStash prøver igen. De der lykkedes er allerede
-  // markeret, så et gensend rammer kun dem der fejlede.
+  // 5xx når alt fejlede, så det er synligt i Schedulers logs. De der lykkedes
+  // er allerede markeret, så næste kørsel rammer kun dem der fejlede.
   const status = failed.length > 0 && created.length === 0 ? 500 : 200;
   return NextResponse.json(
     { ok: failed.length === 0, mode, created: created.length, companies: created, failed },
