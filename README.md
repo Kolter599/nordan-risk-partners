@@ -63,9 +63,13 @@ Sitemap'ets `<lastmod>` kommer fra `lib/lastmod.ts`, som er **genereret og commi
 ikke beregnet under build. Det er hele pointen: et `lastmod` der altid er "i dag" er
 præcis det signal Google lærer at ignorere.
 
+Det sker **automatisk**: en GitHub Action kører ved hvert push til main, aflæser
+historikken og committer datoerne tilbage — men kun hvis de faktisk har flyttet sig.
+Du skal ikke huske noget.
+
 ```bash
-npm run lastmod            # skriv de nye datoer
-npm run lastmod -- --check # se kun hvad der ville ændre sig (exit 1 ved diff)
+npm run lastmod            # kan køres i hånden, hvis du vil se resultatet med det samme
+npm run lastmod -- --check # se kun hvad der ville ændre sig
 ```
 
 Kommandoen aflæser git-historikken. Reglen er at en side kun får ny dato når dens eget
