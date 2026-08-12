@@ -87,10 +87,11 @@ export function entryRanges(source, arrayDeclaration) {
   if (declIndex === -1) {
     throw new Error(`Kunne ikke finde "${arrayDeclaration}" — er filen omdøbt?`);
   }
-  // Find "= [" og ikke det første "[" — ellers rammer vi typeannotationen
-  // (`InsuranceProduct[]`) og ser et tomt array.
-  const assignment = /=\s*\[/.exec(source.slice(declIndex));
-  if (!assignment) throw new Error(`Ingen "= [" efter ${arrayDeclaration}`);
+  // Find "= [" eller "= {" — ikke det første "[", ellers rammer vi
+  // typeannotationen (`InsuranceProduct[]`) og ser en tom beholder.
+  // Begge former forekommer: et array af objekter, eller et Record kect på slug.
+  const assignment = /=\s*[[{]/.exec(source.slice(declIndex));
+  if (!assignment) throw new Error(`Ingen "= [" eller "= {" efter ${arrayDeclaration}`);
   const openIndex = declIndex + assignment.index + assignment[0].length - 1;
 
   // Linjenummer for et vilkårligt offset.
@@ -110,8 +111,9 @@ export function entryRanges(source, arrayDeclaration) {
   };
 
   const ranges = [];
-  let depth = 0; // klammedybde inde i arrayet
-  let bracket = 1; // vi står lige efter "["
+  // depth 0 = direkte inde i beholderen. Et "{" på depth 0 starter en entry;
+  // en lukkeklamme på depth 0 er beholderens egen og afslutter scanningen.
+  let depth = 0;
   let entryStart = null;
   let mode = "code"; // code | line-comment | block-comment | " | ' | `
 
@@ -151,16 +153,13 @@ export function entryRanges(source, arrayDeclaration) {
       continue;
     }
 
-    if (ch === "[") bracket++;
-    else if (ch === "]") {
-      bracket--;
-      if (bracket === 0) break; // arrayet er slut
-    } else if (ch === "{") {
-      if (depth === 0 && bracket === 1) entryStart = i;
+    if (ch === "{" || ch === "[") {
+      if (depth === 0 && ch === "{") entryStart = i;
       depth++;
-    } else if (ch === "}") {
+    } else if (ch === "}" || ch === "]") {
+      if (depth === 0) break; // beholderens egen lukkeklamme — vi er færdige
       depth--;
-      if (depth === 0 && entryStart !== null) {
+      if (depth === 0 && entryStart !== null && ch === "}") {
         ranges.push({ startLine: lineOf(entryStart), endLine: lineOf(i) });
         entryStart = null;
       }
@@ -205,25 +204,34 @@ export function entryDates(repoRoot, file, arrayDeclaration) {
   const ranges = entryRanges(source, arrayDeclaration);
   const times = blameLineTimes(repoRoot, file);
 
-  // Invariant: én entry pr. slug. Holder den ikke, er intervallerne forskudt,
-  // og så er datoerne stille forkerte — værre end ingen datoer.
-  const slugCount = lines.filter((l) => /^\s{4}slug:\s*"/.test(l)).length;
-  if (ranges.length !== slugCount) {
+  // En tom beholder betyder næsten altid at vi peger det forkerte sted hen.
+  // Hellere en fejl end et sitemap der stille mister alle sine datoer.
+  if (ranges.length === 0) {
     throw new Error(
-      `${file}: fandt ${ranges.length} entries men ${slugCount} slugs. ` +
-        `Er filen omformateret? Ret parseren frem for at stole på datoerne.`
+      `${file}: fandt ingen entries under "${arrayDeclaration}". Er filen omskrevet?`
     );
   }
 
   const result = new Map();
   for (const { startLine, endLine } of ranges) {
+    // Første slug i intervallet er entryens egen — indlejrede objekter
+    // (fx relatedService: { slug }) står altid efter.
     let slug = null;
     for (let n = startLine; n <= endLine && !slug; n++) {
-      const m = lines[n - 1]?.match(/^\s*slug:\s*"([^"]+)"/);
+      const m = lines[n - 1]?.match(/\bslug:\s*"([^"]+)"/);
       if (m) slug = m[1];
     }
     if (!slug) {
       throw new Error(`Entry på linje ${startLine}-${endLine} i ${file} har ingen slug`);
+    }
+    // Invariant: slugs er unikke. To entries med samme slug betyder at
+    // intervallerne er forskudt eller smeltet sammen — og så er datoerne
+    // stille forkerte, hvilket er værre end ingen datoer.
+    if (result.has(slug)) {
+      throw new Error(
+        `${file}: slug "${slug}" optræder i to entries (linje ${startLine}-${endLine}). ` +
+          `Intervallerne er forskudt — ret parseren frem for at stole på datoerne.`
+      );
     }
 
     let newest = 0;
@@ -245,6 +253,84 @@ export function entryDates(repoRoot, file, arrayDeclaration) {
   return result;
 }
 
+/**
+ * Filnavne der aldrig er *indhold*: framework-stilladset omkring siden.
+ * layout/error/loading er struktur, og sitemap/robots handler om siden set
+ * udefra — ingen af dem betyder at teksten på siden er ændret.
+ */
+const INFRA_FILES = new Set([
+  "layout.tsx",
+  "layout.ts",
+  "template.tsx",
+  "loading.tsx",
+  "error.tsx",
+  "global-error.tsx",
+  "not-found.tsx",
+  "sitemap.ts",
+  "robots.ts",
+  "opengraph-image.tsx",
+  "twitter-image.tsx",
+  "icon.tsx",
+  "apple-icon.tsx",
+  "route.ts",
+]);
+
+/**
+ * Finder alle statiske ruter under app-mappen ved at lede efter page.tsx.
+ *
+ * Route groups — (site) — og parallelle ruter (@slot) fjernes fra stien, sådan
+ * som Next selv gør. Dynamiske ruter ([slug]) springes over: deres indhold bor
+ * i en datafil, ikke i mappen, og håndteres for sig.
+ *
+ * Returnerer [{ route, dir, files }] hvor files er mappens egne indholdsfiler.
+ */
+export function discoverRoutes(repoRoot, appDir, ignore = []) {
+  const found = [];
+
+  const walk = (relDir) => {
+    const abs = path.join(repoRoot, relDir);
+    if (!existsSync(abs)) return;
+    const entries = readdirSync(abs, { withFileTypes: true });
+
+    const hasPage = entries.some((e) => e.isFile() && /^page\.(tsx|ts|jsx|js)$/.test(e.name));
+    if (hasPage) {
+      const segments = path
+        .relative(appDir, relDir)
+        .split(path.sep)
+        .filter((s) => s && s !== ".")
+        // Route groups og parallelle ruter indgår ikke i URL'en.
+        .filter((s) => !/^\(.*\)$/.test(s) && !s.startsWith("@"));
+
+      const isDynamic = segments.some((s) => s.startsWith("["));
+      if (!isDynamic) {
+        const route = "/" + segments.join("/");
+        const normalized = route === "/" ? "/" : route.replace(/\/$/, "");
+        if (!ignore.some((re) => re.test(normalized))) {
+          found.push({
+            route: normalized,
+            dir: relDir,
+            files: entries
+              .filter(
+                (e) =>
+                  e.isFile() && /\.(tsx|ts)$/.test(e.name) && !INFRA_FILES.has(e.name)
+              )
+              .map((e) => path.posix.join(relDir, e.name)),
+          });
+        }
+      }
+    }
+
+    for (const e of entries) {
+      if (e.isDirectory() && e.name !== "node_modules") {
+        walk(path.posix.join(relDir, e.name));
+      }
+    }
+  };
+
+  walk(appDir);
+  return found;
+}
+
 /** Filer der ligger direkte i en rutes egen mappe — ikke undermapper. */
 export function ownDirectoryFiles(repoRoot, dir) {
   const abs = path.join(repoRoot, dir);
@@ -252,6 +338,19 @@ export function ownDirectoryFiles(repoRoot, dir) {
   return readdirSync(abs, { withFileTypes: true })
     .filter((e) => e.isFile() && /\.(tsx|ts)$/.test(e.name))
     .map((e) => path.posix.join(dir, e.name));
+}
+
+/**
+ * Indholdsfiler i en mappe — typisk markdown, hvor én fil svarer til én side.
+ * Så er git-datoen på filen sidens dato, uden nogen omvej.
+ */
+export function contentFiles(repoRoot, dir, extensions = [".md", ".mdx"]) {
+  const abs = path.join(repoRoot, dir);
+  if (!existsSync(abs)) return [];
+  return readdirSync(abs, { withFileTypes: true })
+    .filter((e) => e.isFile() && extensions.some((ext) => e.name.endsWith(ext)))
+    .map((e) => path.posix.join(dir, e.name))
+    .sort();
 }
 
 /** Nyeste af to "YYYY-MM-DD"-strenge; null-tolerant. */
