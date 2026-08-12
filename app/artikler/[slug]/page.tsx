@@ -8,6 +8,7 @@ import { ScrollToCta } from "../../_components/ScrollToCta";
 import { ARTICLES, getAllArticleSlugs, getArticle, type ArticleSection } from "@/lib/articles";
 import { getProduct } from "@/lib/insurance-products";
 import { SITE_URL, breadcrumbJsonLd, pageOpenGraph, pageTwitter } from "@/lib/seo";
+import { LASTMOD } from "@/lib/lastmod";
 
 export async function generateStaticParams() {
   return getAllArticleSlugs().map((slug) => ({ slug }));
@@ -118,7 +119,10 @@ export default async function ArticlePage({
       },
     ],
     datePublished: article.publishedAt,
-    dateModified: article.publishedAt,
+    // Samme kilde som sitemap'ets lastmod, så de to kanaler ikke modsiger
+    // hinanden. publishedAt som dateModified var forkert: en artikel der er
+    // rettet efter udgivelsen påstod at være urørt siden dag ét.
+    dateModified: LASTMOD[`/artikler/${article.slug}`] ?? article.publishedAt,
     inLanguage: "da-DK",
     wordCount,
     author: {
