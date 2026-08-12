@@ -3,8 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { list } from "@vercel/blob";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getLead, getLeadAttribution, listEventsForLead, type Lead, type LeadAttribution } from "@/lib/db";
-import { isPlaceholderEmail } from "@/lib/abandoned-lead";
+import {
+  getLead,
+  getLeadAttribution,
+  isPlaceholderEmail,
+  listEventsForLead,
+  type Lead,
+  type LeadAttribution,
+} from "@/lib/db";
 import { LeadStatusForm } from "./LeadStatusForm";
 
 /**

@@ -7,13 +7,14 @@ import {
   listUnifiedActivity,
   getAttributionStats,
   isDbConfigured,
+  isPlaceholderEmail,
   FUNNEL_STEPS,
   type LeadAttribution,
   type FunnelStep,
   type AttributionRow,
   type UnifiedActivityGroup,
 } from "@/lib/db";
-import { isPlaceholderEmail } from "@/lib/abandoned-lead";
+
 
 export const metadata: Metadata = {
   title: "Admin · Leads",

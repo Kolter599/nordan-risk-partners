@@ -9,25 +9,8 @@
  * står for at hente sessioner, oprette leads og sende mails.
  */
 
-import type { Session, FunnelStep } from "./db";
+import { placeholderEmailForCvr, type Session, type FunnelStep } from "./db";
 import { escapeHtml } from "./email-template";
-
-/** RFC 2606-reserveret TLD — kan aldrig ramme en rigtig postkasse. */
-const UNKNOWN_EMAIL_DOMAIN = "ukendt.invalid";
-
-/**
- * leads.email er NOT NULL og bruges som dedup-nøgle. Har vi kun CVR, laver vi
- * en deterministisk pladsholder pr. virksomhed — så to frafald fra samme CVR
- * opdaterer det samme lead i stedet for at stable rækker op.
- */
-export function placeholderEmailForCvr(cvr: string): string {
-  return `cvr-${cvr.replace(/\D/g, "")}@${UNKNOWN_EMAIL_DOMAIN}`;
-}
-
-/** True hvis mailen er vores egen pladsholder og ikke må vises eller mailes til. */
-export function isPlaceholderEmail(email: string | null | undefined): boolean {
-  return !!email && email.toLowerCase().endsWith(`@${UNKNOWN_EMAIL_DOMAIN}`);
-}
 
 /**
  * Den mail leadet skal gemmes under. Rigtig mail hvis vi har den, ellers en
