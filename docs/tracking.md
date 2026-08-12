@@ -50,9 +50,39 @@ Vercel-deploy-data, GA-rapporter og /admin-dashboardet uden mapping-fejl.
 | `analyse_submitted` | `/api/contact` | /analyse submit uden fuldmagt |
 | `hole_in_one_submitted` | `/api/contact` | /tilbud/hole-in-one submit |
 | `status_changed` | `/api/admin/leads/[id]/status` | Manuel status-update fra Sebastian |
+| `abandoned_lead_mailed` | `/api/cron/abandoned-leads` | Frafaldent flow sendt videre som lead |
+| `abandoned_lead_created` | `/api/cron/abandoned-leads` | Markerer sessionen, så den kun sendes én gang |
 
 Hver event har `lead_id` der knytter den til den underliggende lead-row så `/admin/leads/[id]`
-kan vise hele tidslinjen.
+kan vise hele tidslinjen. `abandoned_lead_created` hænger på `session_id` i stedet, da den
+markerer selve flowet.
+
+---
+
+## Frafaldne flows bliver til leads
+
+Indtaster nogen CVR og/eller kontaktoplysninger uden at underskrive fuldmagten, er der stadig
+et lead: enten har vi personens mail/telefon, eller også har vi CVR og kan ringe til
+virksomheden. `/api/cron/abandoned-leads` opretter derfor et lead (kilde `frafald`, status `new`)
+og sender en almindelig lead-mail til `CONTACT_TO_EMAIL` — én mail pr. virksomhed, beriget med
+adresse og offentligt telefonnummer fra CVR-registret.
+
+Tre indgange, samme dedup (`abandoned_lead_created` pr. session):
+
+| Indgang | Hvornår | Kræver |
+|---|---|---|
+| `?session=<id>` | ~20 min efter CVR/kontakt via QStash | `QSTASH_TOKEN` + `CRON_SECRET` |
+| ingen parametre | dagligt kl. 07:00 (Vercel-cron), backstop | — |
+| `?backfill=1` | manuelt, ét års horisont | `CRON_SECRET` |
+
+`?dry=1` viser hvem der ville blive sendt uden at sende eller markere noget.
+
+Kunden får **ingen** mail — de trykkede aldrig send. Mailen til Nordan siger tydeligt at
+fuldmagten mangler, så ingen tror der er samtykke til at indhente policer.
+
+Har vi kun CVR og ingen mailadresse, gemmes leadet under en pladsholder
+(`cvr-<cvr>@ukendt.invalid`), fordi `leads.email` er NOT NULL og bruges som dedup-nøgle.
+Admin viser dem som "Kun CVR".
 
 ---
 
