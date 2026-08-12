@@ -1,0 +1,56 @@
+name: lastmod
+
+# Holder sitemap-datoerne ærlige uden at nogen skal huske noget.
+#
+# Kører ved hvert push til main, aflæser git-historikken og committer de nye
+# datoer tilbage — men KUN hvis noget faktisk har ændret sig. Er der ingen
+# indholdsændringer, laver den ingen commit, og intet deployes igen.
+#
+# Den kan ikke ligge i Vercels build: Vercel kloner kun de seneste commits, og
+# git blame på en afkortet historik ville give alle sider samme dato. Derfor
+# fetch-depth: 0 her, hvor vi har hele historikken.
+
+on:
+  push:
+    branches: [main]
+
+# Skal kunne committe datoerne tilbage til repoet.
+permissions:
+  contents: write
+
+# Et push mens en kørsel er i gang afløser den — vi vil kun have det nyeste.
+concurrency:
+  group: lastmod-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    # Undgå at bottens egen commit starter en ny runde.
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Hele historikken — git blame er kernen i det her.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Aflæs datoer fra git-historikken
+        run: node scripts/update-lastmod.mjs
+
+      - name: Commit hvis datoerne har flyttet sig
+        run: |
+          if git diff --quiet -- '*lastmod.ts'; then
+            echo "Ingen datoer har ændret sig — intet at committe."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add '*lastmod.ts'
+          git commit -m "chore(seo): opdatér sitemap-datoer
+
+          Aflæst af git-historikken efter ${{ github.sha }}."
+          git push
