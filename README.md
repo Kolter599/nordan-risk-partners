@@ -83,6 +83,11 @@ Retter du navigationen eller en farve, har undersiden ikke ændret indhold, og s
 Google ikke have besked. Produkter og artikler dateres pr. entry, så en rettelse i én
 produkttekst kun rykker den ene side — ikke alle 29.
 
+Har du ikke-committede ændringer, får siden **ikke** dagens dato — den bliver stående
+på seneste commit, og kommandoen advarer. En dato skal altid være dækket af en commit,
+ellers kan en gammel glemt ændring i arbejdstræet stemple siden som ændret i dag.
+Commit indholdet først, kør så kommandoen.
+
 Glemmer du at køre kommandoen, sker der ingen skade: datoen bliver stående på den
 forrige. En rute der mangler i kortet får slet ingen `<lastmod>` — ingen oplysning er
 bedre end en forkert.

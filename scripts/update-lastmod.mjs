@@ -24,7 +24,6 @@ import {
   newest,
   newestCommitDate,
   ownDirectoryFiles,
-  today,
 } from "./lastmod/resolve.mjs";
 
 const repoRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
@@ -69,17 +68,18 @@ function resolveAll() {
   const routes = {};
   const warnings = [];
 
-  const markIfDirty = (route, files) => {
+  const warnIfDirty = (route, files) => {
     const touched = files.filter((f) => dirty.has(f));
-    if (touched.length === 0) return false;
-    warnings.push(`${route} — ikke-committede ændringer i ${touched.join(", ")}`);
-    return true;
+    if (touched.length > 0) {
+      warnings.push(`${route} — ikke-committede ændringer i ${touched.join(", ")}`);
+    }
   };
 
   // 1. Statiske sider
   for (const [route, dir] of Object.entries(STATIC_ROUTES)) {
     const files = route === "/" ? ROOT_ONLY_FILES : ownDirectoryFiles(repoRoot, dir);
-    routes[route] = markIfDirty(route, files) ? today() : newestCommitDate(repoRoot, files);
+    warnIfDirty(route, files);
+    routes[route] = newestCommitDate(repoRoot, files);
   }
 
   // 2. Produktsider — pr. entry, så én rettelse kun rykker én side
@@ -100,7 +100,8 @@ function resolveAll() {
   // 4. Hub-sider — egen mappe eller nyeste barn
   for (const [route, { dir, childPrefix }] of Object.entries(HUB_ROUTES)) {
     const files = ownDirectoryFiles(repoRoot, dir);
-    const own = markIfDirty(route, files) ? today() : newestCommitDate(repoRoot, files);
+    warnIfDirty(route, files);
+    const own = newestCommitDate(repoRoot, files);
     const children = Object.entries(routes)
       .filter(([r]) => r.startsWith(childPrefix))
       .map(([, d]) => d);
@@ -162,9 +163,9 @@ if (missing.length > 0) {
 }
 
 if (warnings.length > 0) {
-  console.warn(`\n⚠  Ikke-committede ændringer — datoen sættes til i dag (${today()}):`);
+  console.warn("\n⚠  Ikke-committede ændringer — datoen står på seneste commit:");
   for (const w of warnings) console.warn(`   ${w}`);
-  console.warn("   Kør kommandoen igen efter commit for den præcise dato.\n");
+  console.warn("   Commit indholdet først, og kør så kommandoen igen.\n");
 }
 
 const withDates = Object.fromEntries(Object.entries(routes).filter(([, d]) => d));

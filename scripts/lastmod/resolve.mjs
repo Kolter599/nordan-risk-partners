@@ -234,8 +234,11 @@ export function entryDates(repoRoot, file, arrayDeclaration) {
       if (!entry.committed) uncommitted = true;
       else if (entry.time > newest) newest = entry.time;
     }
+    // Ikke-committede linjer får bevidst IKKE dagens dato. En dato skal altid
+    // være dækket af en commit — ellers kan en gammel, glemt ændring i
+    // arbejdstræet stemple siden som ændret i dag. Vi advarer i stedet.
     result.set(slug, {
-      date: uncommitted ? today() : newest ? formatDate(newest) : null,
+      date: newest ? formatDate(newest) : null,
       uncommitted,
     });
   }
