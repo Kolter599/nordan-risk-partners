@@ -45,9 +45,8 @@ export default function CookiesPage() {
           </h2>
           <p>
             Indtaster du CVR-nummer, navn, e-mail eller telefonnummer i en af formularerne på sitet,
-            betragter vi det som en <strong>anmodning om at blive kontaktet</strong>. Vi vender
-            tilbage pr. telefon eller mail om jeres forsikringsforhold — det er hele formålet med
-            formularen.
+            giver du os samtidig <strong>lov til at kontakte dig pr. telefon eller mail</strong> om
+            jeres forsikringsforhold. Det er den accept, vores opfølgning hviler på.
           </p>
           <p>Konkret betyder det:</p>
           <ul>

@@ -41,9 +41,9 @@ export default function PersondatapolitikPage() {
           <Section title="Når du indtaster CVR og kontaktoplysninger">
             <p>
               Indtaster du CVR-nummer, navn, e-mail eller telefonnummer i en formular på sitet,
-              betragter vi det som en <strong>anmodning om at blive kontaktet</strong>. Vi vender
-              tilbage <strong>pr. telefon eller mail</strong> om jeres forsikringsforhold — det er
-              hele formålet med formularen, og det er også grundlaget for, at vi må ringe til jer.
+              giver du os samtidig <strong>lov til at kontakte dig pr. telefon eller mail</strong> om
+              jeres forsikringsforhold. Det fremgår ved den knap, du trykker på, og det er den
+              accept, vores opfølgning hviler på.
             </p>
             <p>
               Du kan til enhver tid tilbagekalde din accept ved at skrive til <Mail />. Vi stopper
@@ -97,17 +97,19 @@ export default function PersondatapolitikPage() {
           <Section title="Retligt grundlag">
             <ul>
               <li>
-                <strong>Databeskyttelsesforordningen art. 6, stk. 1, litra b</strong> — behandlingen
-                er nødvendig for at gennemføre foranstaltninger på din anmodning forud for en
-                eventuel aftale. Det dækker langt de fleste henvendelser via sitet.
+                <strong>Databeskyttelsesforordningen art. 6, stk. 1, litra a</strong> — dit samtykke.
+                Det er grundlaget for, at vi må kontakte dig pr. telefon eller mail, og for
+                statistik-cookies. Begge dele kan trækkes tilbage når som helst — kontakten på{" "}
+                <Mail />, cookies i banneret.
               </li>
               <li>
-                <strong>Art. 6, stk. 1, litra f</strong> — vores legitime interesse i at følge op på
-                en henvendelse og i at dokumentere en afgivet fuldmagt.
+                <strong>Art. 6, stk. 1, litra b</strong> — behandlingen er nødvendig for at
+                gennemføre foranstaltninger forud for en eventuel aftale. Det dækker selve den
+                analyse eller det tilbud, du har sat i gang.
               </li>
               <li>
-                <strong>Art. 6, stk. 1, litra a</strong> — dit samtykke, når det gælder
-                statistik-cookies. Det kan trækkes tilbage når som helst i cookie-banneret.
+                <strong>Art. 6, stk. 1, litra f</strong> — vores legitime interesse i at dokumentere
+                en afgivet fuldmagt.
               </li>
               <li>
                 <strong>Art. 6, stk. 1, litra c</strong> — retlige forpligtelser, herunder bogførings-
