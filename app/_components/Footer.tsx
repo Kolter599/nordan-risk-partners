@@ -98,7 +98,7 @@ export function Footer() {
             </a>
           </span>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <Link href="/persondatapolitik.pdf" className="hover:text-white">Persondatapolitik</Link>
+            <Link href="/persondatapolitik" className="hover:text-white">Persondatapolitik</Link>
             <Link href="/cookies" className="hover:text-white">Cookies</Link>
             <Link href="/whistleblower.pdf" className="hover:text-white">Whistleblower</Link>
             <span>Allerød, Danmark</span>

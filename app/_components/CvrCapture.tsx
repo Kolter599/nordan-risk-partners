@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { track } from "./GoogleAnalytics";
 import { getRecentSigned, clearRecentSigned, type RecentSigned } from "@/lib/recent-signed";
+import { ContactConsentNote } from "./ContactConsentNote";
 
 type Props = {
   headline?: string;
@@ -67,6 +68,7 @@ export function CvrCapture({
 
   if (variant === "inline") {
     return (
+      <div className="w-full">
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 w-full">
         <input
           aria-label="CVR-nummer"
@@ -89,6 +91,8 @@ export function CvrCapture({
           <span aria-hidden>→</span>
         </button>
       </form>
+        <ContactConsentNote variant="micro" action="fortsætte" className="mt-2" />
+      </div>
     );
   }
 
@@ -216,6 +220,8 @@ export function CvrCapture({
           <TrustBadge icon="phone" label="Intet spam" />
           <TrustBadge icon="clock" label="Svar &lt; 24t" />
         </div>
+
+        <ContactConsentNote variant="micro" action="fortsætte" className="text-center" />
       </form>
     </div>
   );

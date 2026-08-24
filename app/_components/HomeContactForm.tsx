@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getClientId, track } from "./GoogleAnalytics";
 import { getAttribution } from "@/lib/attribution";
+import { ContactConsentNote } from "./ContactConsentNote";
 
 type State = "idle" | "submitting" | "success" | "error";
 
@@ -115,6 +116,8 @@ export function HomeContactForm() {
       >
         {state === "submitting" ? "Sender…" : "Send"}
       </button>
+
+      <ContactConsentNote action="sende" />
     </form>
   );
 }

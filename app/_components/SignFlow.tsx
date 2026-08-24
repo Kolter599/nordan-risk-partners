@@ -653,6 +653,9 @@ export function SignFlow({ onSigned, defaults }: Props) {
                 ✓ Klar til at underskrive
               </p>
             ) : null}
+            <p className="mt-2 text-center text-[0.7rem] text-[color:var(--color-nordan-muted)] leading-snug">
+              * Vi kontakter jer pr. telefon eller mail om jeres forsikringsforhold.
+            </p>
           </div>
         </div>
       </div>
@@ -661,6 +664,8 @@ export function SignFlow({ onSigned, defaults }: Props) {
       <div className="hidden lg:flex px-5 sm:px-7 py-4 border-t border-[color:var(--color-nordan-line)] flex-col sm:flex-row sm:items-center gap-3 bg-[color:var(--color-nordan-soft)]/30">
         <div className="text-[0.74rem] text-[color:var(--color-nordan-muted)] flex-1 leading-snug">
           Underskrift logges med tidspunkt, IP og browser. Du modtager en kopi pr. mail.
+          <br />
+          * Vi kontakter jer pr. telefon eller mail om jeres forsikringsforhold.
         </div>
         <button
           type="button"

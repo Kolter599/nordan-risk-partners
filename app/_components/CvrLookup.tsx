@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { track } from "./GoogleAnalytics";
 import { SignFlow, type SignResult } from "./SignFlow";
 import { setRecentSigned } from "@/lib/recent-signed";
+import { ContactConsentNote } from "./ContactConsentNote";
 
 type Company = {
   name: string;
@@ -534,6 +535,8 @@ function StepContact({
           </span>
         </button>
       </div>
+
+      <ContactConsentNote action="fortsætte" />
     </form>
   );
 }

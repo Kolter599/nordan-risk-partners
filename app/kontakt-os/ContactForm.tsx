@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getClientId, track } from "../_components/GoogleAnalytics";
 import { getAttribution } from "@/lib/attribution";
+import { ContactConsentNote } from "../_components/ContactConsentNote";
 
 type State = "idle" | "submitting" | "success" | "error";
 
@@ -106,8 +107,11 @@ export function ContactForm() {
         <a href="tel:+4553520006" className="btn-outline">Ring i stedet</a>
       </div>
 
+      <ContactConsentNote action="sende" />
+
       <p className="text-xs text-[color:var(--color-nordan-muted)]">
-        Ved at sende accepterer du vores <a href="/persondatapolitik.pdf" className="underline">persondatapolitik</a>.
+        Ved at sende accepterer du vores{" "}
+        <a href="/persondatapolitik" className="underline">persondatapolitik</a>.
       </p>
     </form>
   );

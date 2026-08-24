@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getClientId, track } from "../../_components/GoogleAnalytics";
 import { setRecentSigned } from "@/lib/recent-signed";
 import { getAttribution } from "@/lib/attribution";
+import { ContactConsentNote } from "@/app/_components/ContactConsentNote";
 
 type Company = {
   name: string;
@@ -594,6 +595,8 @@ function FormStep({
           )}
         </button>
       </div>
+
+      <ContactConsentNote action="sende" />
     </form>
   );
 }
