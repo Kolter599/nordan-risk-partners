@@ -14,6 +14,7 @@ import {
   type AttributionRow,
   type UnifiedActivityGroup,
 } from "@/lib/db";
+import { SOURCE_LABELS, STATUS_LABELS } from "./labels";
 
 
 export const metadata: Metadata = {
@@ -22,24 +23,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-const SOURCE_LABELS: Record<string, string> = {
-  kontakt: "Kontakt",
-  hero: "Forside",
-  analyse: "/analyse",
-  hole_in_one: "Hole-in-one",
-  sign: "Signering",
-  frafald: "Frafald (uden fuldmagt)",
-};
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  new: { label: "Ny", color: "#6b6b6b" },
-  partial: { label: "Halvfærdig", color: "#a58878" },
-  completed: { label: "Færdig", color: "#253f32" },
-  quoted: { label: "Tilbud sendt", color: "#1d4ed8" },
-  won: { label: "Vundet", color: "#15803d" },
-  lost: { label: "Tabt", color: "#b91c1c" },
-};
 
 const STEP_LABELS: Record<FunnelStep, string> = {
   started: "Startet",
@@ -100,11 +83,16 @@ export default async function AdminDashboard() {
               Leads & aktivitet
             </h1>
           </div>
+          <div className="flex items-baseline gap-5">
+          <Link href="/admin-invisu/leads" className="text-[0.85rem] font-semibold text-[color:var(--color-nordan-ink)] underline">
+            Alle leads →
+          </Link>
           <form action="/api/admin/logout" method="post">
             <button type="submit" className="text-[0.85rem] text-[color:var(--color-nordan-muted)] underline">
               Log ud
             </button>
           </form>
+          </div>
         </header>
 
         {/* Stats */}
