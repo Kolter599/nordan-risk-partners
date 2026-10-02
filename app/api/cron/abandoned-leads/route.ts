@@ -52,15 +52,17 @@ const BACKFILL_MAX_AGE_DAYS = 365;
  *  - ?backfill=1 — samme scanning, men med et års horisont og uden loft,
  *    til at hente et efterslæb ind én gang.
  *
- * Auth: Vercel-cron-header ELLER ?secret=CRON_SECRET (Scheduler / manuelt).
+ * Auth: `Authorization: Bearer <CRON_SECRET>` (Cloud Scheduler og Vercel cron
+ * sender den) ELLER ?secret=CRON_SECRET til manuel brug. `x-vercel-cron`
+ * godkendes ikke længere: headeren kan sendes af hvem som helst.
  * Brug ?dry=1 til at se hvad der ville ske uden at sende eller markere noget.
  */
 export async function GET(req: Request) {
-  const isCron = req.headers.get("x-vercel-cron") === "1";
   const url = new URL(req.url);
-  const secretMatches =
-    process.env.CRON_SECRET && url.searchParams.get("secret") === process.env.CRON_SECRET;
-  if (!isCron && !secretMatches) {
+  const hemmelighed = process.env.CRON_SECRET;
+  const bearer = req.headers.get("authorization") === `Bearer ${hemmelighed}`;
+  const secretMatches = url.searchParams.get("secret") === hemmelighed;
+  if (!hemmelighed || (!bearer && !secretMatches)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
