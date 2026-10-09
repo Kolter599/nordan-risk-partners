@@ -59,7 +59,7 @@ export const LASTMOD: Record<string, string> = {
   "/hvorfor-forsikringsmaegler": "2026-05-21",
   "/job": "2026-07-01",
   "/kontakt-os": "2026-08-24",
-  "/om-os": "2026-05-06",
+  "/om-os": "2026-10-09",
   "/saadan-arbejder-vi": "2026-06-08",
   "/tilbud/hole-in-one": "2026-08-24",
 };
