@@ -60,9 +60,9 @@ const TEAM = [
 
 // Billeder lægges i public/images/ og tilføjes som image; uden billede vises initialer.
 const STAFF: { name: string; role: string; image?: string }[] = [
-  { name: "Frederik Julsgaard", role: "Administration & Client Support" },
-  { name: "Oliver Tarp Christiansen", role: "Studentermedhjælper · Administration & Support" },
-  { name: "Sebastian Kolter", role: "Digital Development & Marketingansvarlig" },
+  { name: "Frederik Julsgaard", role: "Administration & Client Support", image: "/images/team-frederik.jpg" },
+  { name: "Oliver Tarp Christiansen", role: "Studentermedhjælper · Administration & Support", image: "/images/team-oliver.jpg" },
+  { name: "Sebastian Kolter", role: "Digital Development & Marketingansvarlig", image: "/images/team-sebastian.jpg" },
   { name: "Willads Sonnichsen", role: "Sales Associate" },
 ];
 
@@ -171,7 +171,7 @@ export default function OmOsPage() {
             ))}
           </div>
 
-          <h3 className="display-md mt-16 sm:mt-20 mb-8 sm:mb-10">Teamet bag</h3>
+          <h3 className="display-md mt-16 sm:mt-20 mb-8 sm:mb-10">Teamet</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-8">
             {STAFF.map((m) => (
               <article key={m.name}>
