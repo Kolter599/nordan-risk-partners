@@ -58,6 +58,17 @@ const TEAM = [
   },
 ];
 
+// Billeder lægges i public/images/ og tilføjes som image; uden billede vises initialer.
+const STAFF: { name: string; role: string; image?: string }[] = [
+  { name: "Frederik Julsgaard", role: "Administration & Client Support" },
+  { name: "Oliver Tarp Christiansen", role: "Studentermedhjælper · Administration & Support" },
+  { name: "Sebastian Kolter", role: "Digital Development & Marketingansvarlig" },
+  { name: "Willads Sonnichsen", role: "Sales Associate" },
+];
+
+const initials = (name: string) =>
+  name.split(" ").filter(Boolean).map((p) => p[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join("");
+
 export default function OmOsPage() {
   return (
     <>
@@ -159,6 +170,26 @@ export default function OmOsPage() {
               </article>
             ))}
           </div>
+
+          <h3 className="display-md mt-16 sm:mt-20 mb-8 sm:mb-10">Teamet bag</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-8">
+            {STAFF.map((m) => (
+              <article key={m.name}>
+                <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[color:var(--color-nordan-soft)] border border-[color:var(--color-nordan-line)]">
+                  {m.image ? (
+                    <Image src={m.image} alt={`${m.name} — ${m.role}, Nordan Risk Partners`} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 25vw" quality={90} />
+                  ) : (
+                    <div aria-hidden className="absolute inset-0 flex items-center justify-center display-lg text-[color:var(--color-nordan-muted)]">
+                      {initials(m.name)}
+                    </div>
+                  )}
+                </div>
+                <h4 className="mt-4 font-semibold leading-snug">{m.name}</h4>
+                <div className="mt-1 text-[0.9rem] text-[color:var(--color-nordan-ink-soft)] leading-snug">{m.role}</div>
+              </article>
+            ))}
+          </div>
+
           <div className="mt-12">
             <Link href="/kontakt-os" className="btn-primary">Kontakt os</Link>
           </div>
