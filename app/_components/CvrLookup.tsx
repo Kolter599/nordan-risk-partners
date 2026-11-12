@@ -277,6 +277,7 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
             defaults={{
               companyName: company.name,
               cvr: company.vat,
+              companyAddress: company.address,
               name: contact.name,
               email: contact.email,
               phone: contact.phone,

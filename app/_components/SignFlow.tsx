@@ -85,6 +85,7 @@ type Props = {
     phone?: string;
     companyName: string;
     cvr: string;
+    companyAddress?: string;
   };
 };
 
@@ -249,6 +250,7 @@ export function SignFlow({ onSigned, defaults }: Props) {
           phone: phone.trim(),
           companyName: defaults.companyName,
           cvr: defaults.cvr,
+          companyAddress: defaults.companyAddress,
           insurers: allInsurers,
           consent: { read: combinedConsent, authorized: combinedConsent, eidas: combinedConsent },
           clientId: getClientId(),
@@ -331,55 +333,70 @@ export function SignFlow({ onSigned, defaults }: Props) {
               </ul>
             </div>
 
-            {/* Full document */}
-            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] p-5 sm:p-6 text-[0.9rem] leading-[1.6] text-[color:var(--color-nordan-ink)] shadow-sm">
-              <div className="text-center mb-5">
-                <div className="font-bold text-[1.2rem] text-[color:var(--color-nordan-dark)]">
-                  Undersøgelsesfuldmagt
+            {/* Full document — samme opstilling og ordlyd som PDF'en (Word-skabelonen) */}
+            <div className="bg-white border border-[color:var(--color-nordan-line)] rounded-[8px] p-5 sm:p-7 text-[0.88rem] leading-[1.6] text-[#1F2A30] shadow-sm">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="font-bold text-[1.15rem] sm:text-[1.25rem] leading-tight text-[#254135] pt-6">
+                  Undersøgelsesfuldmagt til forsikringsmægler
                 </div>
-                <div className="text-[0.8rem] text-[color:var(--color-nordan-muted)] mt-1">
-                  til forsikringsmægler
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/logo-fuldmagt-square.png" alt="Nordan Risk Partners" className="w-12 h-12 shrink-0" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2 mb-5">
+                {[
+                  {
+                    label: "Fuldmagtsgiver",
+                    name: defaults.companyName,
+                    lines: [defaults.companyAddress, `CVR nr.: ${defaults.cvr}`].filter(Boolean),
+                    note: "(I det følgende kaldet \u201cFuldmagtsgiver\u201d)",
+                  },
+                  {
+                    label: "Forsikringsmægler",
+                    name: "Nordan Risk Partners ApS",
+                    lines: ["Toftevej 15B, 3450 Allerød", "CVR nr.: 45953769"],
+                    note: "(I det følgende kaldet \u201cNordan Risk Partners\u201d)",
+                  },
+                ].map((p) => (
+                  <div key={p.label} className="bg-[#E8EFEC] border-t-2 border-[#254135] px-4 py-3">
+                    <div className="text-[0.62rem] uppercase font-bold tracking-[0.22em] text-[#254135] mb-1.5">{p.label}</div>
+                    <div className="font-bold text-[0.98rem] leading-snug">{p.name}</div>
+                    {p.lines.map((l) => (
+                      <div key={l} className="text-[0.85rem]">{l}</div>
+                    ))}
+                    <div className="mt-2 text-[0.7rem] italic text-[#6B7780]">{p.note}</div>
+                  </div>
+                ))}
               </div>
               <p className="mb-3">
-                <strong>Virksomhedsnavn:</strong> {defaults.companyName}
-                <br />
-                <strong>CVR-nr.:</strong> {defaults.cvr}
-                <br />
-                <span className="text-[color:var(--color-nordan-muted)] text-[0.82rem]">
-                  (I det følgende kaldet &ldquo;Fuldmagtsgiver&rdquo;)
-                </span>
+                Det bekræftes herved, at Fuldmagtsgiver har truffet aftale med Nordan Risk Partners om, at Nordan Risk Partners fra dags dato er udpeget som vores forsikringsmægler til undersøgelse af forsikringsmarkedet. Fuldmagten er ikke eksklusiv og erstatter ikke tidligere udstedte forsikringsmæglerfuldmagter.
               </p>
-              <p className="mb-3">
-                <strong>Nordan Risk Partners ApS</strong>
-                <br />
-                CVR-nr.: 4595 3769
-                <br />
-                Toftevej 15B, 3450 Allerød
-              </p>
-              <p className="mb-3">
-                Det bekræftes herved, at Fuldmagtsgiver har truffet aftale med Nordan Risk Partners om, at Nordan Risk Partners fra dags dato er udpeget som forsikringsmægler til undersøgelse af forsikringsmarkedet. Fuldmagten er ikke eksklusiv og erstatter ikke tidligere udstedte forsikringsmæglerfuldmagter.
-              </p>
-              <p className="mb-2">Denne undersøgelsesfuldmagt bemyndiger forsikringsmægleren til på Fuldmagtsgivers vegne:</p>
-              <ul className="list-disc pl-5 mb-3 space-y-1">
-                <li>at indhente oplysninger om samtlige bestående forsikringer hos enhver forsikringsdistributør, herunder policer, vilkår, præmier og selvbehold,</li>
-                <li>at indhente oplysninger om skadehistorik, skadestatistikker, skadereserver og risikovurderinger,</li>
-                <li>at afgive risikooplysninger og indhente tilbud på forsikringer inden for skadesforsikringsområdet.</li>
+              <p className="mb-1.5">Denne undersøgelsesfuldmagt bemyndiger, og giver forsikringsmægleren ret til, på Fuldmagtsgivers vegne:</p>
+              <ul className="mb-3 space-y-1">
+                {[
+                  "at indhente oplysninger om samtlige bestående forsikringer hos enhver forsikringsdistributør, herunder forsikringspolicer, vilkår, præmier, selvbehold, samt øvrige relevante oplysninger for vurdering af eksisterende forsikringsforhold",
+                  "at indhente oplysninger om skadehistorik for alle bestående og tidligere forsikringer, herunder skadestatistikker, skadereserver, samt risikovurderinger og andre relevante data, i relation til anmeldte skader",
+                  "at afgive risikooplysninger til enhver forsikringsdistributør og indhente tilbud på forsikringer inden for alle brancher på skadesforsikringsområdet.",
+                ].map((t) => (
+                  <li key={t} className="flex gap-3">
+                    <span className="font-bold text-[#254135]">–</span>
+                    <span>{t}</span>
+                  </li>
+                ))}
               </ul>
               <p className="mb-3">
                 Annullering af eksisterende forsikringer eller etablering af nye forsikringer kræver, at der gives eksklusiv forsikringsmæglerfuldmagt til Nordan Risk Partners.
               </p>
               <p className="mb-3">
-                Fuldmagtsgiver er gjort opmærksomme på, at oplysninger, som forsikringsmægleren videregiver til forsikringsdistributører, sidestilles med oplysninger afgivet af Fuldmagtsgiver.
+                Fuldmagtsgiver er gjort opmærksom på, at oplysninger, som forsikringsmægleren videregiver til forsikringsdistributører, i relation til de omhandlede forsikringer, sidestilles med oplysninger afgivet af Fuldmagtsgiver.
               </p>
               <p className="mb-3">
-                Fuldmagten kan til enhver tid tilbagekaldes skriftligt og ophører automatisk 1 år efter underskriftsdatoen.
+                Fuldmagtsgiver er gjort opmærksom på, at undersøgelsesfuldmagten til enhver tid kan tilbagekaldes af Fuldmagtsgiver på samme måde, som den er indgået, og at den forbliver i kraft, indtil den skriftligt tilbagekaldes, eller der indgås mæglerfuldmagt med Nordan Risk Partners. Fuldmagten ophører dog automatisk 1 år efter underskriftsdatoen, såfremt den ikke er tilbagekaldt forinden.
               </p>
               <p className="mb-3">
-                Fuldmagtsgiver påpeger, at nuværende forsikringsmægler ikke involveres eller orienteres om nærværende undersøgelsesfuldmagt.
+                Fuldmagtsgiver påpeger, at Fuldmagtsgiver ønsker, at Fuldmagtsgivers nuværende forsikringsmægler <strong>ikke</strong> involveres eller orienteres om nærværende undersøgelsesfuldmagt.
               </p>
               <p>
-                Underskriver indestår for at være berettiget til at underskrive denne undersøgelsesfuldmagt på vegne af Fuldmagtsgiver.
+                Underskriver indestår for at være berettiget til at underskrive denne undersøgelsesfuldmagt og dermed berettiget til at forpligte Fuldmagtsgiver.
               </p>
             </div>
           </div>

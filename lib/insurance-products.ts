@@ -19,6 +19,18 @@ export type Stat = { value: string; label: string };
 
 export type Faq = { q: string; a: string };
 
+/** Tekstsektion uden billede (faktaboks, målgruppe, undtagelser) — vises efter features. */
+export type FactSection = {
+  variant: "audience" | "facts" | "exclusions";
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  items: InsuranceBullet[];
+  note?: string;
+  /** Standard: efter features. "beforeFeatures" sætter den lige efter intro. */
+  placement?: "beforeFeatures";
+};
+
 export type Quote = { text: string; who?: string; role?: string };
 
 export type InlineCta = {
@@ -37,6 +49,8 @@ export type InsuranceProduct = {
   navLabel: string;
   letter: string;
   metaDescription: string;
+  /** Fuld <title> (uden suffix). Udelades → "<title> — Nordan Risk Partners". */
+  seoTitle?: string;
   eyebrow: string;
   intro: string;
   heroImage: string;
@@ -45,6 +59,7 @@ export type InsuranceProduct = {
   // Rich content blocks — all optional, template renders only what's present
   introParagraphs?: string[]; // extra paragraphs shown in the intro band
   features?: FeatureBlock[]; // alternating image + text sections
+  factSections?: FactSection[]; // tekst-tunge sektioner efter features
   stats?: Stat[]; // numbered stat strip
   quote?: Quote; // editorial pull quote
   faq?: Faq[]; // accordion FAQ
@@ -821,13 +836,15 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
     title: "IT-ansvarsforsikring",
     navLabel: "IT-ansvar",
     letter: "I",
-    eyebrow: "Professionelt ansvar",
-    metaDescription: "IT-ansvarsforsikring for konsulenthuse og softwarevirksomheder. Dækker krav fra kunder ved fejl, forsinkelser, SLA-brud eller databrud.",
+    eyebrow: "IT-rådgiveransvar · Tech PI",
+    seoTitle: "IT-ansvarsforsikring & IT-rådgiveransvar (Tech PI) | Nordan Risk Partners",
+    metaDescription: "IT-ansvarsforsikring og IT-rådgiveransvarsforsikring til softwarehuse, IT-konsulenter og SaaS-virksomheder. Dækker kundekrav ved fejl, forsinkelser og SLA-brud. Uafhængig rådgivning.",
     intro: "Som IT-leverandør lever I af tillid og leveringsevne. IT-ansvar dækker de økonomiske krav hvis en leverance går galt — fejl i kode, forsinket implementation, SLA-brud eller datalæk hos kunden.",
     heroImage: IMG.vandergriff,
     cvrLabel: "Se hvordan vi kan hjælpe med jeres IT-ansvarsforsikring",
     introParagraphs: [
       "IT-ansvarsforsikring er specielt designet til branchen og dækker det professionsansvar der følger af at levere software, hosting, integration eller rådgivning. Den adskiller sig fra almindelig erhvervsansvar ved også at dække rent økonomiske tab, ikke kun person- og tingsskader.",
+      "En IT-ansvarsforsikring kaldes også IT-rådgiveransvarsforsikring, Tech PI eller E&O (Errors & Omissions). Rene formuetab er økonomiske tab hos kunden, uden at nogen person eller ting er kommet til skade. Det er netop den type tab, der typisk opstår, når et IT-system ikke virker som lovet, og en almindelig erhvervsansvarsforsikring dækker dem normalt ikke.",
       "For konsulenthuse og SaaS-virksomheder er den nærmest obligatorisk — både fordi kunderne ofte kræver det i kontrakten, og fordi et enkelt krav kan løbe op i mange millioner.",
     ],
     features: [
@@ -841,6 +858,12 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
           { label: "Forsinket levering", body: "Hvis projektet trækker ud og kunden lider tab." },
           { label: "Datatab og databrud", body: "Hvis jeres håndtering forårsager GDPR-overtrædelser hos kunden." },
           { label: "Rådgivningsfejl", body: "Fejl i jeres anbefalinger eller konfigurationsvalg." },
+          { label: "Udeladelser", body: "I har overset noget, I burde have leveret eller gjort kunden opmærksom på." },
+          { label: "Krænkelse af immaterielle rettigheder", body: "Kunden eller tredjemand påstår, at jeres løsning krænker ophavsret eller varemærker." },
+          {
+            label: "Påstået kontraktbrud",
+            body: "Kunden mener, at I ikke har opfyldt aftalen. Dækningen afhænger af policens vilkår, og ansvar, I har påtaget jer ud over gældende ret, er ofte undtaget.",
+          },
         ],
         image: IMG.vandergriff,
         imageSide: "right",
@@ -854,6 +877,101 @@ export const INSURANCE_PRODUCTS: InsuranceProduct[] = [
       {
         q: "Mine kunder kræver 10 mio. i dækning — er det normalt?",
         a: "Ja, især i enterprise-projekter. Dækningssummer op til 25 mio. er ikke usædvanlige. Vi forhandler vilkår der matcher kundekontrakter, så I kan byde på opgaverne.",
+      },
+      {
+        q: "Hvad er forskellen på IT-ansvarsforsikring og IT-rådgiveransvarsforsikring?",
+        a: "I praksis ingen. Begge betegnelser dækker over den samme forsikring for jeres professionelle ansvar som IT-leverandør. På engelsk hedder den Tech PI eller Tech E&O.",
+      },
+      {
+        q: "Dækker vores erhvervsansvarsforsikring ikke allerede det her?",
+        a: "Normalt ikke. En erhvervsansvarsforsikring dækker skade på personer og ting. Når et IT-system fejler, er kundens tab typisk et rent formuetab, og det kræver en IT-ansvarsforsikring.",
+      },
+      {
+        q: "Hvad sker der, hvis vi skifter forsikringsselskab?",
+        a: "Fordi forsikringen dækker på kravbasis, skal den retroaktive dato følges med over i den nye police. Ellers kan I stå uden dækning for fejl i ældre projekter. Det sørger vi for ved et skifte.",
+      },
+      {
+        q: "Hvad koster en IT-ansvarsforsikring?",
+        a: "Prisen afhænger af omsætning, ydelsestype, kundetyper, kontrakter og forsikringssum. Vi indhenter tilbud fra flere selskaber, så I kan se både pris og vilkår side om side.",
+      },
+    ],
+    factSections: [
+      {
+        variant: "audience",
+        placement: "beforeFeatures",
+        eyebrow: "Hvem har brug for den?",
+        title: "Til virksomheder, der leverer IT til andre",
+        items: [
+          { label: "Softwarehuse og udviklingsbureauer" },
+          { label: "SaaS- og platformsvirksomheder" },
+          { label: "IT-konsulenter og freelance-udviklere" },
+          { label: "Hosting-, drifts- og cloud-leverandører" },
+          { label: "Integratorer og implementeringspartnere (fx ERP, CRM, Dynamics, Salesforce)" },
+          { label: "Data-, AI- og analysevirksomheder" },
+          { label: "Telekom- og netværksleverandører" },
+        ],
+        note: "Hver virksomhed har sin egen risiko. Vi tilpasser derfor dækningen efter det, I faktisk leverer, og efter de kontrakter, I har med jeres kunder.",
+      },
+      {
+        variant: "facts",
+        eyebrow: "Erstatning og forsvar",
+        title: "Forsikringen betaler både erstatning og forsvar",
+        items: [
+          { label: "Erstatning", body: "Beløb, I bliver dømt til at betale, eller som aftales i et forlig." },
+          {
+            label: "Advokat- og sagsomkostninger",
+            body: "Forsikringen betaler for jeres forsvar, også når kravet er urimeligt. I mange sager er det dér, den største værdi ligger.",
+          },
+        ],
+      },
+      {
+        variant: "facts",
+        eyebrow: "Det skal I være opmærksomme på",
+        title: "Vilkår, der gør en stor forskel",
+        items: [
+          {
+            label: "Kravbasis (claims made)",
+            body: "IT-ansvarsforsikringer dækker typisk krav, der rejses og anmeldes, mens policen er i kraft. Fejlen kan godt være begået tidligere. Det har stor betydning, hvis I skifter selskab eller lukker forsikringen.",
+          },
+          {
+            label: "Retroaktiv dækning",
+            body: "Forsikringen kan dække fejl begået før policens start, så længe I ikke kendte til dem, da forsikringen blev tegnet. Den retroaktive dato skal derfor følge med, når I skifter forsikringsselskab.",
+          },
+          {
+            label: "Efterdækning (run-off)",
+            body: "Hvis virksomheden sælges eller lukker, kan I aftale en periode, hvor der stadig kan anmeldes krav for tidligere leverancer.",
+          },
+          {
+            label: "Geografisk dækning",
+            body: "Har I kunder eller leverancer i udlandet, skal policen dække krav fra de lande. Især USA og Canada kræver særlig opmærksomhed.",
+          },
+          {
+            label: "Kontraktkrav",
+            body: "Jeres kundekontrakter stiller ofte krav til forsikringssum og vilkår. Vi gennemgår kontrakterne, så forsikringen passer til dem, og ikke omvendt.",
+          },
+        ],
+      },
+      {
+        variant: "exclusions",
+        eyebrow: "Afgrænsning",
+        title: "Typiske undtagelser",
+        items: [
+          { label: "Forsætlige, bedrageriske eller strafbare handlinger" },
+          { label: "Person- og tingsskade", body: "dækkes i stedet af erhvervs- og produktansvarsforsikringen" },
+          {
+            label: "Bøder og ansvar, I har påtaget jer ud over almindeligt erstatningsansvar",
+            body: "fx dagbøder og ubegrænsede garantier, medmindre det er særskilt aftalt",
+          },
+          { label: "Jeres egne tab ved et cyberangreb", body: "dækkes i stedet af en cyberforsikring" },
+        ],
+      },
+    ],
+    inlineCtas: [
+      {
+        position: "afterFeatures",
+        eyebrow: "Uforpligtende gennemgang",
+        headline: "Lad os gennemgå jeres IT-ansvar, helt uforpligtende",
+        body: "Vi ser på jeres leverancer, kundekontrakter og nuværende dækning og finder huller og overlap. Ingen binding og intet spam, bare uafhængig rådgivning fra første møde.",
       },
     ],
     related: ["cyberforsikring", "professionel-ansvarsforsikring"],

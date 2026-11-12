@@ -1,3 +1,4 @@
+import { FactSection } from "./FactSection";
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs } from "./Breadcrumbs";
@@ -127,10 +128,20 @@ export function InsurancePageTemplate({ product }: Props) {
         <InlineCtaStrip key={`cta-intro-${i}`} cta={cta} />
       ))}
 
+      {/* FAKTABOKSE placeret før features (fx "Hvem har brug for den?") */}
+      {product.factSections
+        ?.filter((s) => s.placement === "beforeFeatures")
+        .map((s, i) => <FactSection key={`fact-pre-${i}`} section={s} />)}
+
       {/* FEATURE BLOCKS — alternating image + text */}
       {product.features?.map((f, i) => (
         <FeatureSection key={i} feature={f} index={i} />
       ))}
+
+      {/* FAKTABOKSE — målgruppe, vilkår, undtagelser */}
+      {product.factSections
+        ?.filter((s) => s.placement !== "beforeFeatures")
+        .map((s, i) => <FactSection key={`fact-${i}`} section={s} />)}
 
       {/* INLINE CTA — after features, before FAQ */}
       {ctasAfterFeatures.map((cta, i) => (

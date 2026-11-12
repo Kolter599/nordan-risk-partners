@@ -18,7 +18,8 @@ import { NextResponse } from "next/server";
 export const runtime = "edge";
 export const preferredRegion = ["fra1", "arn1", "cdg1"]; // Frankfurt, Stockholm, Paris
 
-const UA = "Nordan Risk Partners — info@ndrp.dk";
+// Kun ASCII: Node afviser headere med tegn over 255 (fx tankestreg), så lokale opslag fejlede.
+const UA = "Nordan Risk Partners - info@ndrp.dk";
 
 type CvrApiResponse = {
   vat?: number | string;
@@ -70,7 +71,7 @@ export async function GET(req: Request) {
       company: {
         name: data.name ?? "Virksomhed",
         vat: String(data.vat ?? digits),
-        address: [data.address, data.zipcode, data.city].filter(Boolean).join(", ") || null,
+        address: [data.address, [data.zipcode, data.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || null,
         industry: data.industrydesc ?? null,
         employees: data.employees ?? null,
         // Offentligt registrerede kontaktoplysninger. Bruges af frafalds-cron'en

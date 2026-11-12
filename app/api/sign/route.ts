@@ -37,6 +37,7 @@ type SignRequest = {
   phone?: string;
   companyName?: string;
   cvr?: string;
+  companyAddress?: string;
   signatureDataUrl?: string;
   insurers?: string[];
   consent: {
@@ -97,6 +98,11 @@ export async function POST(req: Request) {
     phone: body.phone?.trim() || undefined,
     companyName: body.companyName.trim(),
     cvr: body.cvr.trim(),
+    // Fra CVR-opslaget i browseren — kun visning i PDF'en, så vi nøjes med at trimme og begrænse længden.
+    companyAddress:
+      typeof body.companyAddress === "string" && body.companyAddress.trim()
+        ? body.companyAddress.trim().slice(0, 160)
+        : undefined,
     signatureDataUrl: body.signatureDataUrl,
   };
 
@@ -186,6 +192,9 @@ export async function POST(req: Request) {
              <div style="font-size:13px;color:#0a0a0a;line-height:1.55;">${insurers.map((s) => s.replace(/[<>&]/g, "")).join(" · ")}</div>
            </div>`
         : "";
+      // Proff omdirigerer /firma/-/-/-/<cvr> til virksomhedens side med nøgletal.
+      const cvrDigits = signer.cvr.replace(/\D/g, "");
+      const proffUrl = cvrDigits.length === 8 ? `https://www.proff.dk/firma/-/-/-/${cvrDigits}` : null;
 
       const internalHtml = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;font-size:14px;line-height:1.55;">
 <div style="max-width:640px;">
@@ -195,6 +204,7 @@ export async function POST(req: Request) {
   ${emailKvTable([
     ["Underskriver", `${signer.name}, ${signer.title}`],
     ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
+    ...(proffUrl ? [["Regnskab", `<a href="${proffUrl}" style="color:#a58878;">se regnskab på Proff</a>`, "html"] as [string, string, "html"]] : []),
     ["E-mail", signer.email],
     ...(signer.phone ? [["Telefon", signer.phone] as [string, string]] : []),
     ["Tidspunkt", signedHuman],

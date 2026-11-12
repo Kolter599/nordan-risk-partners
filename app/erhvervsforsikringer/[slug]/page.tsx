@@ -21,7 +21,7 @@ export async function generateMetadata({
   const url = `${SITE}/erhvervsforsikringer/${slug}`;
 
   return {
-    title: `${product.title} — Nordan Risk Partners`,
+    title: product.seoTitle ? { absolute: product.seoTitle } : `${product.title} — Nordan Risk Partners`,
     description: product.metaDescription,
     keywords: [
       product.title.toLowerCase(),

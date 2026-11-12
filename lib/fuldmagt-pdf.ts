@@ -1,19 +1,32 @@
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const NORDAN_GREEN = rgb(0x25 / 255, 0x3f / 255, 0x32 / 255);
-const NORDAN_ACCENT = rgb(0xa5 / 255, 0x88 / 255, 0x78 / 255);
-// Tiny dose of "official Danish digital identity" blue — only used on the
-// small eIDAS pill, so it reads as legit without looking marketing-y.
-const ID_BLUE = rgb(0x00 / 255, 0x60 / 255, 0xe6 / 255);
-const INK = rgb(0.1, 0.1, 0.1);
-const MUTED = rgb(0.42, 0.42, 0.42);
-const LINE = rgb(0.88, 0.86, 0.83);
+// Side 1 følger "Undersøgelsesfuldmagt - Skabelon.pdf" (Mads, nov. 2026): mål, farver og ordlyd
+// er aflæst fra skabelonen. Aptos er Microsofts font; Helvetica er nærmeste indbyggede, så
+// skriftstørrelserne er regnet om, så linjelængderne passer.
+// Side 2 er signeringscertifikatet med audit-data (eIDAS art. 25) — det er vores, ikke skabelonens.
+
+const hex = (h: string) => rgb(parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255);
+const GREEN = hex("254135");
+const INK = hex("1F2A30");
+const MUTED = hex("6B7780");
+const BOX = hex("E8EFEC");
+const RULE = hex("8A9590");
+const ID_BLUE = hex("0060E6");
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
-const MARGIN_X = 56;
+const MARGIN_X = 62.5;
+const CONTENT_W = PAGE_WIDTH - MARGIN_X * 2;
+const BOTTOM = 50;
+
+const TITLE_SIZE = 16.3;
+const BODY_SIZE = 9.2;
+const BODY_LH = 13.6;
+const PARA_GAP = 6;
+const LABEL_SIZE = 6.5;
+const LABEL_TRACKING = 1.3; // spærret skrift i labels ("F U L D M A G T S G I V E R")
 
 export type SignerData = {
   name: string;
@@ -22,6 +35,8 @@ export type SignerData = {
   phone?: string;
   companyName: string;
   cvr: string;
+  /** "Vej 1, 1234 By" fra CVR-opslaget. Valgfri — udelades i boksen hvis den mangler. */
+  companyAddress?: string;
   signatureDataUrl?: string;
 };
 
@@ -38,489 +53,296 @@ export type BuildResult = {
   finalHash: string;
 };
 
-async function loadLogo(pdfDoc: PDFDocument) {
-  // Big square Nordan logo — replaces the older wordmark for stronger
-  // brand presence at the top of every page.
+type Fonts = { regular: PDFFont; bold: PDFFont; italic: PDFFont; mono: PDFFont; monoBold: PDFFont };
+type Ctx = { doc: PDFDocument; page: PDFPage; y: number; f: Fonts; logo: PDFImage | null; pages: PDFPage[] };
+type Seg = { text: string; bold?: boolean };
+type Color = ReturnType<typeof rgb>;
+
+async function loadLogo(doc: PDFDocument): Promise<PDFImage | null> {
   const logoPath = path.join(process.cwd(), "public", "images", "logo-fuldmagt-square.png");
   try {
-    const bytes = await fs.readFile(logoPath);
-    return await pdfDoc.embedPng(bytes);
-  } catch {
-    // Fallback to original if the square one is missing
-    try {
-      const fallback = path.join(process.cwd(), "public", "images", "logo-fuldmagt.png");
-      const bytes = await fs.readFile(fallback);
-      return await pdfDoc.embedPng(bytes);
-    } catch {
-      return null;
-    }
+    return await doc.embedPng(await fs.readFile(logoPath));
+  } catch (err) {
+    console.error("[fuldmagt-pdf] logo mangler, fortsætter uden:", err);
+    return null;
   }
 }
 
-function drawHeader(
-  page: PDFPage,
-  logo: Awaited<ReturnType<typeof loadLogo>>,
-  fontBold: PDFFont,
-  font: PDFFont
-) {
-  if (logo) {
-    const logoH = 80;
-    const logoW = (logo.width / logo.height) * logoH;
-    page.drawImage(logo, {
-      x: MARGIN_X,
-      y: PAGE_HEIGHT - 30 - logoH,
-      width: logoW,
-      height: logoH,
-    });
-  } else {
-    page.drawText("NORDAN RISK PARTNERS", {
-      x: MARGIN_X,
-      y: PAGE_HEIGHT - 56,
-      size: 16,
-      font: fontBold,
-      color: NORDAN_GREEN,
-    });
+function addPage(ctx: Ctx) {
+  const page = ctx.doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  // Logo helt oppe ved kanten, flugter med højre margin (som i skabelonen).
+  if (ctx.logo) {
+    const h = 66;
+    const w = (ctx.logo.width / ctx.logo.height) * h;
+    page.drawImage(ctx.logo, { x: PAGE_WIDTH - MARGIN_X - w, y: PAGE_HEIGHT - 9 - h, width: w, height: h });
   }
-
-  // Right-aligned company info — turns header into a brand letterhead
-  const lines: Array<[string, PDFFont, number, ReturnType<typeof rgb>]> = [
-    ["Nordan Risk Partners ApS", fontBold, 9.5, NORDAN_GREEN],
-    ["CVR-nr. 4595 3769", font, 8.5, MUTED],
-    ["Toftevej 15B · 3450 Allerød", font, 8.5, MUTED],
-    ["info@ndrp.dk · +45 53 52 00 06", font, 8.5, MUTED],
-  ];
-  let y = PAGE_HEIGHT - 40;
-  for (const [text, useFont, size, color] of lines) {
-    const w = useFont.widthOfTextAtSize(text, size);
-    page.drawText(text, {
-      x: PAGE_WIDTH - MARGIN_X - w,
-      y,
-      size,
-      font: useFont,
-      color,
-    });
-    y -= 12;
-  }
-
-  page.drawLine({
-    start: { x: MARGIN_X, y: PAGE_HEIGHT - 130 },
-    end: { x: PAGE_WIDTH - MARGIN_X, y: PAGE_HEIGHT - 130 },
-    thickness: 0.5,
-    color: LINE,
-  });
-}
-
-function drawFooter(page: PDFPage, font: PDFFont, pageNumber: number, totalPages: number) {
-  page.drawLine({
-    start: { x: MARGIN_X, y: 50 },
-    end: { x: PAGE_WIDTH - MARGIN_X, y: 50 },
-    thickness: 0.5,
-    color: LINE,
-  });
-  page.drawText("Nordan Risk Partners ApS · CVR 4595 3769 · Toftevej 15B · 3450 Allerød", {
-    x: MARGIN_X,
-    y: 36,
-    size: 8,
-    font,
-    color: MUTED,
-  });
-  const pageStr = `Side ${pageNumber} af ${totalPages}`;
-  const w = font.widthOfTextAtSize(pageStr, 8);
-  page.drawText(pageStr, {
-    x: PAGE_WIDTH - MARGIN_X - w,
-    y: 36,
-    size: 8,
-    font,
-    color: MUTED,
-  });
-}
-
-type WriterContext = {
-  page: PDFPage;
-  y: number;
-  pdfDoc: PDFDocument;
-  font: PDFFont;
-  fontBold: PDFFont;
-  fontItalic: PDFFont;
-  fontMono: PDFFont;
-  fontMonoBold: PDFFont;
-  logo: Awaited<ReturnType<typeof loadLogo>>;
-  pageList: PDFPage[];
-};
-
-function newPage(ctx: WriterContext) {
-  const page = ctx.pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  drawHeader(page, ctx.logo, ctx.fontBold, ctx.font);
-  ctx.pageList.push(page);
+  ctx.pages.push(page);
   ctx.page = page;
-  ctx.y = PAGE_HEIGHT - 165;
+  ctx.y = PAGE_HEIGHT - 71; // titlens grundlinje
 }
 
-function ensureSpace(ctx: WriterContext, needed: number) {
-  if (ctx.y - needed < 70) {
-    newPage(ctx);
+function ensureSpace(ctx: Ctx, needed: number) {
+  if (ctx.y - needed < BOTTOM) {
+    addPage(ctx);
+    ctx.y -= 24;
   }
 }
 
-function drawText(
-  ctx: WriterContext,
-  text: string,
-  opts: { size?: number; bold?: boolean; color?: ReturnType<typeof rgb>; gap?: number } = {}
-) {
-  const size = opts.size ?? 10.5;
-  const font = opts.bold ? ctx.fontBold : ctx.font;
+/** Spærret label i versaler. */
+function drawLabel(page: PDFPage, f: Fonts, text: string, x: number, y: number, color: Color = GREEN) {
+  let cx = x;
+  for (const ch of text.toUpperCase()) {
+    page.drawText(ch, { x: cx, y, size: LABEL_SIZE, font: f.bold, color });
+    cx += f.bold.widthOfTextAtSize(ch, LABEL_SIZE) + LABEL_TRACKING;
+  }
+}
+
+/** Ombryder tekst med fed/normal på ord-niveau. */
+function drawRich(ctx: Ctx, segs: Seg[], opts: { x?: number; width?: number; size?: number; lh?: number; color?: Color; after?: number } = {}) {
+  const x = opts.x ?? MARGIN_X;
+  const width = opts.width ?? CONTENT_W;
+  const size = opts.size ?? BODY_SIZE;
+  const lh = opts.lh ?? BODY_LH;
   const color = opts.color ?? INK;
-  const lineHeight = size * 1.5;
-  const maxWidth = PAGE_WIDTH - MARGIN_X * 2;
+  const space = ctx.f.regular.widthOfTextAtSize(" ", size);
 
-  const words = text.split(/\s+/);
-  let line = "";
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    const w = font.widthOfTextAtSize(candidate, size);
-    if (w > maxWidth && line) {
-      ensureSpace(ctx, lineHeight);
-      ctx.page.drawText(line, { x: MARGIN_X, y: ctx.y, size, font, color });
-      ctx.y -= lineHeight;
-      line = word;
-    } else {
-      line = candidate;
+  const words = segs.flatMap((s) => s.text.split(/\s+/).filter(Boolean).map((w) => ({ w, font: s.bold ? ctx.f.bold : ctx.f.regular })));
+  let line: typeof words = [];
+  let lineW = 0;
+  const flush = () => {
+    ensureSpace(ctx, lh);
+    let cx = x;
+    for (const { w, font } of line) {
+      ctx.page.drawText(w, { x: cx, y: ctx.y, size, font, color });
+      cx += font.widthOfTextAtSize(w, size) + space;
     }
+    ctx.y -= lh;
+    line = [];
+    lineW = 0;
+  };
+  for (const word of words) {
+    const ww = word.font.widthOfTextAtSize(word.w, size);
+    if (line.length && lineW + space + ww > width) flush();
+    lineW += line.length ? space + ww : ww;
+    line.push(word);
   }
-  if (line) {
-    ensureSpace(ctx, lineHeight);
-    ctx.page.drawText(line, { x: MARGIN_X, y: ctx.y, size, font, color });
-    ctx.y -= lineHeight;
-  }
-  ctx.y -= opts.gap ?? 4;
+  if (line.length) flush();
+  ctx.y -= opts.after ?? PARA_GAP;
 }
 
-function drawBullet(ctx: WriterContext, text: string) {
-  const size = 10.5;
-  const lineHeight = size * 1.5;
-  const indent = 18;
-  const maxWidth = PAGE_WIDTH - MARGIN_X * 2 - indent;
-  ensureSpace(ctx, lineHeight);
+const para = (ctx: Ctx, text: string) => drawRich(ctx, [{ text }]);
 
-  ctx.page.drawCircle({
-    x: MARGIN_X + 5,
-    y: ctx.y + 4,
-    size: 1.6,
-    color: NORDAN_ACCENT,
-  });
+function drawDashItem(ctx: Ctx, text: string) {
+  ensureSpace(ctx, BODY_LH);
+  ctx.page.drawText("–", { x: MARGIN_X + 2, y: ctx.y, size: BODY_SIZE, font: ctx.f.bold, color: GREEN });
+  drawRich(ctx, [{ text }], { x: MARGIN_X + 18, width: CONTENT_W - 18, after: 3 });
+}
 
-  const words = text.split(/\s+/);
-  let line = "";
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    const w = ctx.font.widthOfTextAtSize(candidate, size);
-    if (w > maxWidth && line) {
-      ensureSpace(ctx, lineHeight);
-      ctx.page.drawText(line, {
-        x: MARGIN_X + indent,
-        y: ctx.y,
-        size,
-        font: ctx.font,
-        color: INK,
-      });
-      ctx.y -= lineHeight;
-      line = word;
-    } else {
-      line = candidate;
+/** Forkorter med … hvis teksten er bredere end feltet (lange firmanavne). */
+function fitText(font: PDFFont, text: string, size: number, max: number) {
+  if (font.widthOfTextAtSize(text, size) <= max) return text;
+  let t = text;
+  while (t.length > 1 && font.widthOfTextAtSize(`${t}…`, size) > max) t = t.slice(0, -1);
+  return `${t}…`;
+}
+
+/** De to bokse: lysegrøn flade, mørkegrøn streg i toppen, samme højde. */
+function drawPartyBoxes(ctx: Ctx, signer: SignerData) {
+  const gap = 14;
+  const boxW = (CONTENT_W - gap) / 2;
+  const pad = 10;
+  const lineH = 12.8;
+  const parties = [
+    {
+      label: "Fuldmagtsgiver",
+      name: signer.companyName,
+      lines: [signer.companyAddress, `CVR nr.: ${signer.cvr}`].filter((l): l is string => Boolean(l)),
+      note: '(I det følgende kaldet "Fuldmagtsgiver")',
+    },
+    {
+      label: "Forsikringsmægler",
+      name: "Nordan Risk Partners ApS",
+      lines: ["Toftevej 15B, 3450 Allerød", "CVR nr.: 45953769"],
+      note: '(I det følgende kaldet "Nordan Risk Partners")',
+    },
+  ];
+  const maxLines = Math.max(4, ...parties.map((p) => p.lines.length + 1));
+  const boxH = 28 + maxLines * lineH + 18;
+  const top = PAGE_HEIGHT - 87;
+
+  parties.forEach((p, i) => {
+    const bx = MARGIN_X + i * (boxW + gap);
+    ctx.page.drawRectangle({ x: bx, y: top - boxH, width: boxW, height: boxH, color: BOX });
+    ctx.page.drawRectangle({ x: bx, y: top - 2, width: boxW, height: 2, color: GREEN });
+    let y = top - 15;
+    drawLabel(ctx.page, ctx.f, p.label, bx + pad, y);
+    y -= 14;
+    ctx.page.drawText(fitText(ctx.f.bold, p.name, 9, boxW - pad * 2), { x: bx + pad, y, size: 9, font: ctx.f.bold, color: INK });
+    for (const l of p.lines) {
+      y -= lineH;
+      ctx.page.drawText(fitText(ctx.f.regular, l, 9, boxW - pad * 2), { x: bx + pad, y, size: 9, font: ctx.f.regular, color: INK });
     }
-  }
-  if (line) {
-    ensureSpace(ctx, lineHeight);
-    ctx.page.drawText(line, {
-      x: MARGIN_X + indent,
-      y: ctx.y,
-      size,
-      font: ctx.font,
-      color: INK,
-    });
-    ctx.y -= lineHeight;
-  }
+    ctx.page.drawText(p.note, { x: bx + pad, y: top - boxH + 10, size: 7.5, font: ctx.f.italic, color: MUTED });
+  });
+  ctx.y = top - boxH - 28;
+}
+
+function formatDate(iso: string, withTime = false) {
+  return new Date(iso).toLocaleString("da-DK", {
+    dateStyle: "long",
+    ...(withTime ? { timeStyle: "short" as const } : {}),
+    timeZone: "Europe/Copenhagen",
+  });
+}
+
+/** Kraftig streg, spærret overskrift og fire felter: værdi over streg, label under. */
+function drawSignatureBlock(ctx: Ctx, signer: SignerData, audit: AuditData) {
+  ensureSpace(ctx, 170);
   ctx.y -= 4;
-}
+  ctx.page.drawLine({ start: { x: MARGIN_X - 1, y: ctx.y }, end: { x: PAGE_WIDTH - MARGIN_X + 1, y: ctx.y }, thickness: 1.3, color: INK });
+  ctx.y -= 15;
+  drawLabel(ctx.page, ctx.f, "Underskrift – Fuldmagtsgiver", MARGIN_X, ctx.y, INK);
 
-function drawHr(ctx: WriterContext, gap = 10) {
-  ensureSpace(ctx, gap + 6);
-  ctx.y -= gap;
-  ctx.page.drawLine({
-    start: { x: MARGIN_X, y: ctx.y },
-    end: { x: PAGE_WIDTH - MARGIN_X, y: ctx.y },
-    thickness: 0.5,
-    color: LINE,
-  });
-  ctx.y -= gap;
-}
+  // eIDAS-pille ud for overskriften — vores tilføjelse til skabelonen.
+  const pill = "eIDAS art. 25";
+  const pillW = ctx.f.bold.widthOfTextAtSize(pill, 6.5) + 15;
+  const px = PAGE_WIDTH - MARGIN_X - pillW;
+  ctx.page.drawRectangle({ x: px, y: ctx.y - 3.5, width: pillW, height: 12, color: hex("EFF5FF"), borderColor: ID_BLUE, borderWidth: 0.5 });
+  ctx.page.drawCircle({ x: px + 5.5, y: ctx.y + 2.5, size: 2, color: ID_BLUE });
+  ctx.page.drawText(pill, { x: px + 10, y: ctx.y, size: 6.5, font: ctx.f.bold, color: ID_BLUE });
 
-function drawKv(ctx: WriterContext, label: string, value: string) {
-  const size = 10;
-  const lineHeight = size * 1.5;
-  ensureSpace(ctx, lineHeight);
-  ctx.page.drawText(label, {
-    x: MARGIN_X,
-    y: ctx.y,
-    size,
-    font: ctx.fontBold,
-    color: MUTED,
-  });
-  ctx.page.drawText(value, {
-    x: MARGIN_X + 110,
-    y: ctx.y,
-    size,
-    font: ctx.font,
-    color: INK,
-  });
-  ctx.y -= lineHeight + 2;
-}
-
-/**
- * Closer to the ORIGINAL signature block — clean, green-themed. Only
- * addition: a small blue eIDAS pill on the right of the heading.
- */
-function drawSignatureBlock(ctx: WriterContext, signer: SignerData, audit: AuditData) {
-  ensureSpace(ctx, 200);
-  ctx.y -= 16;
-  drawHr(ctx, 6);
-
-  drawText(ctx, "Underskrift", { size: 13, bold: true, color: NORDAN_GREEN, gap: 8 });
-
-  // Small "eIDAS art. 25" pill aligned with the heading we just drew
-  const pillY = ctx.y + 13 * 1.5 + 2;
-  const pillText = "eIDAS art. 25";
-  const pillTextW = ctx.fontBold.widthOfTextAtSize(pillText, 7.5);
-  const pillW = pillTextW + 14;
-  const pillX = PAGE_WIDTH - MARGIN_X - pillW;
-  ctx.page.drawRectangle({
-    x: pillX,
-    y: pillY - 4,
-    width: pillW,
-    height: 14,
-    color: rgb(0.94, 0.97, 1),
-    borderColor: ID_BLUE,
-    borderWidth: 0.6,
-  });
-  ctx.page.drawCircle({
-    x: pillX + 5,
-    y: pillY + 3,
-    size: 2.5,
-    color: ID_BLUE,
-  });
-  ctx.page.drawText(pillText, {
-    x: pillX + 11,
-    y: pillY,
-    size: 7.5,
-    font: ctx.fontBold,
-    color: ID_BLUE,
-  });
-
-  drawKv(ctx, "Navn", signer.name);
-  drawKv(ctx, "Titel", signer.title);
-  drawKv(ctx, "Firma", `${signer.companyName} (CVR ${signer.cvr})`);
-  drawKv(ctx, "E-mail", signer.email);
-  if (signer.phone) drawKv(ctx, "Telefon", signer.phone);
-  drawKv(
-    ctx,
-    "Dato",
-    new Date(audit.signedAt).toLocaleString("da-DK", {
-      dateStyle: "long",
-      timeStyle: "short",
-      timeZone: "Europe/Copenhagen",
-    })
-  );
-
-  ctx.y -= 6;
-  ensureSpace(ctx, 60);
-  ctx.page.drawText("Signatur:", {
-    x: MARGIN_X,
-    y: ctx.y,
-    size: 10,
-    font: ctx.fontBold,
-    color: MUTED,
-  });
-  ctx.page.drawText(signer.name, {
-    x: MARGIN_X + 110,
-    y: ctx.y,
-    size: 16,
-    font: ctx.fontItalic,
-    color: NORDAN_GREEN,
-  });
-  ctx.y -= 18;
-  ctx.page.drawText("Underskrevet elektronisk · audit-id " + audit.auditId, {
-    x: MARGIN_X + 110,
-    y: ctx.y,
-    size: 8,
-    font: ctx.font,
-    color: MUTED,
-  });
-  ctx.y -= 18;
-}
-
-function drawTechHeading(ctx: WriterContext, text: string) {
-  ensureSpace(ctx, 22);
-  ctx.page.drawText(text.toUpperCase(), {
-    x: MARGIN_X,
-    y: ctx.y,
-    size: 9,
-    font: ctx.fontMonoBold,
-    color: NORDAN_GREEN,
-  });
-  ctx.y -= 6;
-  ctx.page.drawLine({
-    start: { x: MARGIN_X, y: ctx.y },
-    end: { x: PAGE_WIDTH - MARGIN_X, y: ctx.y },
-    thickness: 0.5,
-    color: LINE,
-  });
-  ctx.y -= 12;
-}
-
-function drawTechRow(
-  ctx: WriterContext,
-  key: string,
-  value: string,
-  opts: { useNormalFont?: boolean } = {}
-) {
-  const size = 9;
-  const lineHeight = 14;
-  ensureSpace(ctx, lineHeight);
-  ctx.page.drawText(key, {
-    x: MARGIN_X,
-    y: ctx.y,
-    size,
-    font: ctx.fontMonoBold,
-    color: MUTED,
-  });
-  const valueX = MARGIN_X + 110;
-  const maxValueW = PAGE_WIDTH - MARGIN_X - valueX;
-  const fnt = opts.useNormalFont ? ctx.font : ctx.fontMono;
-  const words = value.split(/\s+/);
-  let line = "";
-  for (const w of words) {
-    const candidate = line ? `${line} ${w}` : w;
-    if (fnt.widthOfTextAtSize(candidate, size) > maxValueW && line) {
-      ctx.page.drawText(line, {
-        x: valueX,
-        y: ctx.y,
-        size,
-        font: fnt,
-        color: INK,
-      });
-      ctx.y -= lineHeight;
-      ensureSpace(ctx, lineHeight);
-      line = w;
-    } else {
-      line = candidate;
-    }
-  }
-  if (line) {
-    ctx.page.drawText(line, {
-      x: valueX,
-      y: ctx.y,
-      size,
-      font: fnt,
-      color: INK,
+  const colGap = 20;
+  const colW = (CONTENT_W - colGap) / 2;
+  const rows: Array<Array<[string, string, PDFFont, number, Color]>> = [
+    [
+      ["Navn", signer.name, ctx.f.regular, 10, INK],
+      ["Dato", formatDate(audit.signedAt, true), ctx.f.regular, 10, INK],
+    ],
+    [
+      ["Stilling / rolle (valgfrit)", signer.title, ctx.f.regular, 10, INK],
+      ["Underskrift", signer.name, ctx.f.italic, 15, GREEN],
+    ],
+  ];
+  let lineY = ctx.y - 45;
+  for (const row of rows) {
+    row.forEach(([label, value, font, size, color], col) => {
+      const x = MARGIN_X + col * (colW + colGap);
+      ctx.page.drawText(fitText(font, value, size, colW), { x, y: lineY + 6, size, font, color });
+      ctx.page.drawLine({ start: { x, y: lineY }, end: { x: x + colW, y: lineY }, thickness: 0.7, color: RULE });
+      ctx.page.drawText(label, { x, y: lineY - 9, size: 6.5, font: ctx.f.regular, color: MUTED });
     });
-    ctx.y -= lineHeight;
+    lineY -= 65;
   }
-  ctx.y -= 2;
+  ctx.y = lineY + 65 - 26;
+  ctx.page.drawText(`Underskrevet elektronisk af ${signer.email} · audit-id ${audit.auditId} · se signeringscertifikat`, {
+    x: MARGIN_X,
+    y: ctx.y,
+    size: 6.5,
+    font: ctx.f.regular,
+    color: MUTED,
+  });
+  ctx.y -= 14;
 }
 
-function drawCertificatePage(ctx: WriterContext, signer: SignerData, audit: AuditData) {
-  // Title bar — green slab + small monospace subtitle
-  drawText(ctx, "Signeringscertifikat", {
-    size: 18,
-    bold: true,
-    color: NORDAN_GREEN,
-    gap: 2,
-  });
-  ctx.page.drawText("$ openssl signing-receipt --algo sha256 --eidas-art-25", {
+function drawFooter(page: PDFPage, f: Fonts, n: number, total: number) {
+  const parts = ["Nordan Risk Partners ApS", "Toftevej 15B, 3450 Allerød", "CVR 45953769"];
+  if (total > 1) parts.push(`Side ${n} af ${total}`);
+  const text = parts.join("  ·  ");
+  const w = f.regular.widthOfTextAtSize(text, 6.6);
+  page.drawText(text, { x: (PAGE_WIDTH - w) / 2, y: 24, size: 6.6, font: f.regular, color: MUTED });
+}
+
+// ── Side 2: signeringscertifikat ────────────────────────────────────────────
+
+function techHeading(ctx: Ctx, text: string) {
+  ensureSpace(ctx, 24);
+  drawLabel(ctx.page, ctx.f, text, MARGIN_X, ctx.y);
+  ctx.y -= 6;
+  ctx.page.drawRectangle({ x: MARGIN_X, y: ctx.y, width: CONTENT_W, height: 0.8, color: GREEN });
+  ctx.y -= 13;
+}
+
+function techRow(ctx: Ctx, key: string, value: string, plain = false) {
+  const size = 8.5;
+  const lh = 13;
+  const vx = MARGIN_X + 104;
+  const font = plain ? ctx.f.regular : ctx.f.mono;
+  ensureSpace(ctx, lh);
+  ctx.page.drawText(key, { x: MARGIN_X, y: ctx.y, size, font: ctx.f.monoBold, color: MUTED });
+  let line = "";
+  for (const w of value.split(/\s+/)) {
+    const cand = line ? `${line} ${w}` : w;
+    if (line && font.widthOfTextAtSize(cand, size) > PAGE_WIDTH - MARGIN_X - vx) {
+      ctx.page.drawText(line, { x: vx, y: ctx.y, size, font, color: INK });
+      ctx.y -= lh;
+      ensureSpace(ctx, lh);
+      line = w;
+    } else line = cand;
+  }
+  if (line) ctx.page.drawText(line, { x: vx, y: ctx.y, size, font, color: INK });
+  ctx.y -= lh + 1;
+}
+
+function drawCertificatePage(ctx: Ctx, signer: SignerData, audit: AuditData) {
+  ctx.page.drawText("Signeringscertifikat", { x: MARGIN_X, y: ctx.y, size: TITLE_SIZE, font: ctx.f.bold, color: GREEN });
+  ctx.y -= 15;
+  ctx.page.drawText("Elektronisk underskrift iht. eIDAS-forordningen (910/2014) art. 25 · SHA-256", {
     x: MARGIN_X,
     y: ctx.y,
     size: 8.5,
-    font: ctx.fontMono,
+    font: ctx.f.regular,
     color: MUTED,
   });
-  ctx.y -= 22;
+  ctx.y -= 30;
 
-  drawTechHeading(ctx, "DOCUMENT");
-  drawTechRow(ctx, "title", "Undersøgelsesfuldmagt — Nordan Risk Partners", { useNormalFont: true });
-  drawTechRow(ctx, "version", "v1");
-  drawTechRow(ctx, "sha256", audit.documentHash);
-  drawTechRow(ctx, "format", "application/pdf");
-  ctx.y -= 6;
+  techHeading(ctx, "Dokument");
+  techRow(ctx, "title", "Undersøgelsesfuldmagt til forsikringsmægler — Nordan Risk Partners", true);
+  techRow(ctx, "version", "v2");
+  techRow(ctx, "sha256", audit.documentHash);
+  techRow(ctx, "format", "application/pdf");
+  ctx.y -= 8;
 
-  drawTechHeading(ctx, "SIGNER");
-  drawTechRow(ctx, "name", signer.name, { useNormalFont: true });
-  drawTechRow(ctx, "title", signer.title, { useNormalFont: true });
-  drawTechRow(ctx, "company", signer.companyName, { useNormalFont: true });
-  drawTechRow(ctx, "cvr", signer.cvr);
-  drawTechRow(ctx, "email", signer.email);
-  if (signer.phone) drawTechRow(ctx, "phone", signer.phone);
-  ctx.y -= 6;
+  techHeading(ctx, "Underskriver");
+  techRow(ctx, "name", signer.name, true);
+  techRow(ctx, "title", signer.title, true);
+  techRow(ctx, "company", signer.companyName, true);
+  techRow(ctx, "cvr", signer.cvr);
+  if (signer.companyAddress) techRow(ctx, "address", signer.companyAddress, true);
+  techRow(ctx, "email", signer.email);
+  if (signer.phone) techRow(ctx, "phone", signer.phone);
+  ctx.y -= 8;
 
-  drawTechHeading(ctx, "SIGNATURE");
-  drawTechRow(ctx, "signed_at", new Date(audit.signedAt).toISOString());
-  drawTechRow(
+  techHeading(ctx, "Signatur");
+  techRow(ctx, "signed_at", new Date(audit.signedAt).toISOString());
+  techRow(
     ctx,
     "tz_local",
-    new Date(audit.signedAt).toLocaleString("da-DK", {
-      dateStyle: "full",
-      timeStyle: "long",
-      timeZone: "Europe/Copenhagen",
-    }),
-    { useNormalFont: true }
+    new Date(audit.signedAt).toLocaleString("da-DK", { dateStyle: "full", timeStyle: "long", timeZone: "Europe/Copenhagen" }),
+    true
   );
-  drawTechRow(ctx, "ip", audit.ip);
-  drawTechRow(ctx, "user_agent", audit.userAgent);
-  drawTechRow(ctx, "audit_id", audit.auditId);
-  drawTechRow(ctx, "consent", "read=true authorized=true eidas=true");
-  ctx.y -= 6;
-
-  drawTechHeading(ctx, "DECLARATION");
-  drawText(
-    ctx,
-    "Underskriver bekræfter at have læst og forstået dokumentet, at være bemyndiget til at underskrive på vegne af ovennævnte virksomhed, og samtykker til elektronisk signering iht. eIDAS-forordningen (910/2014) artikel 25.",
-    { size: 9.5, color: INK, gap: 6 }
-  );
-  drawText(
-    ctx,
-    "Underskrivers samtykke er bekræftet ved eksplicit afkrydsning på signeringssiden, kombineret med ovenstående identifikations- og audit-data. Dokument-hash beregnet før og efter underskrift gør senere ændringer detekterbare af modtagende forsikringsselskaber.",
-    { size: 8.5, color: MUTED, gap: 6 }
-  );
-
+  techRow(ctx, "ip", audit.ip);
+  techRow(ctx, "user_agent", audit.userAgent);
+  techRow(ctx, "audit_id", audit.auditId);
+  techRow(ctx, "consent", "read=true authorized=true eidas=true");
   ctx.y -= 8;
-  // Verification block — terminal-style call-to-action for verifiers
-  ctx.page.drawRectangle({
-    x: MARGIN_X,
-    y: ctx.y - 30,
-    width: PAGE_WIDTH - MARGIN_X * 2,
-    height: 30,
-    color: rgb(0.97, 0.97, 0.95),
-    borderColor: LINE,
-    borderWidth: 0.5,
-  });
-  ctx.page.drawText("# verify", {
-    x: MARGIN_X + 8,
-    y: ctx.y - 12,
-    size: 8,
-    font: ctx.fontMonoBold,
-    color: NORDAN_GREEN,
-  });
-  ctx.page.drawText(
-    `curl https://nordanriskpartners.dk/verify -d audit_id=${audit.auditId}`,
-    {
-      x: MARGIN_X + 8,
-      y: ctx.y - 24,
-      size: 8,
-      font: ctx.fontMono,
-      color: INK,
-    }
+
+  techHeading(ctx, "Erklæring");
+  para(
+    ctx,
+    "Underskriver bekræfter at have læst og forstået dokumentet, at være bemyndiget til at underskrive på vegne af ovennævnte virksomhed, og samtykker til elektronisk signering iht. eIDAS-forordningen (910/2014) artikel 25."
   );
-  ctx.y -= 38;
+  drawRich(
+    ctx,
+    [
+      {
+        text: "Underskrivers samtykke er bekræftet ved eksplicit afkrydsning på signeringssiden, kombineret med ovenstående identifikations- og audit-data. Dokument-hash beregnet før og efter underskrift gør senere ændringer detekterbare af modtagende forsikringsselskaber.",
+      },
+    ],
+    { size: 8.5, lh: 12.5, color: MUTED }
+  );
 }
+
+// ── Byg ──────────────────────────────────────────────────────────────────────
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const ab = new ArrayBuffer(bytes.byteLength);
@@ -531,124 +353,74 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
     .join("");
 }
 
-export async function buildSignedFuldmagtPdf(
-  signer: SignerData,
-  audit: AuditData
-): Promise<BuildResult> {
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.setTitle("Undersøgelsesfuldmagt — Nordan Risk Partners");
-  pdfDoc.setAuthor("Nordan Risk Partners ApS");
-  pdfDoc.setSubject(`Undersøgelsesfuldmagt for ${signer.companyName} (CVR ${signer.cvr})`);
-  pdfDoc.setProducer("nordanriskpartners.dk");
-  pdfDoc.setCreationDate(new Date());
+export async function buildSignedFuldmagtPdf(signer: SignerData, audit: AuditData): Promise<BuildResult> {
+  const doc = await PDFDocument.create();
+  doc.setTitle("Undersøgelsesfuldmagt til forsikringsmægler — Nordan Risk Partners");
+  doc.setAuthor("Nordan Risk Partners ApS");
+  doc.setSubject(`Undersøgelsesfuldmagt for ${signer.companyName} (CVR ${signer.cvr})`);
+  doc.setProducer("nordanriskpartners.dk");
+  doc.setCreationDate(new Date());
 
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
-  const fontMono = await pdfDoc.embedFont(StandardFonts.Courier);
-  const fontMonoBold = await pdfDoc.embedFont(StandardFonts.CourierBold);
-  const logo = await loadLogo(pdfDoc);
-
-  const ctx: WriterContext = {
-    page: pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]),
-    y: PAGE_HEIGHT - 165,
-    pdfDoc,
-    font,
-    fontBold,
-    fontItalic,
-    fontMono,
-    fontMonoBold,
-    logo,
-    pageList: [],
+  const f: Fonts = {
+    regular: await doc.embedFont(StandardFonts.Helvetica),
+    bold: await doc.embedFont(StandardFonts.HelveticaBold),
+    italic: await doc.embedFont(StandardFonts.HelveticaOblique),
+    mono: await doc.embedFont(StandardFonts.Courier),
+    monoBold: await doc.embedFont(StandardFonts.CourierBold),
   };
-  drawHeader(ctx.page, logo, fontBold, font);
-  ctx.pageList.push(ctx.page);
+  const ctx = { doc, f, logo: await loadLogo(doc), pages: [] as PDFPage[], y: 0 } as unknown as Ctx;
+  addPage(ctx);
 
-  drawText(ctx, "Undersøgelsesfuldmagt", {
-    size: 22,
-    bold: true,
-    color: NORDAN_GREEN,
-    gap: 4,
-  });
-  drawText(ctx, "til forsikringsmægler", {
-    size: 12,
-    color: MUTED,
-    gap: 18,
-  });
+  ctx.page.drawText("Undersøgelsesfuldmagt til forsikringsmægler", { x: MARGIN_X, y: ctx.y, size: TITLE_SIZE, font: f.bold, color: GREEN });
+  drawPartyBoxes(ctx, signer);
 
-  drawText(ctx, `Virksomhedsnavn: ${signer.companyName}`, { bold: true });
-  drawText(ctx, `CVR-nr.: ${signer.cvr}`, { bold: true, gap: 4 });
-  drawText(ctx, "(I det følgende kaldet “Fuldmagtsgiver”)", { color: MUTED, size: 9.5, gap: 14 });
-
-  drawText(ctx, "Nordan Risk Partners ApS", { bold: true });
-  drawText(ctx, "CVR-nr.: 4595 3769", { bold: true });
-  drawText(ctx, "Toftevej 15B, 3450 Allerød", { bold: true, gap: 4 });
-  drawText(ctx, "(I det følgende kaldet “Nordan Risk Partners”)", { color: MUTED, size: 9.5, gap: 18 });
-
-  drawText(
+  para(
     ctx,
     "Det bekræftes herved, at Fuldmagtsgiver har truffet aftale med Nordan Risk Partners om, at Nordan Risk Partners fra dags dato er udpeget som vores forsikringsmægler til undersøgelse af forsikringsmarkedet. Fuldmagten er ikke eksklusiv og erstatter ikke tidligere udstedte forsikringsmæglerfuldmagter."
   );
-
-  drawText(ctx, "Denne undersøgelsesfuldmagt bemyndiger, og giver forsikringsmægleren ret til, på Fuldmagtsgivers vegne:", { gap: 8 });
-
-  drawBullet(
+  drawRich(ctx, [{ text: "Denne undersøgelsesfuldmagt bemyndiger, og giver forsikringsmægleren ret til, på Fuldmagtsgivers vegne:" }], { after: 4 });
+  drawDashItem(
     ctx,
     "at indhente oplysninger om samtlige bestående forsikringer hos enhver forsikringsdistributør, herunder forsikringspolicer, vilkår, præmier, selvbehold, samt øvrige relevante oplysninger for vurdering af eksisterende forsikringsforhold"
   );
-  drawBullet(
+  drawDashItem(
     ctx,
     "at indhente oplysninger om skadehistorik for alle bestående og tidligere forsikringer, herunder skadestatistikker, skadereserver, samt risikovurderinger og andre relevante data, i relation til anmeldte skader"
   );
-  drawBullet(
+  drawDashItem(
     ctx,
     "at afgive risikooplysninger til enhver forsikringsdistributør og indhente tilbud på forsikringer inden for alle brancher på skadesforsikringsområdet."
   );
-
-  ctx.y -= 6;
-  drawText(
+  ctx.y -= 4;
+  para(ctx, "Annullering af eksisterende forsikringer eller etablering af nye forsikringer kræver, at der gives eksklusiv forsikringsmæglerfuldmagt til Nordan Risk Partners.");
+  para(
     ctx,
-    "Annullering af eksisterende forsikringer eller etablering af nye forsikringer kræver, at der gives eksklusiv forsikringsmæglerfuldmagt til Nordan Risk Partners."
+    "Fuldmagtsgiver er gjort opmærksom på, at oplysninger, som forsikringsmægleren videregiver til forsikringsdistributører, i relation til de omhandlede forsikringer, sidestilles med oplysninger afgivet af Fuldmagtsgiver."
   );
-
-  drawText(
+  para(
     ctx,
-    "Fuldmagtsgiver er gjort opmærksomme på, at oplysninger, som forsikringsmægleren videregiver til forsikringsdistributører, i relation til de omhandlede forsikringer, sidestilles med oplysninger afgivet af Fuldmagtsgiver."
+    "Fuldmagtsgiver er gjort opmærksom på, at undersøgelsesfuldmagten til enhver tid kan tilbagekaldes af Fuldmagtsgiver på samme måde, som den er indgået, og at den forbliver i kraft, indtil den skriftligt tilbagekaldes, eller der indgås mæglerfuldmagt med Nordan Risk Partners. Fuldmagten ophører dog automatisk 1 år efter underskriftsdatoen, såfremt den ikke er tilbagekaldt forinden."
   );
+  drawRich(ctx, [
+    { text: "Fuldmagtsgiver påpeger, at Fuldmagtsgiver ønsker, at Fuldmagtsgivers nuværende forsikringsmægler" },
+    { text: "ikke", bold: true },
+    { text: "involveres eller orienteres om nærværende undersøgelsesfuldmagt." },
+  ]);
+  para(ctx, "Underskriver indestår for at være berettiget til at underskrive denne undersøgelsesfuldmagt og dermed berettiget til at forpligte Fuldmagtsgiver.");
 
-  drawText(
-    ctx,
-    "Fuldmagtsgiver er gjort opmærksomme på, at undersøgelsesfuldmagten til enhver tid kan tilbagekaldes af Fuldmagtsgiver på samme måde, som den er indgået og at den forbliver i kraft, indtil den skriftligt tilbagekaldes, eller der indgås mæglerfuldmagt med Nordan Risk Partners. Fuldmagten ophører dog automatisk 1 år efter underskriftsdatoen, såfremt den ikke er tilbagekaldt forinden."
-  );
-
-  drawText(
-    ctx,
-    "Fuldmagtsgiver påpeger, at Fuldmagtsgiver ønsker at Fuldmagtsgivers nuværende forsikringsmægler ikke involveres eller orienteres om nærværende undersøgelsesfuldmagt."
-  );
-
-  drawText(
-    ctx,
-    "Underskriver indestår for at være berettiget til at underskrive denne undersøgelsesfuldmagt og dermed berettiget til at forpligte Fuldmagtsgiver."
-  );
-
-  // Signature block — pulled-back, original look + small eIDAS pill
   drawSignatureBlock(ctx, signer, audit);
 
-  // Certificate page — terminal/system style
-  newPage(ctx);
+  addPage(ctx);
   drawCertificatePage(ctx, signer, audit);
 
-  const total = ctx.pageList.length;
-  ctx.pageList.forEach((p, i) => drawFooter(p, font, i + 1, total));
+  ctx.pages.forEach((p, i) => drawFooter(p, f, i + 1, ctx.pages.length));
 
-  const initialBytes = await pdfDoc.save({ useObjectStreams: true });
-  const finalHash = await sha256Hex(initialBytes);
-  return { pdfBytes: initialBytes, finalHash };
+  const pdfBytes = await doc.save({ useObjectStreams: true });
+  return { pdfBytes, finalHash: await sha256Hex(pdfBytes) };
 }
 
 export async function computeOriginalHash(): Promise<string> {
-  const seed =
-    "Undersøgelsesfuldmagt-NordanRiskPartners-v1-2026-05-template-seed";
-  const enc = new TextEncoder().encode(seed);
-  return sha256Hex(enc);
+  // v2: skabelonens ordlyd (nov. 2026).
+  const seed = "Undersøgelsesfuldmagt-NordanRiskPartners-v2-2026-11-template-seed";
+  return sha256Hex(new TextEncoder().encode(seed));
 }
