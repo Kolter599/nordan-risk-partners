@@ -72,7 +72,6 @@ export async function POST(req: Request) {
   // Validate required fields + all three consent boxes
   if (
     !isNonEmpty(body.name) ||
-    !isNonEmpty(body.title) ||
     !isNonEmpty(body.email) ||
     !isNonEmpty(body.companyName) ||
     !isNonEmpty(body.cvr) ||
@@ -93,7 +92,7 @@ export async function POST(req: Request) {
 
   const signer: SignerData = {
     name: body.name.trim(),
-    title: body.title.trim(),
+    title: typeof body.title === "string" ? body.title.trim().slice(0, 120) : "", // valgfri
     email: body.email.trim(),
     phone: body.phone?.trim() || undefined,
     companyName: body.companyName.trim(),
@@ -202,7 +201,7 @@ export async function POST(req: Request) {
   <h2 style="margin:0 0 16px 0;font-size:18px;font-weight:600;color:#253f32;">${signer.name} <span style="color:#6b6b6b;font-weight:500;">· ${signer.companyName}</span></h2>
 
   ${emailKvTable([
-    ["Underskriver", `${signer.name}, ${signer.title}`],
+    ["Underskriver", [signer.name, signer.title].filter(Boolean).join(", ")],
     ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
     ...(proffUrl ? [["Regnskab", `<a href="${proffUrl}" style="color:#a58878;">se regnskab på Proff</a>`, "html"] as [string, string, "html"]] : []),
     ["E-mail", signer.email],
@@ -241,7 +240,7 @@ export async function POST(req: Request) {
           </p>
           ${emailKvTable([
             ["Firma", `${signer.companyName} (CVR ${signer.cvr})`],
-            ["Underskriver", `${signer.name}, ${signer.title}`],
+            ["Underskriver", [signer.name, signer.title].filter(Boolean).join(", ")],
             ["Tidspunkt", signedHuman],
             ["Audit-ID", audit.auditId],
           ])}

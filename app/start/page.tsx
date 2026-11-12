@@ -38,8 +38,8 @@ export default async function StartPage({
         </Link>
       </header>
 
-      {/* Card area — centered, body never scrolls */}
-      <main className="flex-1 overflow-hidden flex items-center justify-center p-3 sm:p-6 md:p-8">
+      {/* Card area — centreret; er vinduet for lavt, scroller området i stedet for at skære kortet af */}
+      <main className="flex-1 min-h-0 overflow-y-auto flex items-center-safe justify-center p-3 sm:p-6 md:p-8">
         <CvrLookup initialCvr={hasInitial ? initialCvr : undefined} />
       </main>
     </div>

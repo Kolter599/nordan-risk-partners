@@ -193,7 +193,8 @@ export function CvrLookup({ headline, initialCvr, onStepChange }: CvrLookupProps
 
   // The sign step's content (doc + form) is tall — make sure the card
   // never grows past the parent's bounds so /start can keep body locked.
-  const heightClass = step === "sign" ? "max-h-full flex flex-col" : "";
+  // min-h: på meget lave vinduer scroller /start-området i stedet for at klemme kortet sammen.
+  const heightClass = step === "sign" ? "max-h-full min-h-[560px] flex flex-col" : "";
 
   // Map our 5 steps onto 4 user-visible stages (cvr / confirm / contact / sign).
   // Done collapses back into the sign stage being marked complete.

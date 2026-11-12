@@ -304,7 +304,7 @@ function drawCertificatePage(ctx: Ctx, signer: SignerData, audit: AuditData) {
 
   techHeading(ctx, "Underskriver");
   techRow(ctx, "name", signer.name, true);
-  techRow(ctx, "title", signer.title, true);
+  if (signer.title) techRow(ctx, "title", signer.title, true);
   techRow(ctx, "company", signer.companyName, true);
   techRow(ctx, "cvr", signer.cvr);
   if (signer.companyAddress) techRow(ctx, "address", signer.companyAddress, true);

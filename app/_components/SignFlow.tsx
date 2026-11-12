@@ -196,13 +196,11 @@ export function SignFlow({ onSigned, defaults }: Props) {
 
   const formComplete =
     name.trim().length > 1 &&
-    title.trim().length > 0 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
     phone.trim().length >= 6 &&
     combinedConsent;
 
   const invalidName = name.trim().length < 2;
-  const invalidTitle = title.trim().length === 0;
   const invalidEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const invalidPhone = phone.trim().length < 6;
   const invalidConsent = !combinedConsent;
@@ -277,10 +275,10 @@ export function SignFlow({ onSigned, defaults }: Props) {
 
   return (
     <div className="flex flex-col w-full flex-1 min-h-0">
-      <div className="flex-1 min-h-0 overflow-hidden grid lg:grid-cols-[1fr_1.05fr]">
+      <div className="flex-1 min-h-0 overflow-hidden grid lg:grid-cols-[1fr_1.05fr] lg:grid-rows-[minmax(0,1fr)]">
         {/* LEFT — document, scrollable */}
         <div
-          className={`relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[65vh] lg:max-h-none flex-col overflow-hidden ${
+          className={`relative border-b lg:border-b-0 lg:border-r border-[color:var(--color-nordan-line)] bg-[color:var(--color-nordan-soft)]/40 max-h-[65vh] lg:max-h-none min-h-0 flex-col overflow-hidden ${
             mobileStep === "fill" ? "hidden lg:flex" : "flex"
           }`}
         >
@@ -459,11 +457,12 @@ export function SignFlow({ onSigned, defaults }: Props) {
 
         {/* RIGHT — form */}
         <div
-          className={`flex-col overflow-hidden lg:overflow-visible ${
+          className={`min-h-0 flex-col overflow-hidden ${
             mobileStep === "read" ? "hidden lg:flex" : "flex"
           }`}
         >
-          <div className="flex-1 overflow-y-auto lg:overflow-visible bg-[color:var(--color-nordan-soft)]/40 lg:bg-transparent px-4 py-4 sm:p-7">
+          {/* Scroller selv på alle skærme — ellers skæres e-mail, selskaber og samtykke af på lave vinduer */}
+          <div className="flex-1 min-h-0 overflow-y-auto bg-[color:var(--color-nordan-soft)]/40 lg:bg-transparent px-4 py-4 sm:p-7">
             <button
               type="button"
               onClick={() => setMobileStep("read")}
@@ -492,16 +491,14 @@ export function SignFlow({ onSigned, defaults }: Props) {
                         }`}
                       />
                     </Field>
-                    <Field label="Titel">
+                    <Field label="Titel" optional>
                       <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="fx Direktør"
                         className={`w-full h-10 px-3 rounded-[6px] border focus:border-[color:var(--color-nordan-accent)] outline-none text-[0.92rem] ${
-                          showInvalid && invalidTitle
-                            ? "border-red-500 bg-red-50"
-                            : "border-[color:var(--color-nordan-line)]"
+                          "border-[color:var(--color-nordan-line)]"
                         }`}
                       />
                     </Field>
@@ -703,11 +700,12 @@ export function SignFlow({ onSigned, defaults }: Props) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[0.74rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.16em] mb-1.5">
+      <label className="flex items-baseline justify-between text-[0.74rem] font-semibold text-[color:var(--color-nordan-muted)] uppercase tracking-[0.16em] mb-1.5">
         {label}
+        {optional ? <span className="normal-case tracking-normal font-normal text-[0.72rem]">Valgfrit</span> : null}
       </label>
       {children}
     </div>
