@@ -301,7 +301,8 @@ export function SignFlow({ onSigned, defaults }: Props) {
               <p className="text-[0.9rem] leading-relaxed text-[color:var(--color-nordan-ink)]">
                 Forsikringsselskaberne udleverer kun policer og skadehistorik til en{" "}
                 <strong>autoriseret forsikringsmægler</strong> — så vi har brug for en kort
-                undersøgelsesfuldmagt for at kunne lave analysen.{" "}
+                undersøgelsesfuldmagt for at kunne lave analysen og{" "}
+                <strong>indhente tilbud på jeres vegne</strong>.{" "}
                 <span className="text-[color:var(--color-nordan-ink-soft)]">
                   Det er standard branchepraksis; alle mæglere arbejder sådan her. Du forpligter
                   dig til intet, og undersøgelsesfuldmagten kan trækkes tilbage når som helst.
