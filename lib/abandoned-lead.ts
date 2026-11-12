@@ -88,7 +88,7 @@ export async function lookupCvr(cvr: string | null): Promise<CvrEnrichment | nul
 /* -------------------- Attribution -------------------- */
 
 /** Referrer-host → kanal. Spejler lib/db.ts, så labels matcher /admin. */
-function deriveFromReferrer(referrer: string | null): { source: string; medium: string } {
+export function deriveFromReferrer(referrer: string | null): { source: string; medium: string } {
   if (!referrer) return { source: "direct", medium: "direct" };
   const h = referrer.toLowerCase();
   if (h.includes("linkedin.")) return { source: "linkedin", medium: "social" };
@@ -147,22 +147,30 @@ export function renderAbandonedLeadEmail(
   const email = s.contact_email?.trim() || null;
   const phone = s.contact_phone?.trim() || null;
   const name = s.contact_name?.trim() || null;
-  const hasContact = !!(email || phone);
+  // CVR-registrets telefon/mail hører til i Kontakt — vises kun hvis de er forskellige fra det indtastede.
+  const cvrPhone = cvrInfo?.phone && cvrInfo.phone.replace(/\D/g, "") !== phone?.replace(/\D/g, "") ? cvrInfo.phone : null;
+  const cvrEmail = cvrInfo?.email && cvrInfo.email.toLowerCase() !== email?.toLowerCase() ? cvrInfo.email : null;
+  const hasContact = !!(email || phone || cvrPhone || cvrEmail);
+  const tel = (v: string) =>
+    `<a href="tel:${escapeHtml(v.replace(/\s/g, ""))}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(v)}</a>`;
+  const mail = (v: string) => `<a href="mailto:${escapeHtml(v)}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(v)}</a>`;
+  const row = (k: string, v: string) => `<tr><td style="padding:3px 16px 3px 0;color:#6b6b6b;">${escapeHtml(k)}</td><td style="padding:3px 0;">${v}</td></tr>`;
 
   const subject = `Uafsluttet forespørgsel — ${company}${s.cvr ? ` (CVR ${s.cvr})` : ""}`;
 
   const contactHtml = hasContact
     ? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
-         ${name ? `<tr><td style="padding:3px 16px 3px 0;color:#6b6b6b;">Navn</td><td style="padding:3px 0;font-weight:600;">${escapeHtml(name)}</td></tr>` : ""}
-         ${email ? `<tr><td style="padding:3px 16px 3px 0;color:#6b6b6b;">E-mail</td><td style="padding:3px 0;"><a href="mailto:${escapeHtml(email)}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(email)}</a></td></tr>` : ""}
-         ${phone ? `<tr><td style="padding:3px 16px 3px 0;color:#6b6b6b;">Telefon</td><td style="padding:3px 0;"><a href="tel:${escapeHtml(phone.replace(/\s/g, ""))}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(phone)}</a></td></tr>` : ""}
+         ${name ? row("Navn", `<strong>${escapeHtml(name)}</strong>`) : ""}
+         ${email ? row("E-mail", mail(email)) : ""}
+         ${phone ? row("Telefon", tel(phone)) : ""}
+         ${cvrPhone ? row(phone ? "Telefon, virksomhed" : "Telefon", tel(cvrPhone)) : ""}
+         ${cvrEmail ? row(email ? "E-mail, virksomhed" : "E-mail", mail(cvrEmail)) : ""}
        </table>`
     : `<div style="color:#6b6b6b;">Ingen kontaktoplysninger indtastet — men vi har CVR, så virksomheden kan kontaktes direkte.</div>`;
 
   const cvrRows: Array<[string, string]> = [];
+  if (s.cvr) cvrRows.push(["CVR", s.cvr]);
   if (cvrInfo?.address) cvrRows.push(["Adresse", cvrInfo.address]);
-  if (cvrInfo?.phone) cvrRows.push(["Telefon (CVR)", cvrInfo.phone]);
-  if (cvrInfo?.email) cvrRows.push(["E-mail (CVR)", cvrInfo.email]);
   if (cvrInfo?.industry) cvrRows.push(["Branche", cvrInfo.industry]);
   if (cvrInfo?.employees) cvrRows.push(["Ansatte", cvrInfo.employees]);
 
@@ -173,11 +181,7 @@ export function renderAbandonedLeadEmail(
            ${cvrRows
              .map(
                ([k, v]) =>
-                 `<tr><td style="padding:3px 16px 3px 0;color:#6b6b6b;">${escapeHtml(k)}</td><td style="padding:3px 0;">${
-                   k.startsWith("Telefon")
-                     ? `<a href="tel:${escapeHtml(v.replace(/\s/g, ""))}" style="color:#a58878;font-weight:600;text-decoration:none;">${escapeHtml(v)}</a>`
-                     : escapeHtml(v)
-                 }</td></tr>`
+                 row(k, escapeHtml(v))
              )
              .join("")}
          </table>
@@ -220,7 +224,8 @@ export function renderAbandonedLeadEmail(
     `${step} · sidst aktiv ${whenLabel(s.last_seen_at)}\n\n` +
     `Kontakt:\n` +
     (hasContact
-      ? `${name ? `Navn: ${name}\n` : ""}${email ? `E-mail: ${email}\n` : ""}${phone ? `Telefon: ${phone}\n` : ""}`
+      ? `${name ? `Navn: ${name}\n` : ""}${email ? `E-mail: ${email}\n` : ""}${phone ? `Telefon: ${phone}\n` : ""}` +
+        `${cvrPhone ? `${phone ? "Telefon, virksomhed" : "Telefon"}: ${cvrPhone}\n` : ""}${cvrEmail ? `${email ? "E-mail, virksomhed" : "E-mail"}: ${cvrEmail}\n` : ""}`
       : `Ingen kontaktoplysninger indtastet — men vi har CVR, så virksomheden kan kontaktes direkte.\n`) +
     (cvrRows.length
       ? `\nFra CVR-registret:\n${cvrRows.map(([k, v]) => `${k}: ${v}`).join("\n")}\n`

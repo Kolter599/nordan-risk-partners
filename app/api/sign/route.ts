@@ -10,8 +10,10 @@ import {
   renderBrandedEmail,
   emailKvTable,
   EMAIL_COLORS,
+  escapeHtml,
 } from "@/lib/email-template";
 import { upsertLead, recordEvent, attachFuldmagtUrl } from "@/lib/db";
+import { deriveFromReferrer } from "@/lib/abandoned-lead";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.MAIL_FROM ?? "Nordan Risk Partners <info@ndrp.dk>";
@@ -191,6 +193,13 @@ export async function POST(req: Request) {
              <div style="font-size:13px;color:#0a0a0a;line-height:1.55;">${insurers.map((s) => s.replace(/[<>&]/g, "")).join(" · ")}</div>
            </div>`
         : "";
+      // Samme "rejse"-linje som i frafalds-mailen: hvor kom de fra, og hvor landede de.
+      const first = body.attribution?.first ?? null;
+      const derived = deriveFromReferrer(first?.referrer ?? null);
+      const journeyBlock = `<div style="margin-top:20px;font-size:13px;color:#6b6b6b;line-height:1.7;">
+    Kom fra <strong style="color:#0a0a0a;">${escapeHtml(first?.source ?? derived.source)}</strong> · ${escapeHtml(first?.medium ?? derived.medium)}${first?.campaign ? ` · kampagne ${escapeHtml(first.campaign)}` : ""}
+    ${first?.landingPath ? `<br/>Landede på <span style="color:#0a0a0a;">${escapeHtml(first.landingPath)}</span>` : ""}
+  </div>`;
       // Proff omdirigerer /firma/-/-/-/<cvr> til virksomhedens side med nøgletal.
       const cvrDigits = signer.cvr.replace(/\D/g, "");
       const proffUrl = cvrDigits.length === 8 ? `https://www.proff.dk/firma/-/-/-/${cvrDigits}` : null;
@@ -211,6 +220,7 @@ export async function POST(req: Request) {
     ...(blobUrl ? [["Blob-link", `<a href="${blobUrl}" style="color:#a58878;">åbn permanent kopi</a>`, "html"] as [string, string, "html"]] : []),
   ])}
   ${insurersBlock}
+  ${journeyBlock}
 
   <hr style="border:none;border-top:1px solid #e6e3df;margin:24px 0 12px;" />
   <div style="font-size:12px;color:#6b6b6b;">
